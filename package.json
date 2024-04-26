@@ -1,0 +1,22 @@
+{
+  "name": "sumnews.net",
+  "version": "1.0.0",
+  "description": "Updated setup for sumnews.net project",
+  "main": "server/server.js",
+  "scripts": {
+    "start": "nodemon server.js",
+    "dev": "concurrently \"npm run start\" \"npm run client\"",
+    "client": "npm run dev --prefix ./src"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "concurrently": "^8.2.2",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "kleur": "^4.1.5",
+    "node-cron": "^3.0.3",
+    "nodemon": "^3.1.0",
+    "path": "^0.12.7"
+  }
+}
