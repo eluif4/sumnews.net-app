@@ -126,7 +126,7 @@ const routes = [
                 if (scrollElement != null) {
                     scrollElement.scrollTo({ top: 0 })
                 }
-                fetch(`${BACKEND_URL}/db/eventArticles?eventUri=${to.params.eventUri}`)
+                fetch(`${BACKEND_URL}db/eventArticles?eventUri=${to.params.eventUri}`)
                     .then(response => response.json())
                     .then(data => {
                         List.articles = data;

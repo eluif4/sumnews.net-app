@@ -1,7 +1,7 @@
 const { Router } = require('express');
 const { getSourcesController,
     getGenresController
-} = require('../../6-controller/db/GetArticlesController');
+} = require('../../6-controllers/db/articlesController');
 
 const app = Router();
 

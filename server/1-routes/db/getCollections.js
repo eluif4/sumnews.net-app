@@ -6,7 +6,7 @@ const { getArticlesController,
     PostArticlesController,
     getEventArticlesController,
     getArticlesFromEventController,
-} = require('../../6-controller/db/GetArticlesController');
+} = require('../../6-controllers/db/articlesController');
 
 const app = Router();
 

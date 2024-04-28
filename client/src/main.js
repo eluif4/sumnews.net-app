@@ -24,7 +24,7 @@ export const List = reactive({
 
 // ----- GET ALL SOURCES FROM DB -----
 export const Sources = reactive({ list: [] })
-fetch(`${BACKEND_URL}/db/getAllSources`)
+fetch(`${BACKEND_URL}db/getAllSources`)
   .then(response => response.json())
   .then(response => {
     Sources.list = response
@@ -34,7 +34,7 @@ fetch(`${BACKEND_URL}/db/getAllSources`)
   })
 
 export const Genres = reactive({ list: [] })
-fetch(`${BACKEND_URL}/db/getAllGenres`)
+fetch(`${BACKEND_URL}db/getAllGenres`)
   .then(response => response.json())
   .then(response => {
     Genres.list = response

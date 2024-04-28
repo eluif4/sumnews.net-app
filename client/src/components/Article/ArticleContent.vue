@@ -114,7 +114,7 @@ const aggregatedResults = ref([]);
 (async () => {
     if (eventUri) {
         try {
-            const response = await fetch(`${BACKEND_URL}/db/getArticlesFromEvent`, {
+            const response = await fetch(`${BACKEND_URL}db/getArticlesFromEvent`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -323,7 +323,7 @@ const handleArticleClick = () => {
     display: flex;
     flex-direction: row;
     /* FUTURE CHANGE: check why this isnt working */
-    /* overflow: auto; */
+    overflow: auto;
     gap: 10px;
 }
 

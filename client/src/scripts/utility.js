@@ -45,7 +45,7 @@ export async function front_getArticlesFromDB(
         }, {}),
     };
     try {
-        const articles = await axios.post(`${BACKEND_URL}/db/PostArticlesController`, {
+        const articles = await axios.post(`${BACKEND_URL}db/PostArticlesController`, {
             filter: updatedFilter,
             project: project,
             sort: sort,

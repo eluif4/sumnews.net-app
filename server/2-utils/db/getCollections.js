@@ -1,5 +1,5 @@
 const Article = require("../../4-models/articles")
-const Country = require("../../4-models/countries")
+// const Country = require("../../4-models/countries")
 const Genre = require("../../4-models/genres")
 const Source = require("../../4-models/sources")
 

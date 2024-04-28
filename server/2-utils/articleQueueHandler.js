@@ -1,17 +1,18 @@
 // LIBRARIES
 const kleur = require('kleur')
-const Article = require('../4-models/articles')
-const Queue = require('./Queue')
-const Event = require('../4-models/events')
+const Article = require('../4-models/articles.js')
+const Queue = require('../4-models/queue.js')
+const Event = require('../4-models/events.js')
 
 const uuid = require('uuid');
-const { articleQueue } = require('./ServerHelper')
-const { saveToDB, saveDocument, getEvents, getAllSources } = require('./db/DatabaseAccess')
+// const { articleQueue } = require('./ServerHelper')
+const { saveDocument, getEvents, getAllSources } = require('./db/databaseAccess.js')
 const { summarizeArticleWithGemini, assignGenreWithGemini } = require('../2-utils/api/GeminiRequests')
 const { getArticlesFromEvent } = require('../2-utils/api/getArticlesFromAPI')
 const { getAllGenres } = require('../2-utils/db/getCollections')
 
 var isProcessing = false
+const articleQueue = new Queue()
 // Process ARTICLE QUEUE
 async function processQueue() {
     if (!isProcessing) {
@@ -212,5 +213,6 @@ function genreExistsInPossibleGenres(genre, possibleGenres) {
 }
 
 module.exports = {
-    processQueue
+    processQueue,
+    articleQueue,
 }

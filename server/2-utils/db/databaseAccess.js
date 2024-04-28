@@ -1,21 +1,21 @@
 const Article = require("../../4-models/articles")
-const User = require("../../4-models/users")
+// const User = require("../../4-models/users")
 const Source = require('../../4-models/sources')
 const Event = require('../../4-models/events')
 
 const { MongoClient } = require('mongodb')
-const { handleError } = require('../ErrorHandler')
+const { handleError } = require('../../3-middleware/errorHandler')
 const kleur = require('kleur')
 
 // FUTURE CHANGE: i dont think this is the correct way to connect to the db. By default the project should connect to the articlesdb db
-const client = new MongoClient(process.env.MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true })
+const client = new MongoClient(process.env.MONGODB_URI_PROD)
 var db = client.db(process.env.MONGODB_DATABASE)
 
 // ----- ARTICLES -----
 async function saveToDB(article) { //SAVES THE GIVEN ARTICLE TO DB WITH ALL RELEVANT METADATA ABOUT IT
     console.log(kleur.bold(`Saving article...`))
 
-    await client.connect();
+    // await client.connect();
     const collection = db.collection('articles')
     try {
         await collection.insertOne(article)
@@ -27,9 +27,10 @@ async function saveToDB(article) { //SAVES THE GIVEN ARTICLE TO DB WITH ALL RELE
 async function saveDocument(document) {
     // console.log(kleur.bold(`Saving ${document.collection.modelName} into '${document.collection.name}' collection`));
 
-    await client.connect();
-    const collection = db.collection(document.collection.name)
-    await collection.insertOne(document)
+    // await client.connect();
+    const collection = db.collection(document.collection.name);
+    await collection.insertOne(document);
+    console.log(`Document saved to '${document.collection.name}' collection`)
 }
 
 async function getArticlesFromDB(filter, project, sort, /*collation,*/ skip, limit) {
