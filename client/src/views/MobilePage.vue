@@ -11,7 +11,7 @@ watch(() => route.path, () => {
 </script>
 
 <template>
-    <!-- FUTURE CHAGNE: slide right when going deeper in the route and left when coming back up -->
+    <!-- FUTURE CHANGE: slide right when going deeper in the route and left when coming back up -->
     <transition name="srl" mode="out-in">
         <router-view></router-view>
     </transition>
