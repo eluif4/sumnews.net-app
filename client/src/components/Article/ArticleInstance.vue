@@ -4,6 +4,8 @@ import { useRoute, useRouter } from 'vue-router'
 import { PopupAttributes, selectedArticle } from '../../main.js';
 import { config } from '../../constants'
 
+const props = defineProps({ article: Object, });
+
 // import Share from './Share.vue'
 // import ReadLater from './ReadLater.vue';
 // import FullCoverage from './FullCoverage.vue'
@@ -36,7 +38,6 @@ const isLinkActive = (path) => {
     return route.path.startsWith(path);
 };
 
-const props = defineProps({ article: Object, });
 // const emits = defineEmits(['toggleState'])
 
 var isArticleInstanceOpen = ref(false)
@@ -211,8 +212,10 @@ const backAction = {
 
 const imageUrl = ref(props.article.imageUrl)
 
+//FUTURE CHANGE: THIS DOESNT WORK
 const handleImageError = () => {
-    imageUrl.value = `../assets/icons/bgsumnewslogo.png`
+    console.log('image couldnt load')
+    props.article.imageUrl = `../assets/icons/bgsumnewslogo.png`
 }
 </script>
 
