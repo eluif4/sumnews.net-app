@@ -89,27 +89,6 @@ function scrollHandler(event) {
     }
     // }
 }
-
-// FUTURE CHANGE: i dont think i need this anymore because i dont need to open and close specific articles
-// const setArticleRef = (el, index) => {
-//     if (el) {
-//         articleRefs.value[index] = el
-//     }
-// }
-
-// FUTURE CHANGE: i dont think i need this anymore because i dont need to open and close specific articles
-// onMounted(() => {
-//     if (route.path.includes('/article/')) {
-//         handleToggleState(0)
-//     }
-// })
-
-// const isEventPage = ref(route.path.includes('/event/'));
-
-// watch(() => route.path, (newPath) => {
-//     isEventPage.value = newPath.includes('/event/');
-//     document.getElementById('article-stack').scrollTop = 0;
-// });
 </script>
 
 <template>
