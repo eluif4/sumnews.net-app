@@ -3,13 +3,12 @@ const Article = require("../../4-models/articles")
 const Source = require('../../4-models/sources')
 const Event = require('../../4-models/events')
 
-const { MongoClient } = require('mongodb')
+// const { MongoClient } = require('mongodb')
+const { mongoose } = require('../../config/dbconfig')
 const { handleError } = require('../../3-middleware/errorHandler')
 const kleur = require('kleur')
 
-// FUTURE CHANGE: i dont think this is the correct way to connect to the db. By default the project should connect to the articlesdb db
-const client = new MongoClient(process.env.MONGODB_URI_PROD)
-var db = client.db(process.env.MONGODB_DATABASE)
+const db  = mongoose.connection;
 
 // ----- ARTICLES -----
 async function saveToDB(article) { //SAVES THE GIVEN ARTICLE TO DB WITH ALL RELEVANT METADATA ABOUT IT
@@ -61,19 +60,31 @@ async function articlesSinceYesterday() {
 
     var articles = [];
     try {
+        // var query = {
+        //     "datePublished": {
+        //         "$gte": yesterdayFormatted,
+        //         "$lt": todayFormatted
+        //     }
+        // };
+
+        // var options = {
+        //     sort: {"datePublished": -1},
+        //     projection: {_id: 1, url: 1}
+        // };
+
+        // articles = await Article.find(query, options);
         articles = await Article.find({
-            "datePublished": {
-                "$gte": yesterdayFormatted,
-                "$lt": todayFormatted
-            }
-        }, { "_id": 1, "url": 1 }).sort({ "datePublished": -1 });
-
-
+                "datePublished": {
+                    "$gte": yesterdayFormatted,
+                    "$lt": todayFormatted
+                }
+            })
+            .sort({"datePublished": -1})
+            .select({ url: 1 });
     } catch (error) {
         console.error(error);
     }
 
-    // FUTURE CHANGE: retrieve only the url form the database and not the whole article information
     return articles
 }
 
