@@ -5,6 +5,7 @@ const kleur = require('kleur');
 const dotenv = require('dotenv');
 const express = require('express');
 const cors = require('cors');
+const { BSON } = require('mongodb')
 
 //---CONFIG---
 dotenv.config({ path: path.resolve(__dirname, './server/config/config.env') });
@@ -35,7 +36,7 @@ const port = process.env.PORT || 3000;
 app.use(express.json());
 app.use(
     cors({
-        origin: ["http://localhost:5173", "https://localhost:5173"] //FUTURE CHANGE: CHANGE CORS HERE
+        origin: ["http://localhost:5173", "https://localhost:5173"]
     })
 )
 app.use(DBGETARTICLESROUTES)
@@ -73,6 +74,15 @@ async function cronTask() {
 
             // Get all articles from yesterday and today
             const articlesInDB = await articlesSinceYesterday();
+
+            // Calculate size of query
+            // var size = 0;
+            // articlesInDB.forEach(
+            //     function(doc) {
+            //         size += BSON.calculateObjectSize(doc)
+            //     }
+            // )
+            // console.log(size)
 
             // Loop over all articles from API request
             for (const article of articles) {
