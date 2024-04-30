@@ -21,8 +21,8 @@ const LOGIC = path.join(__dirname, 'server/5-logic');
 const CONTROLLER = path.join(__dirname, 'server/6-controllers');
 
 //---ROUTE FILES---
-const DBGETARTICLESROUTES = require('./server/1-routes/db/getArticles.js');
-const DBGETCOLLECTIONSROUTES = require('./server/1-routes/db/getCollections.js');
+const DBGETARTICLESROUTES = require('./server/1-routes/db/getCollections.js');
+const DBGETCOLLECTIONSROUTES = require('./server/1-routes/db/getArticles.js');
 
 //---FUNCTIONS---
 const { getArticlesUsingRecentActiviy } = require('./server/2-utils/api/getArticlesFromAPI.js');

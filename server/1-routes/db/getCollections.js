@@ -1,20 +1,11 @@
-const { query } = require('express-validator')
-
 const { Router } = require('express');
-const { getArticlesController,
-    getArticlesFromSearchController,
-    PostArticlesController,
-    getEventArticlesController,
-    getArticlesFromEventController,
+const { getSourcesController,
+    getGenresController
 } = require('../../6-controllers/db/articlesController');
 
 const app = Router();
 
-app.get('/db/GetArticles', getArticlesController)
-app.get('/db/search', query('search_query').notEmpty().escape(), getArticlesFromSearchController)
-app.post('/db/PostArticlesController', PostArticlesController)
-app.get('/db/eventArticles', getEventArticlesController)
-app.post('/db/getArticlesFromEvent', getArticlesFromEventController)
-
+app.get('/db/getAllSources', getSourcesController)
+app.get('/db/getAllGenres', getGenresController)
 
 module.exports = app;
