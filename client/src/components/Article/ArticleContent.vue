@@ -39,10 +39,10 @@ const formattedDate = computed(() => {
 
 const formattedSummarizedContent = computed(() => {
     return props.article.summarizedContent
-        .replace(/<vocab>/g, '<span class="vocab">')
+        // .replace(/<vocab>/g, '<span class="vocab">')
         .replace(/<squote>/g, '<span class="squote">')
         .replace(/<quote>/g, '<span class="quote">')
-        .replace(/<\/vocab>/g, '</span>')
+        // .replace(/<\/vocab>/g, '</span>')
         .replace(/<\/squote>/g, '</span>')
         .replace(/<\/quote>/g, '</span>');
 });
