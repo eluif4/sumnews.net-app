@@ -97,9 +97,6 @@ async function processEvent(article) {
                     articleEventsAddedToQueueCount++;
                 }
             }
-            /*
-            FUTURE CHANGE: add the eventUri articles in the front of the queue so that all articles from the save event get processed in the same time
-            */
             console.log(kleur.green(`${articleEventsAddedToQueueCount}/${eventArticles.length} articles added to queue from event ${eventUri}`))
         } catch (error) {
             console.error(`Error processing event`, error)
@@ -170,7 +167,12 @@ async function processArticle(article) { // Returns the updated article
         var chosenGenres = await assignGenreWithGemini(article)
         var possibleGenres = (await getAllGenres()).map(genre => genre.genre)
 
-        chosenGenres = chosenGenres.match(/\[([^\[\]]*)\]/)[1].split(',').map(item => item.trim())
+        try {
+            chosenGenres = chosenGenres.match(/\[([^\[\]]*)\]/)[1].split(',').map(item => item.trim())
+        } catch (error) {
+            chosenGenres = ['World']
+        }
+
         var validGenres = [];
         for (const genre of chosenGenres) {
             if (genreExistsInPossibleGenres(genre, possibleGenres))
