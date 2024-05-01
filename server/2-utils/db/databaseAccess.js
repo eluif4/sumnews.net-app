@@ -95,7 +95,7 @@ async function getUser(userid) {
 
 async function saveUserToDB(user) {
     console.log('saving user to db')
-    await client.connect();
+    // await client.connect();
     const collection = db.collection('users')
     try {
         await collection.insertOne(user)
@@ -106,7 +106,7 @@ async function saveUserToDB(user) {
 }
 
 async function aggregate(collection, pipeline) {
-    await client.connect();
+    // await client.connect();
     // collection = db.collection(collection)
     try {
         const cursor = await db.collection(collection).aggregate(pipeline);
