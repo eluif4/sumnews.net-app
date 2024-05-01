@@ -31,7 +31,7 @@ const routes = [
                 List.articles = []
                 front_getArticlesFromDB()
                     .then(response => {
-                        const articles = response.data
+                        const articles = response
                         for (const article of articles) {
                             List.articles.push(article)
                         }
@@ -67,7 +67,7 @@ const routes = [
                 */
                 if (!article) {
                     const response = await front_getArticlesFromDB({ uuid: to.params.uuid }, undefined, undefined, undefined, 1);
-                    article = response.data[0];
+                    article = response[0];
                 }
                 // If after the db fetch there is an article, send it to the ArticleContent component
                 if (article) {
@@ -103,7 +103,7 @@ const routes = [
         beforeEnter: async (to, from, next) => {
             try {
                 const response = await front_getArticlesFromDB({ uuid: to.params.uuid }, undefined, undefined, undefined, 1);
-                const article = response.data[0];
+                const article = response[0];
                 if (article) {
                     to.params.article = article;
                     next();

@@ -1,4 +1,3 @@
-import axios from 'axios' // FUTURE CHANGE: remove and use fetch instead
 import router from '../router'
 import { config } from '../constants';
 import { PopupAttributes } from '../main';
@@ -39,19 +38,32 @@ export async function front_getArticlesFromDB(
         }, {}),
     };
     try {
-        const articles = await axios.post(`${BACKEND_URL}db/PostArticlesController`, {
-            filter: updatedFilter,
-            project: project,
-            sort: sort,
-            // collation: collation,
-            skip: skip,
-            limit: limit,
+        // const articles = await axios.post(`${BACKEND_URL}db/PostArticlesController`, {
+        const articles = await fetch(`${BACKEND_URL}db/PostArticlesController`, {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                filter: updatedFilter,
+                project: project,
+                sort: sort,
+                // collation: collation,
+                skip: skip,
+                limit: limit
+            })
+        }).then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
         })
 
-        if (skip == 0 && articles.data.length == 0) { // No matching articles found error
+        if (skip == 0 && articles.length == 0) { // No matching articles found error
             // articles.data.push(NoMatchingArticlesHaveBeenFound)
             return articles
-        } else if ((skip > 0 && articles.data.length == 0) || (skip == 0 && articles.data.length < limit)) { // All articles have been displayed error
+        } else if ((skip > 0 && articles.length == 0) || (skip == 0 && articles.length < limit)) { // All articles have been displayed error
             // articles.data.push(AllArticlesHaveBeenDisplayed)
             return articles
         }
@@ -88,8 +100,8 @@ export function bookmarkActionFunction() {
     showPopup(1, "Your article has been bookmarked succesfully")
 }
 
-export function fullCoverageActionFunction() {
-    router.push(`/event/${props.article.eventUri}`)
+export function fullCoverageActionFunction(article) {
+    router.push(`/event/${article.eventUri}`)
 }
 
 export function goBack() {

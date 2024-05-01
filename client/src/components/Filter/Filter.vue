@@ -24,7 +24,7 @@ async function filterHandler(source, genre) {
     // console.log('Fetching relevant articles...') // <- Add Graphics for user
     front_getArticlesFromDB({ genre: List.filterType.genre, source: List.filterType.source }).
         then(response => {
-            List.articles = response.data
+            List.articles = response
             // Scroll to top
             document.getElementById('article-stack').scrollTop = 0
             // Close the dropdown

@@ -1,7 +1,7 @@
 <script setup>
 // FUTURE CHANGE: keep the search terms. if there is a search term change the search icon into a back arrow icon to go back to previous page
 import '../../global.css'
-import axios from 'axios'
+// import axios from 'axios'
 import DOMPurify from 'dompurify'
 import { ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
@@ -32,7 +32,14 @@ async function performSearch() {
         const searchInput = document.getElementById('search-input')
         searchInput.placeholder = searchQuery.value;
         searchInput.blur()
-        const searchArticles = (await axios.get(`${FRONTEND_URL}/db/search?search_query=${searchQuery.value}`)).data
+        // const searchArticles = (await axios.get(`${FRONTEND_URL}/db/search?search_query=${searchQuery.value}`)).data
+        const searchArticles = await fetch(`${FRONTEND_URL}/db/search?search_query=${searchQuery.value}`, {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+        })
         // searchQuery.value = ''
         List.articles = []
         List.articles = searchArticles

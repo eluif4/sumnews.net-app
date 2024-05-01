@@ -24,20 +24,21 @@ if (route.path.includes('/event/')) {
         10 * List.infiniteScrollCallCount,
         10)
         .then(response => {
-            let articlesToAdd = response.data.filter(article => !existsInFeed(article));
+            let articlesToAdd = response.filter(article => !existsInFeed(article));
             List.articles = List.articles.concat(articlesToAdd);
             List.loading = false;
         })
-} else {
-    front_getArticlesFromDB()
-        .then(response => {
-            const articles = response.data
-            for (const article of articles) {
-                if (!existsInFeed(article))
-                    List.articles.push(article)
-            }
-        })
 }
+// } else {
+//     front_getArticlesFromDB()
+//         .then(response => {
+//             const articles = response.data
+//             for (const article of articles) {
+//                 if (!existsInFeed(article))
+//                     List.articles.push(article)
+//             }
+//         })
+// }
 // }
 
 function existsInFeed(insertArticle) {
@@ -66,7 +67,7 @@ function scrollHandler(event) {
                 10 * List.infiniteScrollCallCount,
                 10)
                 .then(response => {
-                    let articlesToAdd = response.data.filter(article => !existsInFeed(article));
+                    let articlesToAdd = response.filter(article => !existsInFeed(article));
                     List.articles = List.articles.concat(articlesToAdd);
                     List.loading = false;
                 })
@@ -81,7 +82,7 @@ function scrollHandler(event) {
                 10 * List.infiniteScrollCallCount,
                 10)
                 .then(response => {
-                    let articlesToAdd = response.data.filter(article => !existsInFeed(article));
+                    let articlesToAdd = response.filter(article => !existsInFeed(article));
                     List.articles = List.articles.concat(articlesToAdd)
                     List.loading = false
                 })
