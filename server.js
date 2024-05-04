@@ -43,7 +43,7 @@ app.use(DBGETARTICLESROUTES)
 app.use(DBGETCOLLECTIONSROUTES)
 
 app.listen(port, function () {
-    console.log(`Server is running on port ${port} in PRODUCTION mode`)
+    console.log(`Server is running on port ${port} in DEVELOPMENT mode`)
 })
 
 //---IMPORTS---
