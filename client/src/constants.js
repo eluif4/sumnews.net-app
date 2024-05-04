@@ -1,7 +1,8 @@
 //https://joshuapleduc.medium.com/use-constants-to-set-backend-url-for-both-production-and-development-904ca269d48f
 const prod = {
     url: {
-        BACKEND_URL: 'https://sumnews-47050b3e4ef6.herokuapp.com/',
+        // BACKEND_URL: 'https://sumnews-47050b3e4ef6.herokuapp.com/', old backend
+        BACKEND_URL: 'https://sumnewsv3-3d5592632fd4.herokuapp.com/', // new backend
         FRONTEND_URL: 'https://sumnews.net/'
     },
 };

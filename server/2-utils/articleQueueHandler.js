@@ -7,7 +7,7 @@ const Event = require('../4-models/events.js')
 const uuid = require('uuid');
 // const { articleQueue } = require('./ServerHelper')
 const { saveDocument, getEvents, getAllSources } = require('./db/databaseAccess.js')
-const { summarizeArticleWithGemini, assignGenreWithGemini } = require('../2-utils/api/GeminiRequests')
+const { summarizeArticleWithGemini, assignGenreWithGemini } = require('../2-utils/api/geminiRequests')
 const { getArticlesFromEvent } = require('../2-utils/api/getArticlesFromAPI')
 const { getAllGenres } = require('../2-utils/db/getCollections')
 
