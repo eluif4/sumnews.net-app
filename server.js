@@ -36,7 +36,7 @@ const port = process.env.PORT || 3000;
 app.use(express.json());
 app.use(
     cors({
-        origin: "https://www.sumnews.net"
+        origin: ["https://www.sumnews.net", "http://localhost:5173", "https://localhost:5173"]
     })
 )
 app.use(DBGETARTICLESROUTES)
