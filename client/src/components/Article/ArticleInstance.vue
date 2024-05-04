@@ -1,30 +1,31 @@
 <script setup>
 import { ref, computed, watch } from 'vue';
-import { useRoute, useRouter } from 'vue-router'
-import { PopupAttributes, selectedArticle } from '../../main.js';
+import { useRoute } from 'vue-router'
+import { selectedArticle } from '../../main.js';
 import { config } from '../../constants'
+import router from '../../router/index.js';
+import { showPopup } from '../../scripts/utility.js';
+// import { actionShareFunction, fullCoverageActionFunction, bookmarkActionFunction } from '../../scripts/utility.js'
 
-// import Share from './Share.vue'
-// import ReadLater from './ReadLater.vue';
-// import FullCoverage from './FullCoverage.vue'
+const props = defineProps({ article: Object, });
+
 import ActionItem from '../Action/ActionItem.vue'
 
 const FRONTEND_URL = config.url.FRONTEND_URL
 const BACKEND_URL = config.url.BACKEND_URL
 
-const router = useRouter();
 const route = useRoute();
 
 // Watch router and design page accordingly
 const isEventsRoute = ref(false)
 
 watch(() => route.path, (newPath) => {
-  if (newPath.includes('/event/')) {
-    isEventsRoute.value = true
-  }
-  else {
-    isEventsRoute.value = false
-  }
+    if (newPath.includes('/event/')) {
+        isEventsRoute.value = true
+    }
+    else {
+        isEventsRoute.value = false
+    }
 });
 
 // pass article into ArticleContent
@@ -32,51 +33,29 @@ const handleArticleClick = () => {
     selectedArticle.value = props.article
 };
 
-const isLinkActive = (path) => {
-    return route.path.startsWith(path);
-};
+// const getDaySuffix = (date) => {
+//     const day = date.getDate()
+//     if (day >= 11 && day <= 13) {
+//         return 'th';
+//     }
 
-const props = defineProps({ article: Object, });
-// const emits = defineEmits(['toggleState'])
-
-var isArticleInstanceOpen = ref(false)
-// const isEventPage = ref(window.location.href.includes('/event/'));
-
-// const toggleState = () => {
-//     if (!props.article.url.includes('youtube.com')) {
-//         isArticleInstanceOpen.value = !isArticleInstanceOpen.value;
-//         // emits('toggleState', isArticleInstanceOpen.value)
+//     const lastDigit = day % 10;
+//     switch (lastDigit) {
+//         case 1:
+//             return 'st';
+//         case 2:
+//             return 'nd';
+//         case 3:
+//             return 'rd';
+//         default:
+//             return 'th';
 //     }
 // };
 
-const setArticleInstanceState = (bool) => {
-    // Given a boolean value set the Article Instance state to open or closed
-    isArticleInstanceOpen.value = bool
-}
-
-const getDaySuffix = (date) => {
-    const day = date.getDate()
-    if (day >= 11 && day <= 13) {
-        return 'th';
-    }
-
-    const lastDigit = day % 10;
-    switch (lastDigit) {
-        case 1:
-            return 'st';
-        case 2:
-            return 'nd';
-        case 3:
-            return 'rd';
-        default:
-            return 'th';
-    }
-};
-
-const getDayOfWeek = (date) => {
-    const daysOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-    return daysOfWeek[date.getDay()];
-};
+// const getDayOfWeek = (date) => {
+//     const daysOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+//     return daysOfWeek[date.getDay()];
+// };
 
 const getMonthOfYear = (date) => {
     // const monthsOfYear = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
@@ -84,21 +63,21 @@ const getMonthOfYear = (date) => {
     return monthsOfYear[date.getMonth()]
 }
 
-const formattedDate = computed(() => {
-    const datePublished = props.article.datePublished
-    if (datePublished) {
-        const inputDate = new Date(datePublished)
+// const formattedDate = computed(() => {
+//     const datePublished = props.article.datePublished
+//     if (datePublished) {
+//         const inputDate = new Date(datePublished)
 
-        const day = inputDate.getDate();
-        const month = inputDate.getMonth() + 1; // Months are 0-based, so add 1
-        const year = inputDate.getFullYear();
-        const hours = inputDate.getHours() < 10 ? `0${inputDate.getHours()}` : inputDate.getHours();
-        const minutes = inputDate.getMinutes() < 10 ? `0${inputDate.getMinutes()}` : inputDate.getMinutes();
+//         const day = inputDate.getDate();
+//         const month = inputDate.getMonth() + 1; // Months are 0-based, so add 1
+//         const year = inputDate.getFullYear();
+//         const hours = inputDate.getHours() < 10 ? `0${inputDate.getHours()}` : inputDate.getHours();
+//         const minutes = inputDate.getMinutes() < 10 ? `0${inputDate.getMinutes()}` : inputDate.getMinutes();
 
-        return `${getMonthOfYear(inputDate)} ${day}, ${year} at ${hours}:${minutes}`;
-    }
-    return datePublished; // Return an empty string if datePublished is undefined
-});
+//         return `${getMonthOfYear(inputDate)} ${day}, ${year} at ${hours}:${minutes}`;
+//     }
+//     return datePublished; // Return an empty string if datePublished is undefined
+// });
 
 const relativeDate = computed(() => {
     const datePublished = new Date(props.article.datePublished);
@@ -130,20 +109,7 @@ const relativeDate = computed(() => {
     }
 })
 
-// function clickGenre(genre) {
-//     filterHandler(undefined, genre)
-// }
-
-// defineExpose({ toggleState, setArticleInstanceState })
-
-const formattedSummarizedContent = computed(() => {
-    return props.article.summarizedContent
-        .replace(/{/g, '<span style="background-color: #ffffff; color: #640785; padding: 0 3px; border-radius: 4px;">')
-        .replace(/}/g, '</span>');
-});
-
 // ----- ACTION FUNCTIONS -----
-// FUTURE CHANGE: import article props correctly
 const actionShareFunction = async () => {
     if (navigator.share) {
         try {
@@ -174,19 +140,6 @@ function fullCoverageActionFunction() {
     router.push(`/event/${props.article.eventUri}`)
 }
 
-function showPopup(methodValue, msg, showTime = 3) {
-    PopupAttributes.methodValue = methodValue
-    PopupAttributes.msg = msg
-
-    setTimeout(() => {
-        PopupAttributes.methodValue = -1
-    }, 1000 * showTime)
-}
-
-function backActionFunction() {
-    router.push('/')
-}
-
 // ----- ACTION VARS -----
 const shareAction = {
     svg: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M22 7H14C12.182 7 11.087 7.892 10.68 8.3C10.555 8.427 10.492 8.49 10.49 8.49C10.49 8.492 10.427 8.555 10.3 8.68C9.892 9.087 9 10.182 9 12V15M22 7L17 2M22 7L17 12" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M3.465 20.535C4.93 22 7.287 22 12.003 22C16.718 22 19.076 22 20.54 20.535C21.782 19.294 21.971 17.412 22 13.998M3.465 20.535C2 19.07 2 16.713 2 11.997M3.465 20.535C4.929 22 7.286 22 12 22C16.714 22 19.071 22 20.535 20.535C21.776 19.295 21.965 17.413 21.995 13.999M3.465 20.535C2 19.071 2 16.714 2 12M3.465 3.46C4.706 2.218 6.588 2.029 10.002 2M2.055 8C2.165 5.807 2.491 4.438 3.465 3.464C4.705 2.224 6.587 2.034 10 2.005" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg>`,
@@ -204,22 +157,18 @@ const fullCoverageAction = {
     strokeColor: isEventsRoute.value ? 'white' : '#62febd'
 }
 
-const backAction = {
-    svg: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"><path fill-rule="evenodd" clip-rule="evenodd" d="M22.125 12C22.125 12.2984 22.0065 12.5845 21.7955 12.7955C21.5845 13.0065 21.2984 13.125 21 13.125H5.71499L9.79499 17.205C9.90552 17.308 9.99417 17.4322 10.0557 17.5702C10.1171 17.7082 10.1502 17.8572 10.1529 18.0082C10.1555 18.1593 10.1278 18.3093 10.0712 18.4494C10.0146 18.5895 9.93037 18.7167 9.82354 18.8236C9.71672 18.9304 9.58947 19.0146 9.44938 19.0712C9.3093 19.1278 9.15926 19.1556 9.0082 19.1529C8.85715 19.1502 8.70818 19.1172 8.57018 19.0557C8.43218 18.9942 8.30798 18.9055 8.20499 18.795L2.20499 12.795C1.99431 12.5841 1.87598 12.2981 1.87598 12C1.87598 11.7019 1.99431 11.416 2.20499 11.205L8.20499 5.20501C8.41825 5.00629 8.70032 4.89811 8.99177 4.90325C9.28322 4.90839 9.5613 5.02646 9.76742 5.23258C9.97354 5.4387 10.0916 5.71678 10.0967 6.00823C10.1019 6.29968 9.99371 6.58175 9.79499 6.79501L5.71499 10.875H21C21.2984 10.875 21.5845 10.9935 21.7955 11.2045C22.0065 11.4155 22.125 11.7016 22.125 12Z" fill="white"/></svg>`,
-    actionFunction: backActionFunction,
-}
-
-const imageUrl = ref(props.article.imageUrl)
-
+//FUTURE CHANGE: THIS DOESNT WORK
 const handleImageError = () => {
-    imageUrl.value = `../assets/icons/bgsumnewslogo.png`
+    console.log('image couldnt load')
+    props.article.imageUrl = `../assets/icons/bgsumnewslogo.png`
 }
 </script>
 
 <template>
     <div id="article-instance" class="article-instance" @click="handleArticleClick">
 
-        <img class="article-image" v-if="article.imageUrl" :src="article.imageUrl" alt="Article Image" @error="handleImageError">
+        <img class="article-image" v-if="article.imageUrl" :src="article.imageUrl" alt="Article Image"
+            @error="handleImageError">
         <img class="article-image" v-else src="../assets/icons/bgsumnewslogo.png" alt="Article Image">
         <div class="shader">
             <div class="genre-list">

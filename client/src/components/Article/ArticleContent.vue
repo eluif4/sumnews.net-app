@@ -1,14 +1,12 @@
 <script setup>
 import { ref, computed, watch } from 'vue';
-import { PopupAttributes, selectedArticle } from '../../main.js';
-import { goBack } from '../../scripts/utility.js'
-import { useRoute } from 'vue-router'
+import { selectedArticle } from '../../main.js';
+// import { goBack, actionShareFunction, fullCoverageActionFunction, bookmarkActionFunction } from '../../scripts/utility.js'
+import { goBack, showPopup } from '../../scripts/utility.js';
 import { config } from '../../constants'
 
 import ActionItem from '../Action/ActionItem.vue';
-import router from '../../router/index';
 
-const route = useRoute();
 const props = defineProps({ article: Object, });
 
 const FRONTEND_URL = config.url.FRONTEND_URL
@@ -34,21 +32,20 @@ const formattedDate = computed(() => {
 
         return `${getMonthOfYear(inputDate)} ${day}, ${year} at ${hours}:${minutes}`;
     }
-    return datePublished; // Return an empty string if datePublished is undefined
+    return datePublished == undefined ? inputDate : datePublished;
 })
 
 const formattedSummarizedContent = computed(() => {
     return props.article.summarizedContent
-        .replace(/<vocab>/g, '<span class="vocab">')
+        // .replace(/<vocab>/g, '<span class="vocab">')
         .replace(/<squote>/g, '<span class="squote">')
         .replace(/<quote>/g, '<span class="quote">')
-        .replace(/<\/vocab>/g, '</span>')
+        // .replace(/<\/vocab>/g, '</span>')
         .replace(/<\/squote>/g, '</span>')
         .replace(/<\/quote>/g, '</span>');
 });
 
 // ----- ACTION FUNCTIONS -----
-// FUTURE CHANGE: import article props correctly
 const actionShareFunction = async () => {
     if (navigator.share) {
         try {
@@ -79,14 +76,6 @@ function fullCoverageActionFunction() {
     router.push(`/event/${props.article.eventUri}`)
 }
 
-function showPopup(methodValue, msg, showTime = 3) {
-    PopupAttributes.methodValue = methodValue
-    PopupAttributes.msg = msg
-
-    setTimeout(() => {
-        PopupAttributes.methodValue = -1
-    }, 1000 * showTime)
-}
 // ----- ACTION VARS -----
 const shareAction = {
     svg: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M22 7H14C12.182 7 11.087 7.892 10.68 8.3C10.555 8.427 10.492 8.49 10.49 8.49C10.49 8.492 10.427 8.555 10.3 8.68C9.892 9.087 9 10.182 9 12V15M22 7L17 2M22 7L17 12" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M3.465 20.535C4.93 22 7.287 22 12.003 22C16.718 22 19.076 22 20.54 20.535C21.782 19.294 21.971 17.412 22 13.998M3.465 20.535C2 19.07 2 16.713 2 11.997M3.465 20.535C4.929 22 7.286 22 12 22C16.714 22 19.071 22 20.535 20.535C21.776 19.295 21.965 17.413 21.995 13.999M3.465 20.535C2 19.071 2 16.714 2 12M3.465 3.46C4.706 2.218 6.588 2.029 10.002 2M2.055 8C2.165 5.807 2.491 4.438 3.465 3.464C4.705 2.224 6.587 2.034 10 2.005" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg>`,
@@ -182,7 +171,6 @@ const handleArticleClick = () => {
                 </div>
                 <div class="source-date">{{ article.source }}, {{ formattedDate }}</div>
             </div>
-            <!-- FUTURE CHANGE: check to see that this section actually shows relevant articles -->
             <!-- SUMMARIZED CONTENT -->
             <div class="summarized-content" v-html="formattedSummarizedContent"></div>
 
@@ -248,7 +236,7 @@ const handleArticleClick = () => {
 <style scoped>
 .article-container {
     height: fit-content;
-    max-height: 93%;
+    max-height: 90%;
     width: 100%;
     background-color: white;
 

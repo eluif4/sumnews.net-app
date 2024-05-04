@@ -31,7 +31,7 @@ const routes = [
                 List.articles = []
                 front_getArticlesFromDB()
                     .then(response => {
-                        const articles = response.data
+                        const articles = response
                         for (const article of articles) {
                             List.articles.push(article)
                         }
@@ -67,7 +67,7 @@ const routes = [
                 */
                 if (!article) {
                     const response = await front_getArticlesFromDB({ uuid: to.params.uuid }, undefined, undefined, undefined, 1);
-                    article = response.data[0];
+                    article = response[0];
                 }
                 // If after the db fetch there is an article, send it to the ArticleContent component
                 if (article) {
@@ -103,7 +103,7 @@ const routes = [
         beforeEnter: async (to, from, next) => {
             try {
                 const response = await front_getArticlesFromDB({ uuid: to.params.uuid }, undefined, undefined, undefined, 1);
-                const article = response.data[0];
+                const article = response[0];
                 if (article) {
                     to.params.article = article;
                     next();
@@ -152,7 +152,34 @@ const routes = [
             backdrop: Backdrop,
         },
     },
-    { path: '/search', component: Home },
+    {
+        path: '/search',
+        name: "Search",
+        component: Home,
+        props: (route) => ({ searchQuery: route.query.searchQuery }),
+        beforeEnter: async (to, from) => {
+            const response = await fetch(`${BACKEND_URL}db/search?search_query=${to.query.searchQuery}`, {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+            })
+
+            if (response.ok) {
+                const searchArticles = await response.json()
+                List.infiniteScrollCallCount = 0
+                List.filterType.source = 'All'
+                List.filterType.genre = 'All'
+                List.filterType.searchQuery = to.query.searchQuery
+                List.articles = searchArticles;
+            }
+            else {
+                console.error('Failed to fetch data:', response.statusText)
+                showPopup(2, 'Internal Error',)
+            }
+        },
+    },
     {
         path: '/account',
         name: 'account',

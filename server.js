@@ -5,6 +5,7 @@ const kleur = require('kleur');
 const dotenv = require('dotenv');
 const express = require('express');
 const cors = require('cors');
+const { BSON } = require('mongodb')
 
 //---CONFIG---
 dotenv.config({ path: path.resolve(__dirname, './server/config/config.env') });
@@ -20,8 +21,8 @@ const LOGIC = path.join(__dirname, 'server/5-logic');
 const CONTROLLER = path.join(__dirname, 'server/6-controllers');
 
 //---ROUTE FILES---
-const DBGETARTICLESROUTES = require('./server/1-routes/db/getArticles.js');
-const DBGETCOLLECTIONSROUTES = require('./server/1-routes/db/getCollections.js');
+const DBGETARTICLESROUTES = require('./server/1-routes/db/getCollections.js');
+const DBGETCOLLECTIONSROUTES = require('./server/1-routes/db/getArticles.js');
 
 //---FUNCTIONS---
 const { getArticlesUsingRecentActiviy } = require('./server/2-utils/api/getArticlesFromAPI.js');
@@ -35,7 +36,7 @@ const port = process.env.PORT || 3000;
 app.use(express.json());
 app.use(
     cors({
-        origin: ["http://localhost:5173", "https://localhost:5173"] //FUTURE CHANGE: CHANGE CORS HERE
+        origin: "https://sumnews.net"
     })
 )
 app.use(DBGETARTICLESROUTES)
@@ -73,6 +74,15 @@ async function cronTask() {
 
             // Get all articles from yesterday and today
             const articlesInDB = await articlesSinceYesterday();
+
+            // Calculate size of query
+            // var size = 0;
+            // articlesInDB.forEach(
+            //     function(doc) {
+            //         size += BSON.calculateObjectSize(doc)
+            //     }
+            // )
+            // console.log(size)
 
             // Loop over all articles from API request
             for (const article of articles) {

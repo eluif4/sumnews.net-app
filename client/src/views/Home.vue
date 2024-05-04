@@ -24,20 +24,21 @@ if (route.path.includes('/event/')) {
         10 * List.infiniteScrollCallCount,
         10)
         .then(response => {
-            let articlesToAdd = response.data.filter(article => !existsInFeed(article));
+            let articlesToAdd = response.filter(article => !existsInFeed(article));
             List.articles = List.articles.concat(articlesToAdd);
             List.loading = false;
         })
-} else {
-    front_getArticlesFromDB()
-        .then(response => {
-            const articles = response.data
-            for (const article of articles) {
-                if (!existsInFeed(article))
-                    List.articles.push(article)
-            }
-        })
 }
+// } else {
+//     front_getArticlesFromDB()
+//         .then(response => {
+//             const articles = response.data
+//             for (const article of articles) {
+//                 if (!existsInFeed(article))
+//                     List.articles.push(article)
+//             }
+//         })
+// }
 // }
 
 function existsInFeed(insertArticle) {
@@ -48,7 +49,7 @@ function existsInFeed(insertArticle) {
     return false
 }
 
-function scrollHandler(event) {
+async function scrollHandler(event) {
     // if (List.articles[List.articles.length - 1].genre[0] != errorGenre[0]) {
     // Total amount of scrolling - Client screen height
     const scollableHeight = event.target.scrollHeight - event.target.clientHeight
@@ -66,10 +67,27 @@ function scrollHandler(event) {
                 10 * List.infiniteScrollCallCount,
                 10)
                 .then(response => {
-                    let articlesToAdd = response.data.filter(article => !existsInFeed(article));
+                    let articlesToAdd = response.filter(article => !existsInFeed(article));
                     List.articles = List.articles.concat(articlesToAdd);
                     List.loading = false;
                 })
+        }
+        else if (route.path.includes('/search')) {
+            const response = await fetch(`${BACKEND_URL}db/search?search_query=${route.query.searchQuery}`, {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    infiniteScrollCallCount: List.infiniteScrollCallCount
+                })
+            })
+
+            let articlesToAdd = await response.json()
+            articlesToAdd = response.filter(article => !existsInFeed(article));
+            List.articles = List.articles.concat(articlesToAdd);
+            List.loading = false;
         }
         // If scrolling in feed
         else {
@@ -81,7 +99,7 @@ function scrollHandler(event) {
                 10 * List.infiniteScrollCallCount,
                 10)
                 .then(response => {
-                    let articlesToAdd = response.data.filter(article => !existsInFeed(article));
+                    let articlesToAdd = response.filter(article => !existsInFeed(article));
                     List.articles = List.articles.concat(articlesToAdd)
                     List.loading = false
                 })
@@ -89,27 +107,6 @@ function scrollHandler(event) {
     }
     // }
 }
-
-// FUTURE CHANGE: i dont think i need this anymore because i dont need to open and close specific articles
-// const setArticleRef = (el, index) => {
-//     if (el) {
-//         articleRefs.value[index] = el
-//     }
-// }
-
-// FUTURE CHANGE: i dont think i need this anymore because i dont need to open and close specific articles
-// onMounted(() => {
-//     if (route.path.includes('/article/')) {
-//         handleToggleState(0)
-//     }
-// })
-
-// const isEventPage = ref(route.path.includes('/event/'));
-
-// watch(() => route.path, (newPath) => {
-//     isEventPage.value = newPath.includes('/event/');
-//     document.getElementById('article-stack').scrollTop = 0;
-// });
 </script>
 
 <template>

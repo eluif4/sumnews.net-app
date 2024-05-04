@@ -1,48 +1,31 @@
 <script setup>
-// FUTURE CHANGE: keep the search terms. if there is a search term change the search icon into a back arrow icon to go back to previous page
 import '../../global.css'
-import axios from 'axios'
 import DOMPurify from 'dompurify'
 import { ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { config } from '../../constants.js'
-import { front_getArticlesFromDB } from '../../scripts/utility.js'
-// import { isDropDownOpen, toggleDropdown } from '../StateHandler'
-import { List, Sources, Genres } from '../../main.js'
-// import { AllArticlesHaveBeenDisplayed, NoMatchingArticlesHaveBeenFound } from '../api/errorArticles'
+import { showPopup } from '../../scripts/utility.js'
+import { List } from '../../main.js'
+import router from '../../router/index.js'
 
 const FRONTEND_URL = config.url.FRONTEND_URL
 const BACKEND_URL = config.url.BACKEND_URL
 
 const route = useRoute();
 const searchQuery = ref('')
+const placeholder = ref(route.query.searchQuery ? route.query.searchQuery : 'Search for articles here') // set the placholder on page reload
 const isEventsRoute = ref(false)
+const isSearchRoute = ref(false)
 
 async function performSearch() {
-    // FUTURE CHANGE: dont allow to search for empty strings
-    // FUTURE CHANGE: place the searchQuery in the url params
-    List.articles = []
     if (searchQuery.value.length > 0) {
-        List.infiniteScrollCallCount = 0
-        List.filterType.source = 'All'
-        List.filterType.genre = 'All'
-        List.filterType.searchQuery = searchQuery.value
-        document.getElementById('article-stack').scrollTop = 0
-        isDropDownOpen.value = false;
-        const searchInput = document.getElementById('search-input')
-        searchInput.placeholder = searchQuery.value;
-        searchInput.blur()
-        const searchArticles = (await axios.get(`${FRONTEND_URL}/db/search?search_query=${searchQuery.value}`)).data
-        // searchQuery.value = ''
-        List.articles = []
-        List.articles = searchArticles
-        if (searchArticles.length == 0) {
-            List.articles.push(NoMatchingArticlesHaveBeenFound)
-        }
-        else if (searchArticles.length < 10) {
-            List.articles.push(AllArticlesHaveBeenDisplayed)
-        }
+        document.getElementById('search-input').blur()
+        sanitizeSearch()
+        placeholder.value = searchQuery.value;
+
+        router.push({ path: '/search', query: { searchQuery: searchQuery.value } });
     } else {
+        showPopup(2, `Invalid search term - Please enter valid keywords`)
         const searchIcon = document.getElementById('search-icon');
         searchIcon.classList.add('invalid-input')
         setTimeout(() => {
@@ -66,15 +49,37 @@ function sanitizeSearch() {
     searchQuery.value = searchQuery.value.split('').filter(char => validFormatRegex.test(char)).join('');
 }
 
+// function sanitizeSearch(searchQuery) {
+//     const searchIcon = document.getElementById('search-icon');
+
+//     var response = DOMPurify.sanitize(searchQuery)
+//     response = response.slice(0, 64);
+//     console.log(response)
+//     const validFormatRegex = /^[a-zA-Z0-9., ]+$/;
+//     if (!validFormatRegex.test(response)) {
+//         searchIcon.classList.add('invalid-input')
+//         setTimeout(() => {
+//             searchIcon.classList.remove('invalid-input');
+//         }, 350);
+//     }
+//     response = response.split('').filter(char => validFormatRegex.test(char)).join('');
+//     return response;
+// }
+
 // Watch router and design page accordingly
 watch(() => route.path, (newPath) => {
     if (newPath.includes('/event/')) {
-        isEventsRoute.value = true
-        searchQuery.value = 'Full coverage'
+        isEventsRoute.value = true;
+        isSearchRoute.value = false;
+        placeholder.value = 'Full coverage'
+    } else if (newPath.includes('/search')) {
+        isEventsRoute.value = false;
+        isSearchRoute.value = true;
     }
     else {
         isEventsRoute.value = false
-        searchQuery.value = '';
+        isSearchRoute.value = false;
+        // searchQuery.value = '';
     }
 });
 </script>
@@ -83,7 +88,7 @@ watch(() => route.path, (newPath) => {
     <div class="topbar">
         <!-- FUTURE CHANGE: make search component -->
         <div class="search">
-            <div class="searchIconContainer" v-if="!isEventsRoute">
+            <div class="searchIconContainer" v-if="!isEventsRoute && !isSearchRoute">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none"
                     id="search-icon">
                     <path
@@ -102,9 +107,8 @@ watch(() => route.path, (newPath) => {
                 </svg>
             </router-link>
 
-            <input id="search-input" type="text" placeholder="Search for articles" class="search-box"
-                :disabled="isEventsRoute" @keyup.enter="performSearch" v-model="searchQuery" @input="sanitizeSearch"
-                @click.stop />
+            <input id="search-input" type="text" :placeholder="placeholder" class="search-box" :disabled="isEventsRoute"
+                @keyup.enter="performSearch" v-model="searchQuery" @input="sanitizeSearch" @click.stop />
 
             <router-link :to="{ path: '/filter' }" class="filter" v-if="!isEventsRoute">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="18" viewBox="0 0 20 18" fill="none">
