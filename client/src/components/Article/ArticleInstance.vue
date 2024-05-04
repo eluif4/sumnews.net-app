@@ -160,7 +160,7 @@ const fullCoverageAction = {
 //FUTURE CHANGE: THIS DOESNT WORK
 const handleImageError = () => {
     console.log('image couldnt load')
-    props.article.imageUrl = `../assets/icons/bgsumnewslogo.png`
+    // props.article.imageUrl = `../assets/icons/bgsumnewslogo.png`
 }
 </script>
 
@@ -169,7 +169,7 @@ const handleImageError = () => {
 
         <img class="article-image" v-if="article.imageUrl" :src="article.imageUrl" alt="Article Image"
             @error="handleImageError">
-        <img class="article-image" v-else src="../assets/icons/bgsumnewslogo.png" alt="Article Image">
+        <!-- <img class="article-image" v-else src="../assets/icons/bgsumnewslogo.png" alt="Article Image"> -->
         <div class="shader">
             <div class="genre-list">
                 <div class="genre" v-for="genre in article.genre" @click="clickGenre(genre)">{{ genre }}</div>

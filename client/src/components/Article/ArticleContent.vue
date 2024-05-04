@@ -149,8 +149,8 @@ const handleArticleClick = () => {
             <!-- FUTURE CHANGE: if image isnt able to load because of network error -->
             <img v-if="article.imageUrl" :src="article.imageUrl"
                 alt="Sorry :( It seems like the article image was unable to load" class="article-image">
-            <img v-else src="../assets/icons/bgsumnewslogo.png"
-                alt="Sorry :( It seems like the article image was unable to load" class="article-image">
+            <!-- <img v-else src="../assets/icons/bgsumnewslogo.png"
+                alt="Sorry :( It seems like the article image was unable to load" class="article-image"> -->
             <div class="shader"></div>
         </div>
         <div class="content-container" id="content-container">
