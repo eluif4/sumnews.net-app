@@ -45,6 +45,7 @@ async function PostArticlesController(req, res) {
 async function getArticlesFromSearchController(req, res) {
     try {
         var search_query = validationResult(req)
+        var infiniteScrollCallCount = req.body.infiniteScrollCallCount * 10;
         search_query = req.query.search_query.trim();
         // const search_query = sanitizeInput(req.query.search_query);
         const searchRegex = new RegExp(search_query, 'i');
@@ -55,11 +56,12 @@ async function getArticlesFromSearchController(req, res) {
                 { source: { $regex: searchRegex } },
                 { author: { $regex: searchRegex } },
                 { genre: { $regex: searchRegex } },
+                { summarizedContent: { $regex: searchRegex } }
             ]
         };
 
         const sort = { datePublished: -1 }
-        const articles = await getArticlesFromDB(filter, {}, sort, 0, 10) //Change the last value to limit the amount of articles returned
+        const articles = await getArticlesFromDB(filter, {}, sort, 0, infiniteScrollCallCount) //Change the last value to limit the amount of articles returned
         res.send(articles)
     }
     catch (error) {

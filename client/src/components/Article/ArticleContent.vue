@@ -1,8 +1,8 @@
 <script setup>
 import { ref, computed, watch } from 'vue';
-import { PopupAttributes, selectedArticle } from '../../main.js';
-import { goBack, actionShareFunction, fullCoverageActionFunction, bookmarkActionFunction } from '../../scripts/utility.js'
-import { useRoute } from 'vue-router'
+import { selectedArticle } from '../../main.js';
+// import { goBack, actionShareFunction, fullCoverageActionFunction, bookmarkActionFunction } from '../../scripts/utility.js'
+import { goBack, showPopup } from '../../scripts/utility.js';
 import { config } from '../../constants'
 
 import ActionItem from '../Action/ActionItem.vue';
@@ -32,7 +32,7 @@ const formattedDate = computed(() => {
 
         return `${getMonthOfYear(inputDate)} ${day}, ${year} at ${hours}:${minutes}`;
     }
-    return datePublished; // Return an empty string if datePublished is undefined
+    return datePublished == undefined ? inputDate : datePublished;
 })
 
 const formattedSummarizedContent = computed(() => {
@@ -44,6 +44,37 @@ const formattedSummarizedContent = computed(() => {
         .replace(/<\/squote>/g, '</span>')
         .replace(/<\/quote>/g, '</span>');
 });
+
+// ----- ACTION FUNCTIONS -----
+const actionShareFunction = async () => {
+    if (navigator.share) {
+        try {
+            await navigator.share({
+                title: `Check out this article on sumnews\n${props.article.title}`,
+                text: `I found an interesting article on sumnews from ${props.article.source}.`,
+                url: `${FRONTEND_URL}article/${props.article.uuid}`,
+            });
+        } catch (error) {
+            console.error('Error sharing:', error.message);
+            // showPopup(2)
+        }
+    } else {
+        if (window.isSecureContext) {
+            navigator.clipboard.writeText(`Checkout this article on sumnews\n${FRONTEND_URL}article/${props.article.uuid}`)
+            showPopup(1, "Link copied to clipboard succesfully")
+        } else {
+            showPopup(2, "Oops, something went wrong...")
+        }
+    }
+}
+
+function bookmarkActionFunction() {
+    showPopup(1, "Your article has been bookmarked succesfully")
+}
+
+function fullCoverageActionFunction() {
+    router.push(`/event/${props.article.eventUri}`)
+}
 
 // ----- ACTION VARS -----
 const shareAction = {
@@ -65,8 +96,6 @@ const backAction = {
     svg: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"><path fill-rule="evenodd" clip-rule="evenodd" d="M22.125 12C22.125 12.2984 22.0065 12.5845 21.7955 12.7955C21.5845 13.0065 21.2984 13.125 21 13.125H5.71499L9.79499 17.205C9.90552 17.308 9.99417 17.4322 10.0557 17.5702C10.1171 17.7082 10.1502 17.8572 10.1529 18.0082C10.1555 18.1593 10.1278 18.3093 10.0712 18.4494C10.0146 18.5895 9.93037 18.7167 9.82354 18.8236C9.71672 18.9304 9.58947 19.0146 9.44938 19.0712C9.3093 19.1278 9.15926 19.1556 9.0082 19.1529C8.85715 19.1502 8.70818 19.1172 8.57018 19.0557C8.43218 18.9942 8.30798 18.9055 8.20499 18.795L2.20499 12.795C1.99431 12.5841 1.87598 12.2981 1.87598 12C1.87598 11.7019 1.99431 11.416 2.20499 11.205L8.20499 5.20501C8.41825 5.00629 8.70032 4.89811 8.99177 4.90325C9.28322 4.90839 9.5613 5.02646 9.76742 5.23258C9.97354 5.4387 10.0916 5.71678 10.0967 6.00823C10.1019 6.29968 9.99371 6.58175 9.79499 6.79501L5.71499 10.875H21C21.2984 10.875 21.5845 10.9935 21.7955 11.2045C22.0065 11.4155 22.125 11.7016 22.125 12Z" fill="white"/></svg>`,
     actionFunction: goBack,
 }
-
-module.exports = { backAction }
 
 const eventUri = props.article.eventUri;
 const aggregatedResults = ref([]);

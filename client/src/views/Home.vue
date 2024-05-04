@@ -49,7 +49,7 @@ function existsInFeed(insertArticle) {
     return false
 }
 
-function scrollHandler(event) {
+async function scrollHandler(event) {
     // if (List.articles[List.articles.length - 1].genre[0] != errorGenre[0]) {
     // Total amount of scrolling - Client screen height
     const scollableHeight = event.target.scrollHeight - event.target.clientHeight
@@ -71,6 +71,23 @@ function scrollHandler(event) {
                     List.articles = List.articles.concat(articlesToAdd);
                     List.loading = false;
                 })
+        }
+        else if (route.path.includes('/search')) {
+            const response = await fetch(`${BACKEND_URL}db/search?search_query=${route.query.searchQuery}`, {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    infiniteScrollCallCount: List.infiniteScrollCallCount
+                })
+            })
+
+            let articlesToAdd = await response.json()
+            articlesToAdd = response.filter(article => !existsInFeed(article));
+            List.articles = List.articles.concat(articlesToAdd);
+            List.loading = false;
         }
         // If scrolling in feed
         else {

@@ -1,15 +1,14 @@
 <script setup>
 import { ref, computed, watch } from 'vue';
-import { useRoute, useRouter } from 'vue-router'
-import { PopupAttributes, selectedArticle } from '../../main.js';
+import { useRoute } from 'vue-router'
+import { selectedArticle } from '../../main.js';
 import { config } from '../../constants'
-import { goBack, actionShareFunction, fullCoverageActionFunction, bookmarkActionFunction } from '../../scripts/utility.js'
+import router from '../../router/index.js';
+import { showPopup } from '../../scripts/utility.js';
+// import { actionShareFunction, fullCoverageActionFunction, bookmarkActionFunction } from '../../scripts/utility.js'
 
 const props = defineProps({ article: Object, });
 
-// import Share from './Share.vue'
-// import ReadLater from './ReadLater.vue';
-// import FullCoverage from './FullCoverage.vue'
 import ActionItem from '../Action/ActionItem.vue'
 
 const FRONTEND_URL = config.url.FRONTEND_URL
@@ -33,17 +32,6 @@ watch(() => route.path, (newPath) => {
 const handleArticleClick = () => {
     selectedArticle.value = props.article
 };
-
-// const emits = defineEmits(['toggleState'])
-
-// const isEventPage = ref(window.location.href.includes('/event/'));
-
-// const toggleState = () => {
-//     if (!props.article.url.includes('youtube.com')) {
-//         isArticleInstanceOpen.value = !isArticleInstanceOpen.value;
-//         // emits('toggleState', isArticleInstanceOpen.value)
-//     }
-// };
 
 // const getDaySuffix = (date) => {
 //     const day = date.getDate()
@@ -120,6 +108,37 @@ const relativeDate = computed(() => {
         return `${years} year${years > 1 ? 's' : ''} ago`;
     }
 })
+
+// ----- ACTION FUNCTIONS -----
+const actionShareFunction = async () => {
+    if (navigator.share) {
+        try {
+            await navigator.share({
+                title: `Check out this article on sumnews\n${props.article.title}`,
+                text: `I found an interesting article on sumnews from ${props.article.source}.`,
+                url: `${FRONTEND_URL}article/${props.article.uuid}`,
+            });
+        } catch (error) {
+            console.error('Error sharing:', error.message);
+            // showPopup(2)
+        }
+    } else {
+        if (window.isSecureContext) {
+            navigator.clipboard.writeText(`Checkout this article on sumnews\n${FRONTEND_URL}article/${props.article.uuid}`)
+            showPopup(1, "Link copied to clipboard succesfully")
+        } else {
+            showPopup(2, "Oops, something went wrong...")
+        }
+    }
+}
+
+function bookmarkActionFunction() {
+    showPopup(1, "Your article has been bookmarked succesfully")
+}
+
+function fullCoverageActionFunction() {
+    router.push(`/event/${props.article.eventUri}`)
+}
 
 // ----- ACTION VARS -----
 const shareAction = {
