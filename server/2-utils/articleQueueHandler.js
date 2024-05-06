@@ -105,7 +105,9 @@ async function processEvent(article) {
         const e = new Event({
             autoNum: events[0] != undefined ? events[0].autoNum + 1 : 0, // Add 1 to the latest eventUri, else set to 0
             eventUri: eventUri,
-            count: articleEventsAddedToQueueCount,
+            articlesCount: response[eventUri].articles.totalResults,
+            // FUTURE CHANGE: THE NUMBER BELOW ISNT CORRECT. SAME ARTICLES ARENT SAVE TO DB
+            articlesSaved: articleEventsAddedToQueueCount,
         })
 
         // Save event (e) to DB if there are more than 1 articles in the full coverage
