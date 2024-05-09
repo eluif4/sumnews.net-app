@@ -40,9 +40,11 @@ const formattedSummarizedContent = computed(() => {
         // .replace(/<vocab>/g, '<span class="vocab">')
         .replace(/<squote>/g, '<span class="squote">')
         .replace(/<quote>/g, '<span class="quote">')
+        // .replace('**', '<b>')
         // .replace(/<\/vocab>/g, '</span>')
         .replace(/<\/squote>/g, '</span>')
-        .replace(/<\/quote>/g, '</span>');
+        .replace(/<\/quote>/g, '</span>')
+        // .replace('**', "<b>")
 });
 
 // ----- ACTION FUNCTIONS -----
@@ -235,7 +237,7 @@ const handleArticleClick = () => {
 
 <style scoped>
 .article-container {
-    height: fit-content;
+    /* height: fit-content; */
     max-height: 90%;
     width: 100%;
     background-color: white;
