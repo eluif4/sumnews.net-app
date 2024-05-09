@@ -199,13 +199,13 @@ function resetFilter() {
     flex-direction: row;
 
     background-color: #606060;
-    border-radius: 10px;
+    border-radius: var(--border-radius);;
 }
 
 .selection-button {
     height: 100%;
     width: 50%;
-    border-radius: 10px;
+    border-radius: var(--border-radius);;
     transition: background-color 0.3s;
     /* Smooth background color change */
     display: flex;
@@ -235,7 +235,7 @@ function resetFilter() {
     width: 100%;
     height: 50px;
     background-color: #62FEBD;
-    border-radius: 10px;
+    border-radius: var(--border-radius);;
 
     display: flex;
     align-items: center;

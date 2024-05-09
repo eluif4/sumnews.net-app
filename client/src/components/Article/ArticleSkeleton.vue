@@ -9,7 +9,7 @@
     width: 100%;
     height: 200px;
     margin: 1% 0;
-    border-radius: 10px;
+    border-radius: var(--border-radius);;
     margin-bottom: 5%;
     background-color: rgb(146 146 146 / 30%)
 }

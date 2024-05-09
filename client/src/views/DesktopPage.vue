@@ -32,7 +32,7 @@
     position: relative;
     z-index: 999;
     
-    border-radius: 10px;
+    border-radius: var(--border-radius);;
     margin: auto;
     margin-right: 20px;
     margin-left: 20px;

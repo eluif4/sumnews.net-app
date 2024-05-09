@@ -45,7 +45,7 @@
     color: white;
     padding: 10%;
     box-shadow: 0 0 10px 0px var(--browser-background-color);
-    border-radius: 10px;
+    border-radius: var(--border-radius);;
 }
 
 @-webkit-keyframes backgroundMovement {

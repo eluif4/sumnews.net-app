@@ -192,7 +192,7 @@ const disclaimerPage = {
     background-color: #EBEFEE;
     width: fit-content;
     height: fit-content;
-    border-radius: 10px;
+    border-radius: var(--border-radius);;
     display: flex;
     flex-direction: column;
     align-items: center;

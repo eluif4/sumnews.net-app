@@ -181,7 +181,7 @@ watch(() => route.path, (newPath) => {
     box-sizing: border-box;
     background-color: #EBEFEE;
     font-size: 12px;
-    border-radius: 10px;
+    border-radius: var(--border-radius);;
     position: relative;
     display: flex;
     align-items: center;

@@ -98,7 +98,7 @@ function formatRouteTitle(routePath) {
     width: fit-content;
     height: -moz-fit-content;
     height: fit-content;
-    border-radius: 10px;
+    border-radius: var(--border-radius);;
     display: flex;
     flex-direction: column;
     align-items: center;

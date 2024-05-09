@@ -11,6 +11,8 @@
     --overlay-color: rgba(59, 59, 59, 0.55);
     --error-color: #858585;
 
+    --border-radius: 10px;
+
     /* ---SCREEN AND GRID SIZES--- */
     --content-width: 100vw;
 

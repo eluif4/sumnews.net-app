@@ -85,7 +85,7 @@ function acceptTermsAndAgreements() {
 .ta {
     /* color: red; */
     /* background-color: rgb(191, 191, 191, 0.2); */
-    border-radius: 10px;
+    border-radius: var(--border-radius);;
     padding: 10px;
     /* height: 30vh; */
     overflow: scroll;

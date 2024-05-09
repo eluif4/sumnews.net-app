@@ -204,7 +204,7 @@ const handleImageError = () => {
     width: 100%;
     box-shadow: 0 0 10px 0px var(--browser-background-color);
     margin: 1% 0 4% 0;
-    border-radius: 10px;
+    border-radius: var(--border-radius);;
     box-sizing: border-box;
 
     position: relative;
@@ -235,7 +235,7 @@ const handleImageError = () => {
     top: 0;
     right: 0;
     background-image: linear-gradient(0deg, rgba(0, 0, 0, 0.75) 10%, rgba(0, 0, 0, 0.2) 80%);
-    border-radius: 10px;
+    border-radius: var(--border-radius);;
     padding: 10px;
 
     display: flex;
@@ -264,7 +264,7 @@ const handleImageError = () => {
     height: 100%;
     aspect-ratio: 16/ 9;
     border: none;
-    border-radius: 10px;
+    border-radius: var(--border-radius);;
 }
 
 .source-datePublished {
@@ -306,7 +306,7 @@ const handleImageError = () => {
 
 .article-image {
     /* aspect-ratio: 16 / 9; */
-    border-radius: 10px;
+    border-radius: var(--border-radius);;
     width: 100%;
 }
 
