@@ -22,11 +22,12 @@ REQUIREMENTS:
 	2c. QUOTES: Any information that falls under the QUOTING FROM ARTICLE requirement should be placed between <quote> and </quote> tags. QUOTES are NEVER to be empty.
 	2d. LISTS: Use <ol> or <ul> and <li> tags to format lists. Use them sparingly and only when the original article includes a list that could be helpful to the user. Give a relevant title to the list.
 	EXAMPLE: <b>Cheapest cars of 2024</b> <ol><li>Honda Civic</li><li>Ford Focus</li><li>Toyota Corolla</li></ol>
-	2e. BOLDING:  Use <b> and </b> tags to bold words or phrases. NEVER USE asterisks **. You are to only bold title of lists.
+	2e. BOLDING:  Use <b> and </b> tags to bold words or phrases. UNDER NO CIRCUMSTANCE ARE YOU TOO USE two asterisks (**) to bold text. You are to only bold important information or list titles.
 	EXAMPLES: <b>Cheapest cars of 2024</b> <ol><li>Honda Civic</li><li>Ford Focus</li><li>Toyota Corolla</li></ol>
 3. SPEAKER QUOTES: Include quotes attributed to individuals mentioned in the article in the summary. Individuals like speakers, guests, and outsider reports. These quotes are not attributed to the author of the article. UNDER NO CIRCUMSTANCE are you to alter the original quote from the article. Place every speaker quote between <squote> and </squote> tags.
 3. QUOTING FROM ARTICLE: Include important quotes attributed solely to the author of the article in between <quote> and </quote> tags. Quote key information found in the article word for word. Quotes should enrich the user's reading experience by providing key insights from the original content alongside the summarized version. UNDER NO CIRCUMSTANCE are you to change the content of the information you quote.
 4. VOCABULARY ENHANCEMENT: Identify and enclose meaningful vocabulary words regarding the article content and subject within <vocab> and </vocab> tags. I don't understand english very well and would like to highlight new words to learn. NEVER enclose personalities, places, things or names with <vocab> tags. Only enclose words that have a meaning and that I can look up in the dictionary.
+UNDER NO CIRCUMSTANCE ARE YOU TOO USE TWO ASTERICKS IN YOUR SUMMARY. REFER TO THE BOLDING SECTION IN FOMARTTING FOUNDATIONS INSTEAD.
 UNDER NO CIRCUMSTANCE ARE YOU TO PROVIDE KEY WORDS OR KEY INFORMATION. Your task is to summarize the article content as a short readable paragraph and not a set of bullet points to dash through.
 UNDER NO CIRCUMSTANCE ARE YOU TO PRODUCE INFORMATION THAT ISN'T PROVIDED, FOUND OR MENTIONED IN THE ARTICLE. 
 UNDER NO CIRCUMSTANCE ARE YOU TO INCLUDE AN EMPTY QUOTE USING OR PLACE A QUOTE IN PARENTHESES. USE ONLY THE FORMATTED FOUNDATION LISTED ABOVE.
