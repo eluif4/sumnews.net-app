@@ -1,7 +1,14 @@
 <script setup>
+import { ref } from 'vue'
 import { front_getArticlesFromDB } from '../scripts/utility'
 import { List } from '../main'
 import { useRoute } from 'vue-router';
+import CNNLogo from '@/assets/icons/cnn.png'
+import bgsumnewslogo from '@/assets/icons/bgsumnewslogo.png';
+import NYPLogo from '@/assets/icons/nyp.png';
+import ForbesLogo from '@/assets/icons/forbes.png';
+import BILogo from '@/assets/icons/businessinsider.png';
+import YahooNewsLogo from '@/assets/icons/yahoonews.png';
 
 const route = useRoute();
 
@@ -12,6 +19,7 @@ import Header from '../components/Page/Header.vue'
 import Filter from '../components/Filter/Filter.vue'
 import ArticleContent from '../components/Article/ArticleContent.vue'
 import ArticleInstance from '../components/Article/ArticleInstance.vue'
+import DailyRecapItem from '../components/DailyRecap/DailyRecapItem.vue'
 
 var skeletonArticles = [1, 2, 3, 4, 5, 6]
 
@@ -107,10 +115,54 @@ async function scrollHandler(event) {
     }
     // }
 }
+
+const drsumnews = {
+    source: "Sumnews",
+    sourceLogo: bgsumnewslogo,
+    dailyRecapId: 1,
+}
+
+const drcnn = {
+    source: "CNN",
+    sourceLogo: CNNLogo,
+    daulyRecapId: 2
+}
+
+const drnyt = {
+    source: "New York Times",
+    sourceLogo: NYPLogo,
+    daulyRecapId: 3
+}
+
+const drforbes = {
+    source: "Forbes",
+    sourceLogo: ForbesLogo,
+    daulyRecapId: 4
+}
+
+const dryahoonews = {
+    source: "Yahoo News",
+    sourceLogo: YahooNewsLogo,
+    daulyRecapId: 5
+}
+
+const drbi = {
+    source: "Business Insider",
+    sourceLogo: BILogo,
+    daulyRecapId: 6
+}
+
+const drarray = [drsumnews, drcnn, drnyt, drforbes, dryahoonews, drbi]
+
+const isPremium = ref(true)
+
 </script>
 
 <template>
     <Header />
+    <div class="drcontainer" v-if="isPremium">
+        <DailyRecapItem v-for="dritem in drarray" :key="dritem.dailyRecapId" :dr="dritem" />
+    </div>
     <div class="app-container">
         <div id="article-stack" @scroll="scrollHandler">
             <ArticleSkeleton v-for="skeleton in skeletonArticles" v-if="List.articles.length == 0"></ArticleSkeleton>
@@ -153,5 +205,18 @@ async function scrollHandler(event) {
 /* SCROLLBARY STYLING */
 #article-stack::-webkit-scrollbar {
     display: none;
+}
+
+.drcontainer {
+    padding: 4px 10px;
+    width: 100vw;
+    overflow-x: auto;
+    overflow-y: hidden;
+    display: flex;
+    flex-direction: row;
+    gap: 20px;
+    flex-wrap: nowrap;
+    align-items: center;
+    box-sizing: border-box;
 }
 </style>

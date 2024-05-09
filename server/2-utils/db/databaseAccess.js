@@ -8,7 +8,7 @@ const { mongoose } = require('../../config/dbconfig')
 const { handleError } = require('../../3-middleware/errorHandler')
 const kleur = require('kleur')
 
-const db  = mongoose.connection;
+const db = mongoose.connection;
 
 // ----- ARTICLES -----
 async function saveToDB(article) { //SAVES THE GIVEN ARTICLE TO DB WITH ALL RELEVANT METADATA ABOUT IT
@@ -74,12 +74,12 @@ async function articlesSinceYesterday() {
 
         // articles = await Article.find(query, options);
         articles = await Article.find({
-                "datePublished": {
-                    "$gte": yesterdayFormatted,
-                    "$lt": todayFormatted
-                }
-            })
-            .sort({"datePublished": -1})
+            "datePublished": {
+                "$gte": yesterdayFormatted,
+                "$lt": todayFormatted
+            }
+        })
+            .sort({ "datePublished": -1 })
             .select({ url: 1 });
     } catch (error) {
         console.error(error);
@@ -87,6 +87,34 @@ async function articlesSinceYesterday() {
 
     return articles
 }
+
+async function eventsSinceYesterdayByPopularity() {
+    // Return events since yesterdy from most popular to least
+    const today = new Date();
+    today.setDate(today.getDate() + 1);
+    const todayFormatted = today.toISOString().slice(0, 10) + 'T00:00:00Z';
+
+    // Yesterday's date
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    const yesterdayFormatted = yesterday.toISOString().slice(0, 10) + 'T00:00:00Z';
+
+    var events = []
+    try {
+        events = await Event.find({
+            "dateCreated": {
+                "$gte": yesterdayFormatted,
+                "$lt": todayFormatted
+            }
+        })
+        .sort({ "articlesCount": -1 })
+    } catch (error) {
+        console.error(error)
+    }
+
+    return events;
+}
+
 
 // ----- USERS -----
 async function getUser(userid) {
@@ -144,6 +172,7 @@ module.exports = {
     saveDocument,
     doesArticleExist,
     articlesSinceYesterday,
+    eventsSinceYesterdayByPopularity,
     getArticlesFromDB,
     getUser,
     saveUserToDB,

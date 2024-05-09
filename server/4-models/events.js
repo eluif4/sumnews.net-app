@@ -5,7 +5,7 @@ const eventsSchema = new mongoose.Schema({
     eventUri: String, // Event uri of the specific event
     articlesCount: Number,
     articlesSaved: Number, // How many articles exist in this event (value from the api)
-    // dateAdded: Date, // The date when the event was added to the DB
+    dateCreated: Date, // The date when the event was added to the DB
 }, { collection: 'events' });
 
 const Article = mongoose.model('Event', eventsSchema);

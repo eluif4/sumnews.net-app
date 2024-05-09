@@ -108,6 +108,7 @@ async function processEvent(article) {
             articlesCount: response[eventUri].articles.totalResults,
             // FUTURE CHANGE: THE NUMBER BELOW ISNT CORRECT. SAME ARTICLES ARENT SAVE TO DB
             articlesSaved: articleEventsAddedToQueueCount,
+            dateCreated: new Date(),
         })
 
         // Save event (e) to DB if there are more than 1 articles in the full coverage

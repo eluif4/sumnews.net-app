@@ -1,10 +1,13 @@
 const path = require("path")
 const { validationResult } = require('express-validator')
+const UTILS = path.join(__dirname, '../../2-utils')
 const DBUTILS = path.join(__dirname, '../../2-utils/db')
 const DatabaseAccess = path.join(DBUTILS, "/databaseAccess.js")
-const getCollections = path.join(DBUTILS, "/getCollections.js")
+const GetCollections = path.join(DBUTILS, "/getCollections.js")
 const { getArticlesFromDB, aggregate } = require(DatabaseAccess)
-const { getAllSources, getAllGenres } = require(getCollections)
+const { getAllSources, getAllGenres } = require(GetCollections)
+const DailyRecap = path.join(UTILS, "/dailyRecaps.js")
+const { createDailyRecap } = require(DailyRecap)
 
 async function getArticlesController(req, res) {
     try {
@@ -118,6 +121,11 @@ async function getArticlesFromEventController(req, res) {
     return res.send(result);
 }
 
+async function getDailyRecapController(req, res) {
+    const dr = await createDailyRecap()
+    res.send(dr)
+}
+
 module.exports = {
     getArticlesController,
     getArticlesFromSearchController,
@@ -126,4 +134,5 @@ module.exports = {
     getGenresController,
     getEventArticlesController,
     getArticlesFromEventController,
+    getDailyRecapController,
 }
