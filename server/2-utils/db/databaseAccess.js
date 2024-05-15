@@ -7,6 +7,7 @@ const Event = require('../../4-models/events')
 const { mongoose } = require('../../config/dbconfig')
 const { handleError } = require('../../3-middleware/errorHandler')
 const kleur = require('kleur')
+const DailyRecap = require("../../4-models/dailyRecap")
 
 const db = mongoose.connection;
 
@@ -107,7 +108,7 @@ async function eventsSinceYesterdayByPopularity() {
                 "$lt": todayFormatted
             }
         })
-        .sort({ "articlesCount": -1 })
+            .sort({ "articlesCount": -1 })
     } catch (error) {
         console.error(error)
     }
@@ -160,10 +161,31 @@ async function getAllSources() {
 // ----- EVENTS -----
 async function getEvents() {
     try {
-        return await Event.find().sort({ "autoNum": -1 })
+        const result = await Event.find().sort({ "autoNum": -1 })
+        return result;
     } catch (error) {
         console.error(`Error fetching events: `, error)
-        throw err;
+        throw error;
+    }
+}
+
+async function getEventByEventUri(eventUri) {
+    try {
+        const result = await Event.find({ "eventUri": eventUri });
+        return result[0];
+    } catch (error) {
+        console.error(`Error fetching events: `, error)
+        throw error;
+    }
+}
+
+// ----- DAILY RECAP -----
+async function getDailyRecap(dailyRecapId) {
+    try {
+        return await DailyRecap.find({ 'id': dailyRecapId }).sort({ 'dateCreated': -1 })
+    } catch (error) {
+        console.error('Error fetching DailyRecaps: ', error)
+        throw error;
     }
 }
 
@@ -179,4 +201,6 @@ module.exports = {
     aggregate,
     getAllSources,
     getEvents,
+    getEventByEventUri,
+    getDailyRecap,
 };

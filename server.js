@@ -26,8 +26,9 @@ const DBGETCOLLECTIONSROUTES = require('./server/1-routes/db/getArticles.js');
 
 //---FUNCTIONS---
 const { getArticlesUsingRecentActiviy } = require('./server/2-utils/api/getArticlesFromAPI.js');
-const { getAllSources, articlesSinceYesterday } = require('./server/2-utils/db/databaseAccess.js')
+const { getAllSources, articlesSinceYesterday, saveDocument } = require('./server/2-utils/db/databaseAccess.js')
 const { processQueue } = require('./server/2-utils/articleQueueHandler.js')
+const { createDailyRecap } = require('./server/2-utils/dailyRecaps.js')
 
 //---SERVER SETUP---
 const app = express();
@@ -114,4 +115,13 @@ async function cronTask() {
     // })
 }
 
+async function cronDailyRecap() {
+    // CRON task runs at 18:00
+    cron.schedule('0 18 * * *', async () => {
+        const dr = await createDailyRecap();
+        saveDocument(dr)
+    })
+}
+
 cronTask().catch(err => console.log(err))
+cronDailyRecap().catch(err => console.log(error))

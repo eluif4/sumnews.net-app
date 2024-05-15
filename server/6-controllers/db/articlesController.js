@@ -1,10 +1,11 @@
 const path = require("path")
 const { validationResult } = require('express-validator')
+const { getEventByEventUri } = require("../../2-utils/db/databaseAccess")
 const UTILS = path.join(__dirname, '../../2-utils')
 const DBUTILS = path.join(__dirname, '../../2-utils/db')
 const DatabaseAccess = path.join(DBUTILS, "/databaseAccess.js")
 const GetCollections = path.join(DBUTILS, "/getCollections.js")
-const { getArticlesFromDB, aggregate } = require(DatabaseAccess)
+const { getArticlesFromDB, aggregate, getDailyRecap } = require(DatabaseAccess)
 const { getAllSources, getAllGenres } = require(GetCollections)
 const DailyRecap = path.join(UTILS, "/dailyRecaps.js")
 const { createDailyRecap } = require(DailyRecap)
@@ -98,6 +99,12 @@ async function getEventArticlesController(req, res) {
     res.send(articles)
 }
 
+async function getEventByEventUriController(req, res) {
+    const eventUri = req.body.eventUri;
+    const event = await getEventByEventUri(eventUri)
+    res.send(event)
+}
+
 async function getArticlesFromEventController(req, res) {
     const eventUri = req.body.eventUri;
     const pipeline = [
@@ -118,11 +125,18 @@ async function getArticlesFromEventController(req, res) {
         },
     ]
     const result = await aggregate('events', pipeline);
-    return res.send(result);
+    return res.send(result[0]);
 }
 
-async function getDailyRecapController(req, res) {
+async function createDailyRecapController(req, res) {
     const dr = await createDailyRecap()
+    res.send(dr)
+}
+
+async function getDailyRecapByIdController(req, res) {
+    const uuid = req.body.uuid;
+    const response = await getDailyRecap(uuid);
+    const dr = response[0]
     res.send(dr)
 }
 
@@ -133,6 +147,8 @@ module.exports = {
     getSourcesController,
     getGenresController,
     getEventArticlesController,
+    getEventByEventUriController,
     getArticlesFromEventController,
-    getDailyRecapController,
+    createDailyRecapController,
+    getDailyRecapByIdController,
 }

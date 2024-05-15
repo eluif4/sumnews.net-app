@@ -19,7 +19,7 @@ import Header from '../components/Page/Header.vue'
 import Filter from '../components/Filter/Filter.vue'
 import ArticleContent from '../components/Article/ArticleContent.vue'
 import ArticleInstance from '../components/Article/ArticleInstance.vue'
-import DailyRecapItem from '../components/DailyRecap/DailyRecapItem.vue'
+import DailyRecapButton from '../components/DailyRecap/DailyRecapButton.vue'
 
 var skeletonArticles = [1, 2, 3, 4, 5, 6]
 
@@ -119,37 +119,37 @@ async function scrollHandler(event) {
 const drsumnews = {
     source: "Sumnews",
     sourceLogo: bgsumnewslogo,
-    dailyRecapId: 1,
+    dailyRecapId: '1908cae5-e65e-4cba-8fee-ed4b14d41d65',
 }
 
 const drcnn = {
     source: "CNN",
     sourceLogo: CNNLogo,
-    daulyRecapId: 2
+    dailyRecapId: 2
 }
 
 const drnyt = {
     source: "New York Times",
     sourceLogo: NYPLogo,
-    daulyRecapId: 3
+    dailyRecapId: 3
 }
 
 const drforbes = {
     source: "Forbes",
     sourceLogo: ForbesLogo,
-    daulyRecapId: 4
+    dailyRecapId: 4
 }
 
 const dryahoonews = {
     source: "Yahoo News",
     sourceLogo: YahooNewsLogo,
-    daulyRecapId: 5
+    dailyRecapId: 5
 }
 
 const drbi = {
     source: "Business Insider",
     sourceLogo: BILogo,
-    daulyRecapId: 6
+    dailyRecapId: 6
 }
 
 const drarray = [drsumnews, drcnn, drnyt, drforbes, dryahoonews, drbi]
@@ -161,7 +161,7 @@ const isPremium = ref(true)
 <template>
     <Header />
     <div class="drcontainer" v-if="isPremium">
-        <DailyRecapItem v-for="dritem in drarray" :key="dritem.dailyRecapId" :dr="dritem" />
+        <DailyRecapButton v-for="dritem in drarray" :key="dritem.dailyRecapId" :dr="dritem" />
     </div>
     <div class="app-container">
         <div id="article-stack" @scroll="scrollHandler">
