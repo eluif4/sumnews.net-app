@@ -248,6 +248,27 @@ const routes = [
         //         router.push('/')
         //     }
         // }
+        beforeEnter: async (to, from, next) => {
+            // Initialize to.props if it's undefined
+            if (!to.props) {
+                to.props = {};
+            }
+
+            // Set the dailyRecap prop
+            to.props.dailyRecap = {
+                id: "1908cae5-e65e-4cba-8fee-ed4b14d41d65",
+                events: [
+                    "eng-9545236",
+                    "eng-9544845",
+                    "eng-9545737"
+                ],
+                dateCreated: new Date(),
+            };
+
+            // Continue with the navigation
+            next();
+        }
+
     },
     {
         path: '/:catchAll(.*)', component: NotFound

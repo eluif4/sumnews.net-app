@@ -7,7 +7,9 @@ import DailyRecapItem from '../components/DailyRecap/DailyRecapItem.vue'
 const FRONTEND_URL = config.url.FRONTEND_URL;
 const BACKEND_URL = config.url.BACKEND_URL;
 
-const props = defineProps({ uuid: String });
+const props = defineProps({ uuid: String, dailyRecap: Object });
+
+console.log(props.dailyRecap)
 
 const eventObjects = ref([]);
 const currentEventIndex = ref(0)
