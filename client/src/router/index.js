@@ -1,5 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import { front_getArticlesFromDB } from '../scripts/utility'
+import { front_getArticlesFromDB, showPopup } from '../scripts/utility'
 import { List, selectedArticle } from '../main'
 import { config } from '../constants'
 
@@ -16,6 +16,7 @@ import NotFound from '../views/NotFoundPage.vue'
 import Filter from '../components/Filter/Filter.vue'
 import Backdrop from '../components/Article/Backdrop.vue'
 import ArticleContent from '../components/Article/ArticleContent.vue'
+import DailyRecapPage from '../views/DailyRecapPage.vue'
 
 const BACKEND_URL = config.url.BACKEND_URL;
 const FRONTEND_URL = config.url.FRONTEND_URL;
@@ -154,7 +155,7 @@ const routes = [
     },
     {
         path: '/search',
-        name: "Search",
+        name: 'search',
         component: Home,
         props: (route) => ({ searchQuery: route.query.searchQuery }),
         beforeEnter: async (to, from) => {
@@ -231,6 +232,22 @@ const routes = [
         children: [
             { path: '', component: PrivacyPolicy }
         ]
+    },
+    {
+        path: '/dailyrecap/:uuid/',
+        name: 'dailyrecap',
+        component: DailyRecapPage,
+        props: true, // This will automatically pass route params as props
+        // beforeEnter: async (to, from, next) => {
+        //     try {
+        //         to.params.uuid = uuid;
+        //         next();
+        //     } catch (error) {
+        //         showPopup(2, `Couldn't load Daily Recap, try again later`,)
+        //         console.log(error)
+        //         router.push('/')
+        //     }
+        // }
     },
     {
         path: '/:catchAll(.*)', component: NotFound
