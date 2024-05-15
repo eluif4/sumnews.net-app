@@ -219,4 +219,15 @@ const isPremium = ref(true)
     align-items: center;
     box-sizing: border-box;
 }
+
+.drcontainer {
+    -ms-overflow-style: none;
+    /* IE and Edge */
+    scrollbar-width: none;
+    /* Firefox */
+}
+
+.drcontainer::-webkit-scrollbar {
+    display: none;
+}
 </style>
