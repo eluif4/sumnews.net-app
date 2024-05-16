@@ -234,41 +234,12 @@ const routes = [
         ]
     },
     {
-        path: '/dailyrecap/:uuid/',
+        path: '/dailyrecap/:dailyrecapUUID/:eventUri/:articleUUID',
         name: 'dailyrecap',
         component: DailyRecapPage,
-        props: true, // This will automatically pass route params as props
-        // beforeEnter: async (to, from, next) => {
-        //     try {
-        //         to.params.uuid = uuid;
-        //         next();
-        //     } catch (error) {
-        //         showPopup(2, `Couldn't load Daily Recap, try again later`,)
-        //         console.log(error)
-        //         router.push('/')
-        //     }
-        // }
-        beforeEnter: async (to, from, next) => {
-            // Initialize to.props if it's undefined
-            if (!to.props) {
-                to.props = {};
-            }
-
-            // Set the dailyRecap prop
-            to.props.dailyRecap = {
-                id: "1908cae5-e65e-4cba-8fee-ed4b14d41d65",
-                events: [
-                    "eng-9545236",
-                    "eng-9544845",
-                    "eng-9545737"
-                ],
-                dateCreated: new Date(),
-            };
-
-            // Continue with the navigation
-            next();
-        }
-
+        props: route => ({
+            dailyrecapUUID: route.params.dailyrecapUUID
+        })
     },
     {
         path: '/:catchAll(.*)', component: NotFound

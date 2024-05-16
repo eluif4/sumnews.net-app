@@ -68,7 +68,7 @@ const formattedDate = computed(() => {
         <div class="summarized-content" v-html="formattedSummarizedContent"></div>
 
         <!-- READ ORIGINAL ARTICLE -->
-        <a :href="article.url" target="_blank" rel="noopener noreferrer" class="original-article-link">
+        <!-- <a :href="article.url" target="_blank" rel="noopener noreferrer" class="original-article-link">
             <div class="original-article-container">
                 Read original article
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 12 12" fill="none">
@@ -77,7 +77,7 @@ const formattedDate = computed(() => {
                         fill="white" />
                 </svg>
             </div>
-        </a>
+        </a> -->
     </div>
 </template>
 
@@ -119,7 +119,7 @@ const formattedDate = computed(() => {
 
 .article-image {
     border-radius: 25px;
-    box-shadow: 0 4px 20px 0 #00000025;
+    box-shadow: 0 4px 20px 0 #000000b0;
 }
 
 .actions {
@@ -189,7 +189,7 @@ const formattedDate = computed(() => {
 .source-date {
     color: white;
     text-decoration: underline;
-    font-size: 14px;
+    /* font-size: 14px; */
 }
 
 .fullcoverage-article {
@@ -248,5 +248,9 @@ const formattedDate = computed(() => {
     /* margin: 0 5px; */
     border-radius: 4px;
     color: black;
+}
+
+.authorsAndDate div {
+        font-size: 12px !important;
 }
 </style>

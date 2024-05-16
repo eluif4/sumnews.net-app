@@ -19,7 +19,7 @@ import Header from '../components/Page/Header.vue'
 import Filter from '../components/Filter/Filter.vue'
 import ArticleContent from '../components/Article/ArticleContent.vue'
 import ArticleInstance from '../components/Article/ArticleInstance.vue'
-import DailyRecapButton from '../components/DailyRecap/DailyRecapButton.vue'
+import DailyRecapButton from '../components/DailyRecap/DailyRecapButton.vue';
 
 var skeletonArticles = [1, 2, 3, 4, 5, 6]
 
@@ -119,6 +119,11 @@ async function scrollHandler(event) {
 const drsumnews = {
     source: "Sumnews",
     sourceLogo: bgsumnewslogo,
+    events: [
+        "eng-9545236",
+        "eng-9544845",
+        "eng-9545737"
+    ],
     dailyRecapId: '1908cae5-e65e-4cba-8fee-ed4b14d41d65',
 }
 

@@ -1,21 +1,16 @@
 <script setup>
 // const props = defineProps({ dailyRecap: Object })
 import { ref, onMounted } from 'vue';
-import { config } from '../constants';
 import DailyRecapItem from '../components/DailyRecap/DailyRecapItem.vue'
 
-const FRONTEND_URL = config.url.FRONTEND_URL;
-const BACKEND_URL = config.url.BACKEND_URL;
+const props = defineProps({ uuid: String });
 
-const props = defineProps({ uuid: String, dailyRecap: Object });
-
-console.log(props.dailyRecap)
-
-const eventObjects = ref([]);
+// FUTURE CHANGE: GET THESE VALUES FROM THE URL
+// const dailyrecap = 
 const currentEventIndex = ref(0)
 const currentArticleIndex = ref(0)
 
-// Fetch Event async function
+// FUNCTIONS
 const fetchEventByUri = async (eventUri) => {
     var response = await fetch(`${BACKEND_URL}db/getArticlesFromEvent`, {
         method: 'POST',
@@ -35,7 +30,7 @@ const fetchEventByUri = async (eventUri) => {
 };
 
 // Fetching dailyRecap and event details
-const fetchDailyRecap = async () => {
+const fetchDailyRecap = async (dailyRecapId) => {
     try {
         var response = await fetch(`${BACKEND_URL}db/getDailyRecapById`, {
             method: 'POST',
@@ -44,18 +39,19 @@ const fetchDailyRecap = async () => {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                "uuid": props.uuid
+                "uuid": dailyRecapId
             })
         });
 
         if (response.ok) {
             const dailyRecap = await response.json();
             var eventUris = dailyRecap.events;
+            // FUTURE CHANGE: LOAD FIRST EVENT BEFORE ENTERING ROUTE AND THEN LOAD ALL OTHER EVENTS FOR FASTER EXPERIENCE
+            // const eventsPromises = eventUris.map(eventUri => fetchEventByUri(eventUri));
+            // eventObjects = await Promise.all(eventsPromises);
+            const eventObject = await fetchEventByUri(eventUris[0])
 
-            const eventsPromises = eventUris.map(eventUri => fetchEventByUri(eventUri));
-            eventObjects.value = await Promise.all(eventsPromises);
-
-            console.log('Event Objects:', eventObjects.value);
+            return eventObject
         } else {
             throw new Error('Failed to fetch Daily Recap');
         }
@@ -102,6 +98,7 @@ onMounted(() => {
                 <!-- {{ event.eventArticles.length }} -->
                 <div class="article-list">
                     <div class="article" v-for="article in event.eventArticles" :key="article.id">
+                        <!-- FUTURE CHANGE: WHILE THE REQUESTS LOAD PLACE SKELETONS -->
                         <DailyRecapItem :article="article"></DailyRecapItem>
                     </div>
                 </div>
