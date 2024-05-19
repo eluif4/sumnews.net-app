@@ -38,7 +38,7 @@ function decision(bool) {
     z-index: 9999;
     margin: 2% 4%;
     box-sizing: border-box;
-    bottom: 10px;
+    bottom: 100px;
 }
 
 .icon {
