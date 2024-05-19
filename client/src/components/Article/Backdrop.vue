@@ -3,7 +3,8 @@ import { goBack } from '../../scripts/utility.js'
 </script>
 
 <template>
-    <div class="backdrop" @click="goBack"></div>
+    <!-- <div class="backdrop" @click="goBack"></div> -->
+    <router-link to="/" class="backdrop"></router-link>
 </template>
 
 <style scoped>
