@@ -1,10 +1,14 @@
 <script setup>
 // const props = defineProps({ dailyRecap: Object })
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted, computed, watch } from 'vue';
 import { config } from '../constants';
+import router from '../router';
 import DailyRecapItem from '../components/DailyRecap/DailyRecapItem.vue'
+import { front_getArticlesFromDB } from '../scripts/utility';
+import { useRoute } from 'vue-router';
 
 const BACKEND_URL = config.url.BACKEND_URL;
+const route = useRoute();
 
 const props = defineProps({
     dailyrecapUUID: String,
@@ -14,17 +18,19 @@ const props = defineProps({
 
 // FUTURE CHANGE: GET THESE VALUES FROM THE URL
 const dailyrecap = ref();
-const dailyrecapRef = ref(props.dailyrecapUUID);
+const dailyrecapUUIDRef = ref(props.dailyrecapUUID);
 const eventUriRef = ref(props.eventUri);
 const articleUUIDRef = ref(props.articleUUID);
+const currentArticle = ref(null) // Current article with relation to the uuid in the URL
 
 // COMPUTED PROPERTIES
 const currentEventIndex = computed(() => {
-    return dailyrecap.value?.events.find(event => event.eventUri === eventUriRef.value)
-})
+    return dailyrecap.value?.events.findIndex(event => event.eventUri === eventUriRef.value);
+});
+
 const currentArticleIndex = computed(() => {
     return dailyrecap.value?.events.flatMap(event => event.eventArticles)
-        .find(article => article.uuid === articleUUIDRef.value);
+        .findIndex(article => article.uuid === articleUUIDRef.value);
 })
 
 // FUNCTIONS
@@ -66,6 +72,7 @@ const setDailyRecap = async (dailyrecapUUID) => {
             var eventsObject = await Promise.all(eventsPromises);
             tempdailyrecap.events = eventsObject;
             dailyrecap.value = tempdailyrecap;
+            console.log(dailyrecap.value)
             // Place the eventsObject inside the dailyrecap object
         } else {
             throw new Error('Failed to fetch Daily Recap');
@@ -75,17 +82,53 @@ const setDailyRecap = async (dailyrecapUUID) => {
     }
 };
 
-onMounted(() => { // and on route change
+async function handleClick(event) {
+    const screenWidth = window.innerWidth;
+    const clickPosition = event.clientX
+    var articleIndex = currentArticleIndex.value
+    if (clickPosition < screenWidth / 2) { // if left
+        if (articleIndex != 0)
+            articleIndex--;
+    } else { // else right
+        if (articleIndex != dailyrecap.value.events[currentEventIndex.value].eventArticles.length)
+            articleIndex++
+    }
+
+    router.push({
+        name: 'dailyrecap', params: {
+            dailyrecapUUID: props.dailyrecapUUID,
+            eventUri: dailyrecap.value.eventUri,
+            articleUUID: dailyrecap.value.events[currentEventIndex.value].eventArticles[articleIndex].uuid,
+        }
+    });
+}
+
+onMounted(async () => { // and on route change
     setDailyRecap(props.dailyrecapUUID);
+    const response = await front_getArticlesFromDB({ uuid: props.articleUUID })
+    currentArticle.value = response[0]
 });
 
-async function rightClick() {
-
-}
+watch(
+    () => route.params.articleUUID,
+    async (newuuid) => {
+        if (newuuid) {
+            const response = await front_getArticlesFromDB({ uuid: newuuid }, undefined, undefined, undefined, 1);
+            const article = response[0];
+            if (article) {
+                // Setup inital dailyrecap values
+                eventUriRef.value = route.params.eventUri;
+                articleUUIDRef.value = route.params.articleUUID;
+                currentArticle.value = article;
+            } else {
+                route.push('/error')
+            }
+        }
+    })
 </script>
 
 <template>
-    <div class="dailyrecap-container" v-if="dailyrecap">
+    <div class="dailyrecap-container" v-if="dailyrecap" @click="handleClick">
         <!-- HEADER SECTION WITH ALL THE INFORMATION AND BACK BUTTON -->
         <div class="info-header">
             <div class="first">
@@ -107,7 +150,8 @@ async function rightClick() {
             </div>
             <div class="second count" v-if="dailyrecap">
                 <div class="bubble count"
-                    v-for="(_, index) in dailyrecap.events[currentEventIndex].eventArticles.length">
+                    v-for="(_, index) in dailyrecap.events[currentEventIndex].eventArticles.length"
+                    :class="{ 'active': index <= currentArticleIndex }">
                 </div>
             </div>
         </div>
@@ -119,7 +163,7 @@ async function rightClick() {
                 <div class="article-list">
                     <div class="article" v-for="article in event.eventArticles" :key="article.id">
                         <!-- FUTURE CHANGE: WHILE THE REQUESTS LOAD PLACE SKELETONS -->
-                        <DailyRecapItem :article="article"></DailyRecapItem>
+                        <DailyRecapItem :article="currentArticle"></DailyRecapItem>
                     </div>
                 </div>
             </div>
@@ -245,6 +289,7 @@ async function rightClick() {
     justify-content: space-between;
     align-items: center;
     gap: 10px;
+    transition: background-color 0.3s ease;
 }
 
 .footer-container {
@@ -261,5 +306,9 @@ async function rightClick() {
 .event-count {
     text-align: right;
     font-size: 12px;
+}
+
+.active {
+    background-color: var(--main-color) !important;
 }
 </style>
