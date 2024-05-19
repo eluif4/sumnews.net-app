@@ -1,12 +1,9 @@
 <script setup>
-import { ref, computed } from 'vue'
 import router from '../../router';
 import { config } from '../../constants';
 
 // VARS
-const FRONTEND_URL = config.url.FRONTEND_URL;
 const BACKEND_URL = config.url.BACKEND_URL;
-var eventObjects = [];
 
 // PROPS
 const props = defineProps({
@@ -53,12 +50,7 @@ const fetchDailyRecap = async (dailyRecapId) => {
 
         if (response.ok) {
             const dailyRecap = await response.json();
-            var eventUris = dailyRecap.events;
-            // FUTURE CHANGE: LOAD FIRST EVENT BEFORE ENTERING ROUTE AND THEN LOAD ALL OTHER EVENTS FOR FASTER EXPERIENCE
-            // const eventsPromises = eventUris.map(eventUri => fetchEventByUri(eventUri));
-            // eventObjects = await Promise.all(eventsPromises);
-            const eventObject = await fetchEventByUri(eventUris[0])
-
+            const eventObject = await fetchEventByUri(dailyRecap.events[0])
             return eventObject
         } else {
             throw new Error('Failed to fetch Daily Recap');
@@ -68,6 +60,7 @@ const fetchDailyRecap = async (dailyRecapId) => {
     }
 };
 
+// Redirect the user to the correct URI after finding out the first article uuid
 async function renderDailyRecap(dailyRecapId) {
     const dailyrecap = await fetchDailyRecap(dailyRecapId)
     console.log(`dailyrecap ${dailyrecap}`);
