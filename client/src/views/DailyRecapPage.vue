@@ -163,7 +163,8 @@ watch(
                 <div class="article-list">
                     <div class="article" v-for="article in event.eventArticles" :key="article.id">
                         <!-- FUTURE CHANGE: WHILE THE REQUESTS LOAD PLACE SKELETONS -->
-                        <DailyRecapItem :article="currentArticle"></DailyRecapItem>
+                        <DailyRecapItem :article="currentArticle" v-if="eventUriRef == event.eventUri"></DailyRecapItem>
+                        <DailyRecapItem :article="article" v-else></DailyRecapItem>
                     </div>
                 </div>
             </div>
