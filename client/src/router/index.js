@@ -61,15 +61,8 @@ const routes = [
         },
         beforeEnter: async (to, from, next) => {
             try {
-                var article = selectedArticle.value
-                /* 
-                If there is no article passed throgh 'selectedArticle' search in DB.
-                This is for when the user refreshes the page when an article is open
-                */
-                if (!article) {
-                    const response = await front_getArticlesFromDB({ uuid: to.params.uuid }, undefined, undefined, undefined, 1);
-                    article = response[0];
-                }
+                const response = await front_getArticlesFromDB({ uuid: to.params.uuid }, undefined, undefined, undefined, 1);
+                var article = response[0];
                 // If after the db fetch there is an article, send it to the ArticleContent component
                 if (article) {
                     to.params.article = article;
@@ -77,7 +70,6 @@ const routes = [
                 }
                 // Else redirect to '/404' route
                 else {
-                    // Article not found, redirect or handle error
                     next('/404');
                 }
             } catch (error) {
@@ -108,8 +100,7 @@ const routes = [
                 if (article) {
                     to.params.article = article;
                     next();
-                } else { // Else redirect to '/404' route
-                    // Article not found, redirect or handle error
+                } else {
                     next('/404');
                 }
             } catch (error) {

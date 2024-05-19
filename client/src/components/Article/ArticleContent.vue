@@ -1,17 +1,17 @@
 <script setup>
 import { ref, computed, watch } from 'vue';
-import { selectedArticle } from '../../main.js';
-// import { goBack, actionShareFunction, fullCoverageActionFunction, bookmarkActionFunction } from '../../scripts/utility.js'
-import { goBack, showPopup } from '../../scripts/utility.js';
+import { useRoute } from 'vue-router';
+import { goBack, showPopup, front_getArticlesFromDB } from '../../scripts/utility.js';
 import { config } from '../../constants'
-
 import ActionItem from '../Action/ActionItem.vue';
-
-const props = defineProps({ article: Object, });
-
+import router from '../../router';
+const route = useRoute();
+const props = defineProps({ article: Object });
+const articleRef = ref(props.article || {});
 const FRONTEND_URL = config.url.FRONTEND_URL
 const BACKEND_URL = config.url.BACKEND_URL
 
+// FUNCTIONS
 const getMonthOfYear = (date) => {
     // const monthsOfYear = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
     const monthsOfYear = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sept", "Oct", "Nov", "Dec"]
@@ -19,8 +19,7 @@ const getMonthOfYear = (date) => {
 }
 
 const formattedDate = computed(() => {
-    const datePublished = props.article.datePublished;
-
+    const datePublished = articleRef.value.datePublished;
     if (datePublished) {
         const inputDate = new Date(datePublished)
 
@@ -36,7 +35,7 @@ const formattedDate = computed(() => {
 })
 
 const formattedSummarizedContent = computed(() => {
-    return props.article.summarizedContent
+    return articleRef.value.summarizedContent
         // .replace(/<vocab>/g, '<span class="vocab">')
         .replace(/<squote>/g, '<span class="squote">')
         .replace(/<quote>/g, '<span class="quote">')
@@ -44,7 +43,7 @@ const formattedSummarizedContent = computed(() => {
         // .replace(/<\/vocab>/g, '</span>')
         .replace(/<\/squote>/g, '</span>')
         .replace(/<\/quote>/g, '</span>')
-        // .replace('**', "<b>")
+    // .replace('**', "<b>")
 });
 
 // ----- ACTION FUNCTIONS -----
@@ -52,9 +51,9 @@ const actionShareFunction = async () => {
     if (navigator.share) {
         try {
             await navigator.share({
-                title: `Check out this article on sumnews\n${props.article.title}`,
-                text: `I found an interesting article on sumnews from ${props.article.source}.`,
-                url: `${FRONTEND_URL}article/${props.article.uuid}`,
+                title: `Check out this article on sumnews\n${articleRef.value.title}`,
+                text: `I found an interesting article on sumnews from ${articleRef.value.source}.`,
+                url: `${FRONTEND_URL}article/${articleRef.value.uuid}`,
             });
         } catch (error) {
             console.error('Error sharing:', error.message);
@@ -62,7 +61,7 @@ const actionShareFunction = async () => {
         }
     } else {
         if (window.isSecureContext) {
-            navigator.clipboard.writeText(`Checkout this article on sumnews\n${FRONTEND_URL}article/${props.article.uuid}`)
+            navigator.clipboard.writeText(`Checkout this article on sumnews\n${FRONTEND_URL}article/${articleRef.value.uuid}`)
             showPopup(1, "Link copied to clipboard succesfully")
         } else {
             showPopup(2, "Oops, something went wrong...")
@@ -75,7 +74,7 @@ function bookmarkActionFunction() {
 }
 
 function fullCoverageActionFunction() {
-    router.push(`/event/${props.article.eventUri}`)
+    router.push(`/event/${articleRef.value.eventUri}`)
 }
 
 // ----- ACTION VARS -----
@@ -99,10 +98,10 @@ const backAction = {
     actionFunction: goBack,
 }
 
-const eventUri = props.article.eventUri;
+const eventUri = articleRef.value.eventUri;
 const aggregatedResults = ref([]);
 
-(async () => {
+async function setRefAggregatedResults() {
     if (eventUri) {
         try {
             const response = await fetch(`${BACKEND_URL}db/getArticlesFromEvent`, {
@@ -116,24 +115,45 @@ const aggregatedResults = ref([]);
                 throw new Error('Failed to fetch data');
             }
             var data = await response.json();
-            data = data[0].eventArticles.filter(article => article.uuid !== props.article.uuid);
+            data = data.eventArticles.filter(eventArticle => eventArticle.uuid !== articleRef.value.uuid);
             aggregatedResults.value = data;
         } catch (error) {
             console.error('Error fetching data:', error);
         }
     }
-})();
+};
 
-watch(() => props.article.uuid, (newValue, oldValue) => {
-    console.log('new uuid')
-    var contentcontainerDiv = document.getElementById('content-container')
-    contentcontainerDiv.scrollTo({ top: 0 })
-})
+setRefAggregatedResults();
+watch(
+    () => route.params.uuid,
+    async (newuuid) => {
+        console.log('watch fired')
+        if (newuuid) {
+            const response = await front_getArticlesFromDB({ uuid: newuuid }, undefined, undefined, undefined, 1);
+            const article = response[0];
+            if (article) {
+                articleRef.value = article;
+                var contentcontainerDiv = document.getElementById('content-container')
+                contentcontainerDiv.scrollTo({ top: 0 })
+                aggregatedResults.value = {};
+                setRefAggregatedResults();
+            } else {
+                route.push('/error')
+            }
+        }
+    })
 
 // pass article into ArticleContent
-const handleArticleClick = () => {
-    selectedArticle.value = props.article
-};
+// const handleArticleClick = () => {
+//     selectedArticle = articleRef.value
+// };
+
+// beforeRouteUpdate(to, from, next) {
+//     console.log('new uuid');
+//     var contentcontainerDiv = document.getElementById('content-container')
+//     contentcontainerDiv.scrollTo({ top: 0 })
+//     next()
+// }
 </script>
 
 <template>
@@ -144,12 +164,12 @@ const handleArticleClick = () => {
             <div class="actions">
                 <ActionItem :action="shareAction"></ActionItem>
                 <ActionItem :action="bookmarkAction"></ActionItem>
-                <ActionItem :action="fullCoverageAction" v-if="article.eventUri"></ActionItem>
+                <ActionItem :action="fullCoverageAction" v-if="articleRef.eventUri"></ActionItem>
                 <ActionItem :action="backAction" class="backAction"></ActionItem>
             </div>
 
             <!-- FUTURE CHANGE: if image isnt able to load because of network error -->
-            <img v-if="article.imageUrl" :src="article.imageUrl"
+            <img v-if="articleRef.imageUrl" :src="articleRef.imageUrl"
                 alt="Sorry :( It seems like the article image was unable to load" class="article-image">
             <!-- <img v-else src="../assets/icons/bgsumnewslogo.png"
                 alt="Sorry :( It seems like the article image was unable to load" class="article-image"> -->
@@ -158,30 +178,30 @@ const handleArticleClick = () => {
         <div class="content-container" id="content-container">
             <!-- ARTICLE GENRES -->
             <div class="genre-list">
-                <div class="genre" v-for="genre in article.genre">{{ genre }}</div>
+                <div class="genre" v-for="genre in articleRef.genre">{{ genre }}</div>
             </div>
 
             <!-- ARTICLE TITLE -->
             <div class="article-title">
-                {{ article.title }}
+                {{ articleRef.title }}
             </div>
 
             <!-- AUTHORS, DATE AND SOURCE -->
             <div class="authorsAndDate">
                 <div class="authors">
-                    {{ article.author.length === 0 ? "" : "By: " + article.author.join(', ') }}
+                    {{ articleRef.author.length === 0 ? "" : "By: " + articleRef.author.join(', ') }}
                 </div>
-                <div class="source-date">{{ article.source }}, {{ formattedDate }}</div>
+                <div class="source-date">{{ articleRef.source }}, {{ formattedDate }}</div>
             </div>
             <!-- SUMMARIZED CONTENT -->
             <div class="summarized-content" v-html="formattedSummarizedContent"></div>
 
             <!-- FULL COVERAGE -->
-            <div class="fullcoverage-container" v-if="article.eventUri">
+            <div class="fullcoverage-container" v-if="articleRef.eventUri">
                 <p class="fc-title">Read Full Coverage ({{ aggregatedResults.length }})</p>
                 <!-- FUTURE CHANGE: each link here should redirect to another /article/{{ articleguid }} link when clicked on this doesnt work need to fix it -->
                 <router-link :to="{ name: 'eventArticles', params: { uuid: fca.uuid } }" class="fullcoverage-article"
-                    v-for="(fca, index) in aggregatedResults" :key="index" @click="handleArticleClick">
+                    v-for="(fca, index) in aggregatedResults" :key="index">
                     <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 17 17" fill="none"
                         class="svg-backarrow">
                         <path
@@ -221,7 +241,7 @@ const handleArticleClick = () => {
             </div> -->
 
             <!-- READ ORIGINAL ARTICLE -->
-            <a :href="article.url" target="_blank" rel="noopener noreferrer" class="original-article-link">
+            <a :href="articleRef.url" target="_blank" rel="noopener noreferrer" class="original-article-link">
                 <div class="original-article-container">
                     Read original article
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 12 12" fill="none">
