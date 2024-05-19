@@ -1,14 +1,31 @@
 <script setup>
 // const props = defineProps({ dailyRecap: Object })
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
+import { config } from '../constants';
 import DailyRecapItem from '../components/DailyRecap/DailyRecapItem.vue'
 
-const props = defineProps({ uuid: String });
+const BACKEND_URL = config.url.BACKEND_URL;
+
+const props = defineProps({
+    dailyrecapUUID: String,
+    eventUri: String,
+    articleUUID: String,
+});
 
 // FUTURE CHANGE: GET THESE VALUES FROM THE URL
-// const dailyrecap = 
-const currentEventIndex = ref(0)
-const currentArticleIndex = ref(0)
+const dailyrecap = ref();
+const dailyrecapRef = ref(props.dailyrecapUUID);
+const eventUriRef = ref(props.eventUri);
+const articleUUIDRef = ref(props.articleUUID);
+
+// COMPUTED PROPERTIES
+const currentEventIndex = computed(() => {
+    return dailyrecap.value?.events.find(event => event.eventUri === eventUriRef.value)
+})
+const currentArticleIndex = computed(() => {
+    return dailyrecap.value?.events.flatMap(event => event.eventArticles)
+        .find(article => article.uuid === articleUUIDRef.value);
+})
 
 // FUNCTIONS
 const fetchEventByUri = async (eventUri) => {
@@ -30,7 +47,7 @@ const fetchEventByUri = async (eventUri) => {
 };
 
 // Fetching dailyRecap and event details
-const fetchDailyRecap = async (dailyRecapId) => {
+const setDailyRecap = async (dailyrecapUUID) => {
     try {
         var response = await fetch(`${BACKEND_URL}db/getDailyRecapById`, {
             method: 'POST',
@@ -39,19 +56,17 @@ const fetchDailyRecap = async (dailyRecapId) => {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                "uuid": dailyRecapId
+                "uuid": dailyrecapUUID
             })
         });
 
         if (response.ok) {
-            const dailyRecap = await response.json();
-            var eventUris = dailyRecap.events;
-            // FUTURE CHANGE: LOAD FIRST EVENT BEFORE ENTERING ROUTE AND THEN LOAD ALL OTHER EVENTS FOR FASTER EXPERIENCE
-            // const eventsPromises = eventUris.map(eventUri => fetchEventByUri(eventUri));
-            // eventObjects = await Promise.all(eventsPromises);
-            const eventObject = await fetchEventByUri(eventUris[0])
-
-            return eventObject
+            var tempdailyrecap = await response.json();
+            const eventsPromises = tempdailyrecap.events.map(eventUri => fetchEventByUri(eventUri));
+            var eventsObject = await Promise.all(eventsPromises);
+            tempdailyrecap.events = eventsObject;
+            dailyrecap.value = tempdailyrecap;
+            // Place the eventsObject inside the dailyrecap object
         } else {
             throw new Error('Failed to fetch Daily Recap');
         }
@@ -60,22 +75,26 @@ const fetchDailyRecap = async (dailyRecapId) => {
     }
 };
 
-onMounted(() => {
-    fetchDailyRecap();
+onMounted(() => { // and on route change
+    setDailyRecap(props.dailyrecapUUID);
 });
+
+async function rightClick() {
+
+}
 </script>
 
 <template>
-    <div class="dailyrecap-container">
+    <div class="dailyrecap-container" v-if="dailyrecap">
         <!-- HEADER SECTION WITH ALL THE INFORMATION AND BACK BUTTON -->
         <div class="info-header">
             <div class="first">
                 <div class="left">
                     <p class="title">Your Daily Recap</p>
                 </div>
-                <div class="right" v-if="eventObjects.length > 0">
+                <div class="right" v-if="dailyrecap">
                     <p class="article-count">{{ currentArticleIndex + 1 }} / {{
-                    eventObjects[currentEventIndex].eventArticles.length }} Articles
+        dailyrecap.events[currentEventIndex].eventArticles.length }} Articles
                     </p>
                     <router-link to="/">
                         <svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 19 19" fill="none">
@@ -86,15 +105,16 @@ onMounted(() => {
                     </router-link>
                 </div>
             </div>
-            <div class="second count" v-if="eventObjects[currentEventIndex]">
-                <div class="bubble count" v-for="(_, index) in eventObjects[currentEventIndex].eventArticles.length">
+            <div class="second count" v-if="dailyrecap">
+                <div class="bubble count"
+                    v-for="(_, index) in dailyrecap.events[currentEventIndex].eventArticles.length">
                 </div>
             </div>
         </div>
 
         <!-- EVENTS AND ARTICLES -->
         <div class="event-list">
-            <div class="event" v-for="event in eventObjects" :key="event.id">
+            <div class="event" v-for="event in dailyrecap.events" :key="event.id">
                 <!-- {{ event.eventArticles.length }} -->
                 <div class="article-list">
                     <div class="article" v-for="article in event.eventArticles" :key="article.id">
@@ -106,12 +126,12 @@ onMounted(() => {
         </div>
 
         <!-- FOOTER SECTION -->
-        <div class="myfooter " v-if="eventObjects">
+        <div class="myfooter " v-if="dailyrecap.events">
             <div class="count-container">
-                <p class="event-count">{{ currentEventIndex + 1 }} / {{ eventObjects.length }} Events</p>
+                <p class="event-count">{{ currentEventIndex + 1 }} / {{ dailyrecap.events.length }} Events</p>
             </div>
             <div class="bubble-container count">
-                <div class="event-counter bubble" v-for="event in eventObjects"></div>
+                <div class="event-counter bubble" v-for="event in dailyrecap.events"></div>
             </div>
         </div>
     </div>

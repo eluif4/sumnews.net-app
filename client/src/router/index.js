@@ -229,7 +229,9 @@ const routes = [
         name: 'dailyrecap',
         component: DailyRecapPage,
         props: route => ({
-            dailyrecapUUID: route.params.dailyrecapUUID
+            dailyrecapUUID: route.params.dailyrecapUUID,
+            eventUri: route.params.eventUri,
+            articleUUID: route.params.articleUUID,
         })
     },
     {
