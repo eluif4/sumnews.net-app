@@ -8,6 +8,7 @@ import { front_getArticlesFromDB } from '../scripts/utility';
 import { useRoute } from 'vue-router';
 
 const BACKEND_URL = config.url.BACKEND_URL;
+const SLIDE_THRESHOLD = 30;
 const route = useRoute();
 
 const props = defineProps({
@@ -23,14 +24,18 @@ const eventUriRef = ref(props.eventUri);
 const articleUUIDRef = ref(props.articleUUID);
 const currentArticle = ref(null) // Current article with relation to the uuid in the URL
 
+// Scrolling
+const startY = ref(0)
+const endY = ref(0);
+
 // COMPUTED PROPERTIES
 const currentEventIndex = computed(() => {
     return dailyrecap.value?.events.findIndex(event => event.eventUri === eventUriRef.value);
 });
 
 const currentArticleIndex = computed(() => {
-    return dailyrecap.value?.events.flatMap(event => event.eventArticles)
-        .findIndex(article => article.uuid === articleUUIDRef.value);
+    // return dailyrecap.value?.events[currentEventIndex].flatMap(event => event.eventArticles).findIndex(article => article.uuid === articleUUIDRef.value);
+    return dailyrecap.value?.events[currentEventIndex.value].eventArticles.findIndex(article => article.uuid === props.articleUUID);
 })
 
 // FUNCTIONS
@@ -90,31 +95,62 @@ async function handleClick(event) {
         if (articleIndex != 0)
             articleIndex--;
     } else { // else right
-        if (articleIndex != dailyrecap.value.events[currentEventIndex.value].eventArticles.length)
+        if (articleIndex != dailyrecap.value.events[currentEventIndex.value].eventArticles.length - 1)
             articleIndex++
     }
 
     router.push({
         name: 'dailyrecap', params: {
             dailyrecapUUID: props.dailyrecapUUID,
-            eventUri: dailyrecap.value.eventUri,
+            eventUri: dailyrecap.value.events[currentEventIndex.value].eventUri,
             articleUUID: dailyrecap.value.events[currentEventIndex.value].eventArticles[articleIndex].uuid,
         }
     });
 }
 
+const handleTouchStart = (event) => {
+    startY.value = event.touches[0].clientY;
+};
+
+const handleTouchEnd = (event) => {
+    endY.value = event.changedTouches[0].clientY;
+    handleSlide();
+};
+
+async function handleSlide() {
+    const deltaY = startY.value - endY.value;
+    var eventIndex = currentEventIndex.value;
+    if (Math.abs(deltaY) > SLIDE_THRESHOLD) {
+        if (deltaY > 0 && eventIndex < dailyrecap.value.events.length - 1) {
+            eventIndex++
+        } else if (deltaY < 0 && eventIndex > 0) {
+            eventIndex--
+        }
+
+        eventUriRef.value = dailyrecap.value.events[eventIndex].eventUri;
+        articleUUIDRef.value = dailyrecap.value.events[eventIndex].eventArticles[0].uuid;
+        router.push({
+            name: 'dailyrecap', params: {
+                dailyrecapUUID: props.dailyrecapUUID,
+                eventUri: eventUriRef.value,
+                articleUUID: articleUUIDRef.value,
+            }
+        });
+    }
+}
+
 onMounted(async () => { // and on route change
-    setDailyRecap(props.dailyrecapUUID);
-    const response = await front_getArticlesFromDB({ uuid: props.articleUUID })
-    currentArticle.value = response[0]
+    await setDailyRecap(props.dailyrecapUUID);
+    // const response = await front_getArticlesFromDB({ uuid: props.articleUUID })
+    var article = dailyrecap?.value.events[currentEventIndex.value].eventArticles[currentArticleIndex.value]
+    currentArticle.value = article;
 });
 
 watch(
     () => route.params.articleUUID,
     async (newuuid) => {
         if (newuuid) {
-            const response = await front_getArticlesFromDB({ uuid: newuuid }, undefined, undefined, undefined, 1);
-            const article = response[0];
+            var article = dailyrecap?.value.events[currentEventIndex.value].eventArticles[currentArticleIndex.value]
             if (article) {
                 // Setup inital dailyrecap values
                 eventUriRef.value = route.params.eventUri;
@@ -125,21 +161,39 @@ watch(
             }
         }
     })
+
+/*
+watch dailyrecap value
+once its filled turn a flag true to display all information
+else show skeleton
+*/
+
+// Doesnt work
+// watch([currentArticleIndex, currentEventIndex], ([newArticleIndex, newEventIndex], [oldArticleIndex, oldEventIndex]) => {
+//     if (newArticleIndex < 0 || newEventIndex < 0) {
+//         router.push('/error');
+//     }
+// });
+
+watch((currentArticleIndex, newArticleIndex, oldArticleIndex) => {
+    console.log(`CurrentArticleIndex ${newArticleIndex}`)
+})
 </script>
 
 <template>
-    <div class="dailyrecap-container" v-if="dailyrecap" @click="handleClick">
+    <div class="dailyrecap-container" @click="handleClick" @touchstart="handleTouchStart" @touchend="handleTouchEnd"
+        v-if="dailyrecap">
         <!-- HEADER SECTION WITH ALL THE INFORMATION AND BACK BUTTON -->
         <div class="info-header">
             <div class="first">
                 <div class="left">
                     <p class="title">Your Daily Recap</p>
                 </div>
-                <div class="right" v-if="dailyrecap">
+                <div class="right">
                     <p class="article-count">{{ currentArticleIndex + 1 }} / {{
-        dailyrecap.events[currentEventIndex].eventArticles.length }} Articles
+            dailyrecap.events[currentEventIndex].eventArticles.length }} Articles
                     </p>
-                    <router-link to="/">
+                    <router-link to="/" @click.stop>
                         <svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 19 19" fill="none">
                             <path
                                 d="M15.2638 14.4237C15.319 14.4788 15.3627 14.5443 15.3926 14.6164C15.4224 14.6885 15.4378 14.7657 15.4378 14.8437C15.4378 14.9218 15.4224 14.999 15.3926 15.0711C15.3627 15.1432 15.319 15.2087 15.2638 15.2638C15.2086 15.319 15.1431 15.3627 15.0711 15.3926C14.999 15.4225 14.9217 15.4378 14.8437 15.4378C14.7657 15.4378 14.6884 15.4225 14.6164 15.3926C14.5443 15.3627 14.4788 15.319 14.4236 15.2638L9.49996 10.3394L4.57629 15.2638C4.46488 15.3752 4.31377 15.4378 4.15621 15.4378C3.99865 15.4378 3.84755 15.3752 3.73614 15.2638C3.62472 15.1524 3.56213 15.0013 3.56213 14.8437C3.56213 14.6862 3.62472 14.5351 3.73614 14.4237L8.66055 9.49999L3.73614 4.57632C3.62472 4.46491 3.56213 4.3138 3.56213 4.15624C3.56213 3.99868 3.62472 3.84758 3.73614 3.73617C3.84755 3.62475 3.99865 3.56216 4.15621 3.56216C4.31377 3.56216 4.46488 3.62475 4.57629 3.73617L9.49996 8.66058L14.4236 3.73617C14.535 3.62475 14.6862 3.56216 14.8437 3.56216C15.0013 3.56216 15.1524 3.62475 15.2638 3.73617C15.3752 3.84758 15.4378 3.99868 15.4378 4.15624C15.4378 4.3138 15.3752 4.46491 15.2638 4.57632L10.3394 9.49999L15.2638 14.4237Z"
@@ -148,7 +202,7 @@ watch(
                     </router-link>
                 </div>
             </div>
-            <div class="second count" v-if="dailyrecap">
+            <div class="second count">
                 <div class="bubble count"
                     v-for="(_, index) in dailyrecap.events[currentEventIndex].eventArticles.length"
                     :class="{ 'active': index <= currentArticleIndex }">
@@ -158,25 +212,30 @@ watch(
 
         <!-- EVENTS AND ARTICLES -->
         <div class="event-list">
-            <div class="event" v-for="event in dailyrecap.events" :key="event.id">
+            <div class="event" v-for="(event, index) in dailyrecap.events" :key="event.eventUri">
                 <!-- {{ event.eventArticles.length }} -->
                 <div class="article-list">
-                    <div class="article" v-for="article in event.eventArticles" :key="article.id">
+                    <div class="article" v-for="eventArticle in dailyrecap.events[currentEventIndex].eventArticles"
+                        :key="eventArticle.id" v-if="currentArticle">
                         <!-- FUTURE CHANGE: WHILE THE REQUESTS LOAD PLACE SKELETONS -->
-                        <DailyRecapItem :article="currentArticle" v-if="eventUriRef == event.eventUri"></DailyRecapItem>
-                        <DailyRecapItem :article="article" v-else></DailyRecapItem>
+                        <DailyRecapItem :article="currentArticle"
+                            v-if="currentArticle.uuid == articleUUIDRef">
+                        </DailyRecapItem>
+                        <!-- <DailyRecapItem :article="eventArticle" v-else></DailyRecapItem> -->
                     </div>
                 </div>
+                <!-- <DailyRecapItem v-else :article="event.eventArticles[0]"></DailyRecapItem> -->
             </div>
         </div>
 
         <!-- FOOTER SECTION -->
-        <div class="myfooter " v-if="dailyrecap.events">
-            <div class="count-container">
+        <div class="myfooter">
+            <div class="count-container" v-if="dailyrecap">
                 <p class="event-count">{{ currentEventIndex + 1 }} / {{ dailyrecap.events.length }} Events</p>
             </div>
-            <div class="bubble-container count">
-                <div class="event-counter bubble" v-for="event in dailyrecap.events"></div>
+            <div class="bubble-container count" v-if="dailyrecap">
+                <div class="event-counter bubble" v-for="(event, index) in dailyrecap.events"
+                    :class="{ 'active': index <= currentEventIndex }"></div>
             </div>
         </div>
     </div>
@@ -233,7 +292,8 @@ watch(
 .event-list {
     width: 100%;
     height: 100%;
-    overflow-y: auto;
+    /* overflow-y: auto; */
+    overflow-y: hidden;
     overflow-x: hidden;
 }
 
