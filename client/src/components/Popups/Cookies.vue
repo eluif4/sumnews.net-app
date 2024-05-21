@@ -63,5 +63,6 @@ function decision(bool) {
     background: linear-gradient(-90deg, rgba(98, 254, 189, 1) 0%, rgba(206, 250, 231, 1) 100%);
     background-attachment: fixed;
     border: 1px solid black;
+    color: black;
 }
 </style>

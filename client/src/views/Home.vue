@@ -3,12 +3,12 @@ import { ref } from 'vue'
 import { front_getArticlesFromDB } from '../scripts/utility'
 import { List } from '../main'
 import { useRoute } from 'vue-router';
-import CNNLogo from '@/assets/icons/cnn.png'
-import bgsumnewslogo from '@/assets/icons/bgsumnewslogo.png';
-import NYPLogo from '@/assets/icons/nyp.png';
-import ForbesLogo from '@/assets/icons/forbes.png';
-import BILogo from '@/assets/icons/businessinsider.png';
-import YahooNewsLogo from '@/assets/icons/yahoonews.png';
+import CNNLogo from '@/assets/icons/cnn.com.png'
+import bgsumnewslogo from '@/assets/icons/sumnews.net.png';
+import NYPLogo from '@/assets/icons/nypost.com.png';
+import ForbesLogo from '@/assets/icons/forbes.com.png';
+import BILogo from '@/assets/icons/businessinsider.com.png';
+import YahooNewsLogo from '@/assets/icons/news.yahoo.com.png';
 
 const route = useRoute();
 
@@ -22,6 +22,7 @@ import ArticleInstance from '../components/Article/ArticleInstance.vue'
 import DailyRecapButton from '../components/DailyRecap/DailyRecapButton.vue';
 
 var skeletonArticles = [1, 2, 3, 4, 5, 6]
+var dailyRecapButtons = ref(null)
 
 // if (List.articles.length == 0) {
 if (route.path.includes('/event/')) {
@@ -116,6 +117,10 @@ async function scrollHandler(event) {
     // }
 }
 
+async function setDailyRecapButtons() {
+
+}
+
 const drsumnews = {
     source: "Sumnews",
     sourceLogo: bgsumnewslogo,
@@ -160,7 +165,6 @@ const drbi = {
 const drarray = [drsumnews, drcnn, drnyt, drforbes, dryahoonews, drbi]
 
 const isPremium = ref(true)
-
 </script>
 
 <template>

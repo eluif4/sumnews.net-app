@@ -171,7 +171,7 @@ watch(
             <!-- FUTURE CHANGE: if image isnt able to load because of network error -->
             <img v-if="articleRef.imageUrl" :src="articleRef.imageUrl"
                 alt="Sorry :( It seems like the article image was unable to load" class="article-image">
-            <!-- <img v-else src="../assets/icons/bgsumnewslogo.png"
+            <!-- <img v-else src="../assets/icons/sumnews.net.png"
                 alt="Sorry :( It seems like the article image was unable to load" class="article-image"> -->
             <div class="shader"></div>
         </div>
