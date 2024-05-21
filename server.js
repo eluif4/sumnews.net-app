@@ -37,14 +37,14 @@ const port = process.env.PORT || 3000;
 app.use(express.json());
 app.use(
     cors({
-        origin: "*",
+        origin: ["https://www.sumnews.net", "http://localhost:5173", "https://localhost:5173"]
     })
 )
 app.use(DBGETARTICLESROUTES)
 app.use(DBGETCOLLECTIONSROUTES)
 
 app.listen(port, function () {
-    console.log(`Server is running on port ${port} in DEVELOPMENT mode`)
+    console.log(`Server is running on port ${port} in PRODUCTION mode`)
 })
 
 //---IMPORTS---
