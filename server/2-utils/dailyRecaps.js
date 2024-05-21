@@ -8,11 +8,12 @@ async function createDailyRecap(source) {
     // get the top articles from each source. top artilces are defined using socialScore, 
 
     // FUTURE CHANGE: ADD TRY CATCH
-    const events = await eventsSinceYesterdayByPopularity(source)
-
+    var events = await eventsSinceYesterdayByPopularity(source)
+    var eventUris = events.slice(0, 5).map(event => event.eventUri) //save only top 5 events
     const dr = new DailyRecap({
         id: uuidv4(),
-        events: events,
+        source: source,
+        events: eventUris,
         dateCreated: new Date(),
     })
 

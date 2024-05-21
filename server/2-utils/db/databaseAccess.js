@@ -185,9 +185,9 @@ async function getEventByEventUri(eventUri) {
 }
 
 // ----- DAILY RECAP -----
-async function getDailyRecap(dailyRecapId) {
+async function getDailyRecap(filter, sort = { "dateCreated": 1 }) {
     try {
-        return await DailyRecap.find({ 'id': dailyRecapId }).sort({ 'dateCreated': -1 })
+        return await DailyRecap.find(filter).sort(sort)
     } catch (error) {
         console.error('Error fetching DailyRecaps: ', error)
         throw error;
