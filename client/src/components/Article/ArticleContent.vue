@@ -162,7 +162,7 @@ const handleTouchMove = (e) => {
     e.preventDefault();
 }
 
-const handleTouchEnd = () => {
+const handleTouchEnd = (e) => {
     if (translateY.value > THRESHOLD) {
         translateY.value = SCREENHEIGHT;
     } else {
@@ -179,10 +179,11 @@ const handleTransitionEnd = () => {
 
 <template>
     <!-- FUTURE CHANGE: add animation into routes -->
-    <div class="article-container" :style="{ transform: `translateY(${translateY}px)` }" @touchstart="handleTouchStart"
-        @touchmove="handleTouchMove" @touchend="handleTouchEnd" @transitionend="handleTransitionEnd">
+    <div class="article-container" :style="{ transform: `translateY(${translateY}px)` }"
+        @transitionend="handleTransitionEnd">
         <!-- IMAGE, SHADER AND ACTIONS -->
-        <div class="image-container">
+        <div class="image-container" @touchstart="handleTouchStart" @touchmove="handleTouchMove"
+            @touchend="handleTouchEnd">
             <div class="close-bar"></div>
             <div class="actions">
                 <ActionItem :action="shareAction"></ActionItem>
