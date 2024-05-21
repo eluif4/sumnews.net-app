@@ -13,7 +13,9 @@ const props = defineProps({
     },
 });
 
-const { source, sourceLogo, id } = props.dr;
+const { source, id } = props.dr;
+
+// FUTURE CHANGE: RETRIEVE SOURCELOGO FROM DB USING AGGREGATION
 
 // FUNCTIONS
 const fetchEventByUri = async (eventUri) => {
