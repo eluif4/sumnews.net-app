@@ -151,6 +151,7 @@ watch(
 // SWIPE DOWN TO DISMISS SECTION
 const handleTouchStart = (e) => {
     startY.value = e.touches[0].clientY;
+    e.preventDefault();
 }
 
 const handleTouchMove = (e) => {
@@ -158,6 +159,7 @@ const handleTouchMove = (e) => {
     translateY.value = currentY - startY.value;
     if (translateY.value < 0)
         translateY.value = 0; // Prevent upward draggin
+    e.preventDefault();
 }
 
 const handleTouchEnd = () => {
@@ -166,6 +168,7 @@ const handleTouchEnd = () => {
     } else {
         translateY.value = 0;
     }
+    e.preventDefault();
 }
 
 const handleTransitionEnd = () => {
