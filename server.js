@@ -117,11 +117,13 @@ async function cronTask() {
 
 async function cronDailyRecap() {
     // CRON task runs at 18:00
-    cron.schedule('0 18 * * *', async () => {
-        const dr = await createDailyRecap();
-        saveDocument(dr)
-    })
+    // cron.schedule('*/1 * * * *', async () => {
+        if (false) {
+            const dr = await createDailyRecap('sumnews.net');
+            saveDocument(dr)
+        }
+    // })
 }
 
 cronTask().catch(err => console.log(err))
-cronDailyRecap().catch(err => console.log(error))
+cronDailyRecap().catch(err => console.log(err))

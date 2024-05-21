@@ -135,9 +135,30 @@ async function createDailyRecapController(req, res) {
 
 async function getDailyRecapByIdController(req, res) {
     const uuid = req.body.uuid;
-    const response = await getDailyRecap(uuid);
+    var filter = { "id": uuid }
+    const response = await getDailyRecap(filter);
     const dr = response[0]
     res.send(dr)
+}
+
+async function getDailyRecapsController(req, res) {
+    const today = new Date();
+    today.setDate(today.getDate() + 1);
+    const todayFormatted = today.toISOString().slice(0, 10) + 'T00:00:00Z';
+
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    const yesterdayFormatted = yesterday.toISOString().slice(0, 10) + 'T00:00:00Z';
+
+    var filter = {
+        "dateCreated": {
+            "$gte": yesterdayFormatted,
+            "$lt": todayFormatted
+        }
+    };
+
+    var drs = await getDailyRecap(filter);
+    res.send(drs);
 }
 
 module.exports = {
@@ -151,4 +172,5 @@ module.exports = {
     getArticlesFromEventController,
     createDailyRecapController,
     getDailyRecapByIdController,
+    getDailyRecapsController,
 }

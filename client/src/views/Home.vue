@@ -1,15 +1,17 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, watch, computed, onMounted } from 'vue'
 import { front_getArticlesFromDB } from '../scripts/utility'
 import { List } from '../main'
 import { useRoute } from 'vue-router';
-import CNNLogo from '@/assets/icons/cnn.png'
-import bgsumnewslogo from '@/assets/icons/bgsumnewslogo.png';
-import NYPLogo from '@/assets/icons/nyp.png';
-import ForbesLogo from '@/assets/icons/forbes.png';
-import BILogo from '@/assets/icons/businessinsider.png';
-import YahooNewsLogo from '@/assets/icons/yahoonews.png';
+import { config } from '../constants.js'
+import CNNLogo from '@/assets/icons/cnn.com.png'
+import bgsumnewslogo from '@/assets/icons/sumnews.net.png';
+import NYPLogo from '@/assets/icons/nypost.com.png';
+import ForbesLogo from '@/assets/icons/forbes.com.png';
+import BILogo from '@/assets/icons/businessinsider.com.png';
+import YahooNewsLogo from '@/assets/icons/news.yahoo.com.png';
 
+const BACKEND_URL = config.url.BACKEND_URL
 const route = useRoute();
 
 import Popup from '../components/Popups/Popup.vue'
@@ -20,8 +22,11 @@ import Filter from '../components/Filter/Filter.vue'
 import ArticleContent from '../components/Article/ArticleContent.vue'
 import ArticleInstance from '../components/Article/ArticleInstance.vue'
 import DailyRecapButton from '../components/DailyRecap/DailyRecapButton.vue';
+import DailyRecapButtonSkeleton from '../components/DailyRecap/DailyRecapButtonSkeleton.vue'
 
 var skeletonArticles = [1, 2, 3, 4, 5, 6]
+var tempDailyRecapButtons = ref([{}, {}, {}, {}, {}, {}])
+var dailyRecapButtons = ref();
 
 // if (List.articles.length == 0) {
 if (route.path.includes('/event/')) {
@@ -116,57 +121,29 @@ async function scrollHandler(event) {
     // }
 }
 
-const drsumnews = {
-    source: "Sumnews",
-    sourceLogo: bgsumnewslogo,
-    events: [
-        "eng-9545236",
-        "eng-9544845",
-        "eng-9545737"
-    ],
-    dailyRecapId: '1908cae5-e65e-4cba-8fee-ed4b14d41d65',
+async function setDailyRecapButtons() {
+    try {
+        // Gets most recent daily recaps
+        var response = await fetch(`${BACKEND_URL}db/getDailyRecaps`)
+        var dailyRecaps = await response.json()
+        dailyRecapButtons.value = dailyRecaps
+    } catch (error) {
+        console.error(`There was a problem with fetching Daily Recaps`)
+    }
 }
-
-const drcnn = {
-    source: "CNN",
-    sourceLogo: CNNLogo,
-    dailyRecapId: 2
-}
-
-const drnyt = {
-    source: "New York Times",
-    sourceLogo: NYPLogo,
-    dailyRecapId: 3
-}
-
-const drforbes = {
-    source: "Forbes",
-    sourceLogo: ForbesLogo,
-    dailyRecapId: 4
-}
-
-const dryahoonews = {
-    source: "Yahoo News",
-    sourceLogo: YahooNewsLogo,
-    dailyRecapId: 5
-}
-
-const drbi = {
-    source: "Business Insider",
-    sourceLogo: BILogo,
-    dailyRecapId: 6
-}
-
-const drarray = [drsumnews, drcnn, drnyt, drforbes, dryahoonews, drbi]
 
 const isPremium = ref(true)
 
+onMounted(() => {
+    setDailyRecapButtons();
+})
 </script>
 
 <template>
     <Header />
     <div class="drcontainer" v-if="isPremium">
-        <DailyRecapButton v-for="dritem in drarray" :key="dritem.dailyRecapId" :dr="dritem" />
+        <DailyRecapButtonSkeleton v-for="dritem in tempDailyRecapButtons" :dr="dritem" v-if="!dailyRecapButtons" />
+        <DailyRecapButton v-for="dritem in dailyRecapButtons" :key="dritem.id" :dr="dritem" v-else />
     </div>
     <div class="app-container">
         <div id="article-stack" @scroll="scrollHandler">

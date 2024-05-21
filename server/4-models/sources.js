@@ -5,6 +5,7 @@ const sourcesSchema = new mongoose.Schema({
     source: String,
     countryId: Number,
     sourceName: String,
+    logo: String,
 }, { collection: 'sources'} );
 
 const Source = mongoose.model('Source', sourcesSchema);

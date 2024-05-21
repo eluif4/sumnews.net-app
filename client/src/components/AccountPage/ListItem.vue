@@ -120,7 +120,8 @@ function formatRouteTitle(routePath) {
     /* padding: 0 15px; */
     overflow: auto;
     margin-top: 20px;
-    padding-bottom: 20px;;
+    padding-bottom: 20px;
+    scrollbar-width: none;
 }
 
 h1 {

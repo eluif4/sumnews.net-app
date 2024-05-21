@@ -8,6 +8,11 @@ import router from '../../router';
 const route = useRoute();
 const props = defineProps({ article: Object });
 const articleRef = ref(props.article || {});
+const translateY = ref(0);
+const startY = ref(0);
+const THRESHOLD = 200;
+const SCREENHEIGHT = window.innerHeight;
+
 const FRONTEND_URL = config.url.FRONTEND_URL
 const BACKEND_URL = config.url.BACKEND_URL
 
@@ -143,24 +148,39 @@ watch(
         }
     })
 
-// pass article into ArticleContent
-// const handleArticleClick = () => {
-//     selectedArticle = articleRef.value
-// };
+// SWIPE DOWN TO DISMISS SECTION
+const handleTouchStart = (e) => {
+    startY.value = e.touches[0].clientY;
+}
 
-// beforeRouteUpdate(to, from, next) {
-//     console.log('new uuid');
-//     var contentcontainerDiv = document.getElementById('content-container')
-//     contentcontainerDiv.scrollTo({ top: 0 })
-//     next()
-// }
+const handleTouchMove = (e) => {
+    const currentY = e.touches[0].clientY;
+    translateY.value = currentY - startY.value;
+    if (translateY.value < 0)
+        translateY.value = 0; // Prevent upward draggin
+}
+
+const handleTouchEnd = () => {
+    if (translateY.value > THRESHOLD) {
+        translateY.value = SCREENHEIGHT;
+    } else {
+        translateY.value = 0;
+    }
+}
+
+const handleTransitionEnd = () => {
+    if (translateY.value === SCREENHEIGHT)
+        router.push({ name: 'home' })
+}
 </script>
 
 <template>
     <!-- FUTURE CHANGE: add animation into routes -->
-    <div class="article-container">
+    <div class="article-container" :style="{ transform: `translateY(${translateY}px)` }" @touchstart="handleTouchStart"
+        @touchmove="handleTouchMove" @touchend="handleTouchEnd" @transitionend="handleTransitionEnd">
         <!-- IMAGE, SHADER AND ACTIONS -->
         <div class="image-container">
+            <div class="close-bar"></div>
             <div class="actions">
                 <ActionItem :action="shareAction"></ActionItem>
                 <ActionItem :action="bookmarkAction"></ActionItem>
@@ -171,7 +191,7 @@ watch(
             <!-- FUTURE CHANGE: if image isnt able to load because of network error -->
             <img v-if="articleRef.imageUrl" :src="articleRef.imageUrl"
                 alt="Sorry :( It seems like the article image was unable to load" class="article-image">
-            <!-- <img v-else src="../assets/icons/bgsumnewslogo.png"
+            <!-- <img v-else src="../assets/icons/sumnews.net.png"
                 alt="Sorry :( It seems like the article image was unable to load" class="article-image"> -->
             <div class="shader"></div>
         </div>
@@ -268,7 +288,8 @@ watch(
     z-index: 200;
 
     display: flex;
-    flex-direction: column
+    flex-direction: column;
+    transition: transform 0.3s ease;
 }
 
 .image-container {
@@ -416,5 +437,16 @@ watch(
     background-color: plum;
     /* margin: 0 5px; */
     border-radius: 4px;
+}
+
+.close-bar {
+    background-color: white;
+    width: 30%;
+    height: 5px;
+    position: absolute;
+    top: 10px;
+    right: 37%;
+    z-index: 100;
+    border-radius: 10px;
 }
 </style>

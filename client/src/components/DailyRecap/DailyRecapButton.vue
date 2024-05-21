@@ -13,7 +13,9 @@ const props = defineProps({
     },
 });
 
-const { source, sourceLogo, dailyRecapId } = props.dr;
+const { source, id } = props.dr;
+
+// FUTURE CHANGE: RETRIEVE SOURCELOGO FROM DB USING AGGREGATION
 
 // FUNCTIONS
 const fetchEventByUri = async (eventUri) => {
@@ -35,7 +37,7 @@ const fetchEventByUri = async (eventUri) => {
 };
 
 // Fetching dailyRecap and event details
-const fetchDailyRecap = async (dailyRecapId) => {
+const fetchDailyRecap = async (id) => {
     try {
         var response = await fetch(`${BACKEND_URL}db/getDailyRecapById`, {
             method: 'POST',
@@ -44,14 +46,18 @@ const fetchDailyRecap = async (dailyRecapId) => {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                "uuid": dailyRecapId
+                "uuid": id
             })
         });
 
         if (response.ok) {
-            const dailyRecap = await response.json();
-            const eventObject = await fetchEventByUri(dailyRecap.events[0])
-            return eventObject
+            // var text = await response.text();
+            // console.log(text)
+            var tempdailyrecap = await response.json();
+            const eventsPromises = tempdailyrecap.events.map(eventUri => fetchEventByUri(eventUri));
+            var eventsObject = await Promise.all(eventsPromises);
+            tempdailyrecap.events = eventsObject;
+            return tempdailyrecap;
         } else {
             throw new Error('Failed to fetch Daily Recap');
         }
@@ -61,25 +67,25 @@ const fetchDailyRecap = async (dailyRecapId) => {
 };
 
 // Redirect the user to the correct URI after finding out the first article uuid
-async function renderDailyRecap(dailyRecapId) {
-    const dailyrecap = await fetchDailyRecap(dailyRecapId)
+async function renderDailyRecap(id) {
+    const dailyrecap = await fetchDailyRecap(id)
     console.log(`dailyrecap ${dailyrecap}`);
     router.push({
         name: 'dailyrecap', params: {
-            dailyrecapUUID: dailyRecapId,
-            eventUri: dailyrecap.eventUri,
-            articleUUID: dailyrecap.eventArticles[0].uuid,
+            dailyrecapUUID: id,
+            eventUri: dailyrecap.events[0].eventUri,
+            articleUUID: dailyrecap.events[0].eventArticles[0].uuid,
         }
     });
 }
 </script>
 
 <template>
-    <button class="mycontainer" @click="renderDailyRecap(dailyRecapId)">
+    <button class="mycontainer" @click="renderDailyRecap(id)">
         <div class="dailyrecap">
             <img class="logo" :alt="source" :src="sourceLogo">
         </div>
-        <p class="source-title">{{ source }}</p>
+        <!-- <p class="source-title">{{ source }}</p> -->
     </button>
 </template>
 

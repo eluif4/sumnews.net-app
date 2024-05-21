@@ -89,7 +89,7 @@ async function articlesSinceYesterday() {
     return articles
 }
 
-async function eventsSinceYesterdayByPopularity() {
+async function eventsSinceYesterdayByPopularity(source) {
     // Return events since yesterdy from most popular to least
     const today = new Date();
     today.setDate(today.getDate() + 1);
@@ -99,6 +99,11 @@ async function eventsSinceYesterdayByPopularity() {
     const yesterday = new Date();
     yesterday.setDate(yesterday.getDate() - 1);
     const yesterdayFormatted = yesterday.toISOString().slice(0, 10) + 'T00:00:00Z';
+
+    // var filter = {};
+    // if (source != 'sumnews.net') {
+    //     filter = {}
+    // }
 
     var events = []
     try {
@@ -180,9 +185,9 @@ async function getEventByEventUri(eventUri) {
 }
 
 // ----- DAILY RECAP -----
-async function getDailyRecap(dailyRecapId) {
+async function getDailyRecap(filter, sort = { "dateCreated": 1 }) {
     try {
-        return await DailyRecap.find({ 'id': dailyRecapId }).sort({ 'dateCreated': -1 })
+        return await DailyRecap.find(filter).sort(sort)
     } catch (error) {
         console.error('Error fetching DailyRecaps: ', error)
         throw error;
