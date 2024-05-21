@@ -22,9 +22,11 @@ import Filter from '../components/Filter/Filter.vue'
 import ArticleContent from '../components/Article/ArticleContent.vue'
 import ArticleInstance from '../components/Article/ArticleInstance.vue'
 import DailyRecapButton from '../components/DailyRecap/DailyRecapButton.vue';
+import DailyRecapButtonSkeleton from '../components/DailyRecap/DailyRecapButtonSkeleton.vue'
 
 var skeletonArticles = [1, 2, 3, 4, 5, 6]
-var dailyRecapButtons = ref(null)
+var tempDailyRecapButtons = ref([{}, {}, {}, {}, {}, {}])
+var dailyRecapButtons = ref();
 
 // if (List.articles.length == 0) {
 if (route.path.includes('/event/')) {
@@ -123,56 +125,12 @@ async function setDailyRecapButtons() {
     try {
         // Gets most recent daily recaps
         var response = await fetch(`${BACKEND_URL}db/getDailyRecaps`)
-        var data = await response.json()
-        dailyRecapButtons.value = data
-        console.log(response)
+        var dailyRecaps = await response.json()
+        dailyRecapButtons.value = dailyRecaps
     } catch (error) {
         console.error(`There was a problem with fetching Daily Recaps`)
     }
 }
-
-// const drsumnews = {
-//     source: "Sumnews",
-//     sourceLogo: bgsumnewslogo,
-//     events: [
-//         "eng-9545236",
-//         "eng-9544845",
-//         "eng-9545737"
-//     ],
-//     dailyRecapId: '1908cae5-e65e-4cba-8fee-ed4b14d41d65',
-// }
-
-// const drcnn = {
-//     source: "CNN",
-//     sourceLogo: CNNLogo,
-//     dailyRecapId: 2
-// }
-
-// const drnyt = {
-//     source: "New York Times",
-//     sourceLogo: NYPLogo,
-//     dailyRecapId: 3
-// }
-
-// const drforbes = {
-//     source: "Forbes",
-//     sourceLogo: ForbesLogo,
-//     dailyRecapId: 4
-// }
-
-// const dryahoonews = {
-//     source: "Yahoo News",
-//     sourceLogo: YahooNewsLogo,
-//     dailyRecapId: 5
-// }
-
-// const drbi = {
-//     source: "Business Insider",
-//     sourceLogo: BILogo,
-//     dailyRecapId: 6
-// }
-
-// const drarray = [drsumnews, drcnn, drnyt, drforbes, dryahoonews, drbi]
 
 const isPremium = ref(true)
 
@@ -184,7 +142,8 @@ onMounted(() => {
 <template>
     <Header />
     <div class="drcontainer" v-if="isPremium">
-        <DailyRecapButton v-for="dritem in dailyRecapButtons" :key="dritem.id" :dr="dritem" />
+        <DailyRecapButtonSkeleton v-for="dritem in tempDailyRecapButtons" :dr="dritem" v-if="!dailyRecapButtons" />
+        <DailyRecapButton v-for="dritem in dailyRecapButtons" :key="dritem.id" :dr="dritem" v-else />
     </div>
     <div class="app-container">
         <div id="article-stack" @scroll="scrollHandler">
