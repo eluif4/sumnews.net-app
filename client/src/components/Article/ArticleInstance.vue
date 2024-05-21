@@ -1,7 +1,6 @@
 <script setup>
-import { ref, computed, watch } from 'vue';
+import { ref, computed, watch, onMounted } from 'vue';
 import { useRoute } from 'vue-router'
-import { selectedArticle } from '../../main.js';
 import { config } from '../../constants'
 import router from '../../router/index.js';
 import { showPopup } from '../../scripts/utility.js';
@@ -27,11 +26,6 @@ watch(() => route.path, (newPath) => {
         isEventsRoute.value = false
     }
 });
-
-// pass article into ArticleContent
-const handleArticleClick = () => {
-    selectedArticle.value = props.article
-};
 
 // const getDaySuffix = (date) => {
 //     const day = date.getDate()
@@ -160,16 +154,16 @@ const fullCoverageAction = {
 //FUTURE CHANGE: THIS DOESNT WORK
 const handleImageError = () => {
     console.log('image couldnt load')
-    // props.article.imageUrl = `../assets/icons/bgsumnewslogo.png`
+    // props.article.imageUrl = `../assets/icons/sumnews.net.png`
 }
 </script>
 
 <template>
-    <div id="article-instance" class="article-instance" @click="handleArticleClick">
+    <div id="article-instance" class="article-instance">
 
         <img class="article-image" v-if="article.imageUrl" :src="article.imageUrl" alt="Article Image"
             @error="handleImageError">
-        <!-- <img class="article-image" v-else src="../assets/icons/bgsumnewslogo.png" alt="Article Image"> -->
+        <!-- <img class="article-image" v-else src="../assets/icons/sumnews.net.png" alt="Article Image"> -->
         <div class="shader">
             <div class="genre-list">
                 <div class="genre" v-for="genre in article.genre" @click="clickGenre(genre)">{{ genre }}</div>
@@ -204,7 +198,7 @@ const handleImageError = () => {
     width: 100%;
     box-shadow: 0 0 10px 0px var(--browser-background-color);
     margin: 1% 0 4% 0;
-    border-radius: var(--border-radius);;
+    border-radius: var(--border-radius);
     box-sizing: border-box;
 
     position: relative;
@@ -235,7 +229,7 @@ const handleImageError = () => {
     top: 0;
     right: 0;
     background-image: linear-gradient(0deg, rgba(0, 0, 0, 0.75) 10%, rgba(0, 0, 0, 0.2) 80%);
-    border-radius: var(--border-radius);;
+    border-radius: var(--border-radius);
     padding: 10px;
 
     display: flex;
@@ -264,7 +258,7 @@ const handleImageError = () => {
     height: 100%;
     aspect-ratio: 16/ 9;
     border: none;
-    border-radius: var(--border-radius);;
+    border-radius: var(--border-radius);
 }
 
 .source-datePublished {
@@ -306,7 +300,7 @@ const handleImageError = () => {
 
 .article-image {
     /* aspect-ratio: 16 / 9; */
-    border-radius: var(--border-radius);;
+    border-radius: var(--border-radius);
     width: 100%;
 }
 
