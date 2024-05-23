@@ -4,11 +4,24 @@ import { useRoute } from 'vue-router'
 import { config } from '../../constants'
 import router from '../../router/index.js';
 import { showPopup } from '../../scripts/utility.js';
+import ActionItem from '../Action/ActionItem.vue'
+import ArticleSwipe from './ArticleSwipe.vue';
 // import { actionShareFunction, fullCoverageActionFunction, bookmarkActionFunction } from '../../scripts/utility.js'
 
-const props = defineProps({ article: Object, });
+const props = defineProps({ article: Object });
 
-import ActionItem from '../Action/ActionItem.vue'
+const translateX = ref(0);
+const startX = ref(0);
+const startY = ref(0);
+const THRESHOLD = 100;
+const MAXIMUMX = 200; // PX FUTURE CHANGE: CHANGE TO PERCENTAGE
+const SENSITIVITY = 10;
+
+// ArticleSwipe setup
+const swipeAction = ref({})
+const showSwipeAction = ref(false);
+const swipeDirection = ref('');
+const isEventsRoute = ref(false)
 
 const FRONTEND_URL = config.url.FRONTEND_URL
 const BACKEND_URL = config.url.BACKEND_URL
@@ -16,8 +29,6 @@ const BACKEND_URL = config.url.BACKEND_URL
 const route = useRoute();
 
 // Watch router and design page accordingly
-const isEventsRoute = ref(false)
-
 watch(() => route.path, (newPath) => {
     if (newPath.includes('/event/')) {
         isEventsRoute.value = true
@@ -26,52 +37,6 @@ watch(() => route.path, (newPath) => {
         isEventsRoute.value = false
     }
 });
-
-// const getDaySuffix = (date) => {
-//     const day = date.getDate()
-//     if (day >= 11 && day <= 13) {
-//         return 'th';
-//     }
-
-//     const lastDigit = day % 10;
-//     switch (lastDigit) {
-//         case 1:
-//             return 'st';
-//         case 2:
-//             return 'nd';
-//         case 3:
-//             return 'rd';
-//         default:
-//             return 'th';
-//     }
-// };
-
-// const getDayOfWeek = (date) => {
-//     const daysOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-//     return daysOfWeek[date.getDay()];
-// };
-
-const getMonthOfYear = (date) => {
-    // const monthsOfYear = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
-    const monthsOfYear = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sept", "Oct", "Nov", "Dec"]
-    return monthsOfYear[date.getMonth()]
-}
-
-// const formattedDate = computed(() => {
-//     const datePublished = props.article.datePublished
-//     if (datePublished) {
-//         const inputDate = new Date(datePublished)
-
-//         const day = inputDate.getDate();
-//         const month = inputDate.getMonth() + 1; // Months are 0-based, so add 1
-//         const year = inputDate.getFullYear();
-//         const hours = inputDate.getHours() < 10 ? `0${inputDate.getHours()}` : inputDate.getHours();
-//         const minutes = inputDate.getMinutes() < 10 ? `0${inputDate.getMinutes()}` : inputDate.getMinutes();
-
-//         return `${getMonthOfYear(inputDate)} ${day}, ${year} at ${hours}:${minutes}`;
-//     }
-//     return datePublished; // Return an empty string if datePublished is undefined
-// });
 
 const relativeDate = computed(() => {
     const datePublished = new Date(props.article.datePublished);
@@ -156,10 +121,65 @@ const handleImageError = () => {
     console.log('image couldnt load')
     // props.article.imageUrl = `../assets/icons/sumnews.net.png`
 }
+
+// SWIPE TO ACTION
+const handleTouchStart = (e) => {
+    startX.value = e.touches[0].clientX;
+    startY.value = e.touches[0].clientY;
+}
+
+const handleTouchMove = (e) => {
+    const currentX = e.touches[0].clientX;
+    const currentY = e.touches[0].clientY;
+    const deltaX = currentX - startX.value;
+    const deltaY = currentY - startY.value;
+
+    if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > SENSITIVITY) {
+        translateX.value = currentX - startX.value;
+
+        // Limit the translation value of MAXIMUMX
+        if (translateX.value > MAXIMUMX) {
+            translateX.value = MAXIMUMX;
+        } else if (translateX.value < -MAXIMUMX) {
+            translateX.value = -MAXIMUMX;
+        } else {
+            translateX.value = currentX - startX.value;
+        }
+
+        // Determine swipe direction and show appropriate action
+        if (translateX.value > 0) { // CHANGE TO > SENSITIVITY
+            swipeAction.value = { color: '#FFA012', svg: shareAction.svg, direction: 'right' }
+            swipeDirection.value = 'right';
+        } else {
+            swipeAction.value = { color: '#FF1212', svg: bookmarkAction.svg, direction: 'left' }
+            swipeDirection.value = 'left';
+        }
+
+        showSwipeAction.value = true;
+    }
+}
+
+const handleTouchEnd = (e) => {
+    if (Math.abs(translateX.value) > SENSITIVITY) {
+        if (translateX.value > THRESHOLD) { // If swipe to the right
+            // fullCoverageActionFunction()
+            bookmarkActionFunction();
+        } else if (translateX.value < -THRESHOLD) {
+            actionShareFunction();
+        }
+    }
+    // Reset translateX to 0 after the touch ends
+    translateX.value = 0;
+
+    showSwipeAction.value = false
+}
 </script>
 
 <template>
-    <div id="article-instance" class="article-instance">
+    <div id="article-instance" class="article-instance" :style="{ transform: `translateX(${translateX}px)` }"
+        @touchstart="handleTouchStart" @touchmove="handleTouchMove" @touchend="handleTouchEnd">
+
+        <ArticleSwipe :action="swipeAction"></ArticleSwipe>
 
         <img class="article-image" v-if="article.imageUrl" :src="article.imageUrl" alt="Article Image"
             @error="handleImageError">
@@ -185,7 +205,7 @@ const handleImageError = () => {
 
                 <div class="actions">
                     <ActionItem :action="shareAction"></ActionItem>
-                    <ActionItem :action="bookmarkAction"></ActionItem>
+                    <!-- <ActionItem :action="bookmarkAction"></ActionItem> -->
                     <ActionItem :action="fullCoverageAction" v-if="article.eventUri"></ActionItem>
                 </div>
             </div>
@@ -196,7 +216,8 @@ const handleImageError = () => {
 <style scoped>
 .article-instance {
     width: 100%;
-    box-shadow: 0 0 10px 0px var(--browser-background-color);
+    min-width: 100%;
+    box-shadow: 0px 4px 10px 0px var(--browser-background-color);
     margin: 1% 0 4% 0;
     border-radius: var(--border-radius);
     box-sizing: border-box;
@@ -205,8 +226,9 @@ const handleImageError = () => {
 
     display: flex;
     flex-direction: column;
-
+    min-height: 100px;
     /* background-color: var(--main-color); */
+    transition: transform 0.1s ease;
 }
 
 .event-page {
