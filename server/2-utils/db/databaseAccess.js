@@ -152,7 +152,7 @@ async function aggregate(collection, pipeline) {
     }
 }
 
-// ----- GENRES -----
+// ----- SOURCES -----
 async function getAllSources() {
     try {
         const genres = await Source.find();
@@ -160,6 +160,28 @@ async function getAllSources() {
     } catch (err) {
         console.error('Error fetching genres:', err);
         throw err; // Re-throw the error to handle it further up the call stack
+    }
+}
+
+async function getSourcesLogo(sources) {
+    const filter = {
+        sourceName: { $in: sources }
+    }
+
+    const sumnewsnetSource = {
+        _id: '1',
+        logo: '1',
+    }
+
+    try {
+        const sourcesLogo = await Source.find(filter).select({ logo: 1 });
+        if (sources.indexOf('sumnews.net') !== -1) {
+            sourcesLogo.splice(sources.indexOf('sumnews.net'), 0, sumnewsnetSource)
+        }
+        return sourcesLogo;
+    } catch (error) {
+        console.error(`Couldn't fetch Sources Logo`, error)
+        throw error;
     }
 }
 
@@ -204,6 +226,7 @@ module.exports = {
     getUser,
     saveUserToDB,
     aggregate,
+    getSourcesLogo,
     getAllSources,
     getEvents,
     getEventByEventUri,

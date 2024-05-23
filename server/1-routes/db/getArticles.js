@@ -10,6 +10,7 @@ const { getArticlesController,
     getDailyRecapsController,
     getDailyRecapByIdController,
     getEventByEventUriController,
+    getSourcesLogoController
 } = require('../../6-controllers/db/articlesController');
 
 const app = Router();
@@ -23,5 +24,6 @@ app.get('/db/createDailyRecap', createDailyRecapController)
 app.post('/db/getDailyRecapById', getDailyRecapByIdController)
 app.post('/db/getEventByEventUri', getEventByEventUriController)
 app.get('/db/getDailyRecaps', getDailyRecapsController)
+app.post('/db/getSourcesLogo', getSourcesLogoController)
 
 module.exports = app;

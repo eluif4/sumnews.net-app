@@ -13,7 +13,7 @@ const props = defineProps({
     },
 });
 
-const { source, id } = props.dr;
+const { source, sourceLogo, id } = props.dr;
 
 // FUTURE CHANGE: RETRIEVE SOURCELOGO FROM DB USING AGGREGATION
 
@@ -69,7 +69,6 @@ const fetchDailyRecap = async (id) => {
 // Redirect the user to the correct URI after finding out the first article uuid
 async function renderDailyRecap(id) {
     const dailyrecap = await fetchDailyRecap(id)
-    console.log(`dailyrecap ${dailyrecap}`);
     router.push({
         name: 'dailyrecap', params: {
             dailyrecapUUID: id,
@@ -83,7 +82,8 @@ async function renderDailyRecap(id) {
 <template>
     <button class="mycontainer" @click="renderDailyRecap(id)">
         <div class="dailyrecap">
-            <img class="logo" :alt="source" :src="sourceLogo">
+            <img class="logo" :alt="source" :src="'data:image/jpeg;base64,' + sourceLogo" v-if="source != 'sumnews.net'">
+            <img class="logo" :alt="source" :src="sourceLogo" v-else>
         </div>
         <!-- <p class="source-title">{{ source }}</p> -->
     </button>

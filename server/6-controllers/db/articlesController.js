@@ -5,7 +5,7 @@ const UTILS = path.join(__dirname, '../../2-utils')
 const DBUTILS = path.join(__dirname, '../../2-utils/db')
 const DatabaseAccess = path.join(DBUTILS, "/databaseAccess.js")
 const GetCollections = path.join(DBUTILS, "/getCollections.js")
-const { getArticlesFromDB, aggregate, getDailyRecap } = require(DatabaseAccess)
+const { getArticlesFromDB, aggregate, getDailyRecap, getSourcesLogo } = require(DatabaseAccess)
 const { getAllSources, getAllGenres } = require(GetCollections)
 const DailyRecap = path.join(UTILS, "/dailyRecaps.js")
 const { createDailyRecap } = require(DailyRecap)
@@ -161,6 +161,12 @@ async function getDailyRecapsController(req, res) {
     res.send(drs);
 }
 
+async function getSourcesLogoController(req, res) {
+    const sources = req.body.sources;
+    const sourcesLogo = await getSourcesLogo(sources);
+    res.send(sourcesLogo);
+}
+
 module.exports = {
     getArticlesController,
     getArticlesFromSearchController,
@@ -173,4 +179,5 @@ module.exports = {
     createDailyRecapController,
     getDailyRecapByIdController,
     getDailyRecapsController,
+    getSourcesLogoController,
 }
