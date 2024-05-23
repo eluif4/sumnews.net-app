@@ -10,7 +10,7 @@ const props = defineProps({ article: Object });
 const articleRef = ref(props.article || {});
 const translateY = ref(0);
 const startY = ref(0);
-const THRESHOLD = 200;
+const THRESHOLD = 1;
 const SCREENHEIGHT = window.innerHeight;
 
 const FRONTEND_URL = config.url.FRONTEND_URL
@@ -149,6 +149,7 @@ watch(
     })
 
 // SWIPE DOWN TO DISMISS SECTION
+// FUTURE CHANGE: SWIPE TO DISMISS CAUSES THE GENRE LIST TO BE HIDDEN FROM THE USER
 const handleTouchStart = (e) => {
     startY.value = e.touches[0].clientY;
     e.preventDefault();
@@ -187,7 +188,7 @@ const handleTransitionEnd = () => {
             <div class="close-bar"></div>
             <div class="actions">
                 <ActionItem :action="shareAction"></ActionItem>
-                <ActionItem :action="bookmarkAction"></ActionItem>
+                <!-- <ActionItem :action="bookmarkAction"></ActionItem> -->
                 <ActionItem :action="fullCoverageAction" v-if="articleRef.eventUri"></ActionItem>
                 <ActionItem :action="backAction" class="backAction"></ActionItem>
             </div>
@@ -293,7 +294,7 @@ const handleTransitionEnd = () => {
 
     display: flex;
     flex-direction: column;
-    transition: transform 0.3s ease;
+    /* transition: transform 0.3s eases; */
 }
 
 .image-container {
