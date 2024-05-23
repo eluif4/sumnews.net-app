@@ -4,6 +4,7 @@ import { ref, onMounted, computed, watch } from 'vue';
 import { config } from '../constants';
 import router from '../router';
 import DailyRecapItem from '../components/DailyRecap/DailyRecapItem.vue'
+import DailyRecapItemSkeleton from '../components/DailyRecap/DailyRecapItemSkeleton.vue';
 import { front_getArticlesFromDB } from '../scripts/utility';
 import { useRoute } from 'vue-router';
 
@@ -23,6 +24,7 @@ const dailyrecapUUIDRef = ref(props.dailyrecapUUID);
 const eventUriRef = ref(props.eventUri);
 const articleUUIDRef = ref(props.articleUUID);
 const currentArticle = ref(null) // Current article with relation to the uuid in the URL
+const tempDailyRecapSkeleton = ref([{}, {}, {}])
 
 // Scrolling
 const startY = ref(0)
@@ -77,7 +79,6 @@ const setDailyRecap = async (dailyrecapUUID) => {
             var eventsObject = await Promise.all(eventsPromises);
             tempdailyrecap.events = eventsObject;
             dailyrecap.value = tempdailyrecap;
-            console.log(dailyrecap.value)
             // Place the eventsObject inside the dailyrecap object
         } else {
             throw new Error('Failed to fetch Daily Recap');
@@ -161,23 +162,6 @@ watch(
             }
         }
     })
-
-/*
-watch dailyrecap value
-once its filled turn a flag true to display all information
-else show skeleton
-*/
-
-// Doesnt work
-// watch([currentArticleIndex, currentEventIndex], ([newArticleIndex, newEventIndex], [oldArticleIndex, oldEventIndex]) => {
-//     if (newArticleIndex < 0 || newEventIndex < 0) {
-//         router.push('/error');
-//     }
-// });
-
-watch((currentArticleIndex, newArticleIndex, oldArticleIndex) => {
-    console.log(`CurrentArticleIndex ${newArticleIndex}`)
-})
 </script>
 
 <template>
@@ -218,9 +202,8 @@ watch((currentArticleIndex, newArticleIndex, oldArticleIndex) => {
                     <div class="article" v-for="eventArticle in dailyrecap.events[currentEventIndex].eventArticles"
                         :key="eventArticle.id" v-if="currentArticle">
                         <!-- FUTURE CHANGE: WHILE THE REQUESTS LOAD PLACE SKELETONS -->
-                        <DailyRecapItem :article="currentArticle"
-                            v-if="currentArticle.uuid == articleUUIDRef">
-                        </DailyRecapItem>
+                        <DailyRecapItemSkeleton v-if="!dailyrecap"></DailyRecapItemSkeleton>
+                        <DailyRecapItem :article="currentArticle" v-else-if="currentArticle.uuid == articleUUIDRef"></DailyRecapItem>
                         <!-- <DailyRecapItem :article="eventArticle" v-else></DailyRecapItem> -->
                     </div>
                 </div>
