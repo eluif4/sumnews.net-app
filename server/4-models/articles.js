@@ -11,9 +11,14 @@ const articleSchema = new mongoose.Schema({
     },
     genre: Array,
     eventUri: String,
+    drUri: String,
     content: String,
     summarizedContent: String,
     imageUrl: String,
+    sentiment: Number,
+    concepts: Array,
+    links: Array,
+    shares: Object,
     uuid: String,
 }, { collection: 'articles'} );
 

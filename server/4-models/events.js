@@ -6,6 +6,11 @@ const eventsSchema = new mongoose.Schema({
     articlesCount: Number,
     articlesSaved: Number, // How many articles exist in this event (value from the api)
     dateCreated: Date, // The date when the event was added to the DB
+    socialScore: Number,
+    sentiment: Number,
+    summary: Object,
+    concepts: Array,
+    
 }, { collection: 'events' });
 
 const Article = mongoose.model('Event', eventsSchema);
