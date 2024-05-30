@@ -42,21 +42,22 @@ async function createDailyRecap(source) {
             if (article.eventUri != null) { // if article has eventUri
                 drUri = `${source}/${article.eventUri}`; // custom eventUri
                 filter = { "source": source, "eventUri": article.eventUri }
-                sourceEventArticles = await getArticlesFromDB(filter)
-                sourceEventArticles.push(sourceEventArticles)
+                var tempArticles = await getArticlesFromDB(filter)
+                for (const tempArticle of tempArticles) {
+                    if (tempArticle doesnt exist in sourceEventArticle)
+                        sourceEventArticles.push(tempArticle)
+                }
 
-                Article.findByIdAndUpdate(
-                    article._id,
-                    { eventUri: drUri },
-                    { new: true }, // This option returns the updated document
-                    (err, updatedArticle) => {
-                        if (err) {
-                            console.error('Error updating article:', err);
-                        } else {
-                            console.log('Updated article:', updatedArticle);
-                        }
-                    }
-                );
+                try {
+                    const updatedArticle = await Article.findByIdAndUpdate(
+                        article._id,
+                        { eventUri: drUri },
+                        { new: true } // This option returns the updated document
+                    );
+                    console.log('Updated article:', updatedArticle);
+                } catch (err) {
+                    console.error('Error updating article:', err);
+                }
 
                 const e = new Event({
                     autoNum: events[0].autoNum, // get auto num
