@@ -165,19 +165,21 @@ async function getAllSources() {
 
 async function getSourcesLogo(sources) {
     const filter = {
-        sourceName: { $in: sources }
+        source: { $in: sources }
     }
 
     const sumnewsnetSource = {
         _id: '1',
         logo: '1',
+        source: '1'
     }
 
     try {
-        const sourcesLogo = await Source.find(filter).select({ logo: 1 });
+        const sourcesLogo = await Source.find(filter).select({ logo: 1, source: 1 });
         if (sources.indexOf('sumnews.net') !== -1) {
             sourcesLogo.splice(sources.indexOf('sumnews.net'), 0, sumnewsnetSource)
         }
+        sourcesLogo.sort((a, b) => sources.indexOf(a.source) - sources.indexOf(b.source));
         return sourcesLogo;
     } catch (error) {
         console.error(`Couldn't fetch Sources Logo`, error)
