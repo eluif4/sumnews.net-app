@@ -72,7 +72,7 @@ async function processEvent(article) {
     const events = await getEvents();
     const allSources = (await getAllSources());
     const eventUri = article.eventUri;
-    var sources = allSources.map(source => source.sourceName)
+    var sources = allSources.map(source => source.source)
     var eventExists = eventUriExists(eventUri, events);
     var articleEventsAddedToQueueCount = 0;
 
