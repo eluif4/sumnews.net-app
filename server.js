@@ -59,7 +59,7 @@ async function cronTask() {
             console.log(kleur.bgBlue(`Task started @ ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`))
 
             const allSources = (await getAllSources())
-            var sources = allSources.map(source => source.sourceName)
+            var sources = allSources.map(source => source.source)
 
             // FUTURE CHANGE: LOOK THROUGH ALL PAGES (IF THE API CALL IS QUICK AND I DONT HAVE TOO MANY SOURCES THEN I SHOULDNT WORRY ABOUT THIS)
 
@@ -115,6 +115,7 @@ async function cronTask() {
     // })
 }
 
+// FUTURE CHANGE: TURN THIS INTO A AN API CALL
 async function cronDailyRecap() {
     // CRON task runs at 18:00
     // cron.schedule('*/1 * * * *', async () => {
