@@ -179,6 +179,7 @@ const handleTouchEnd = (e) => {
     <div id="article-instance" class="article-instance" :style="{ transform: `translateX(${translateX}px)` }"
         @touchstart="handleTouchStart" @touchmove="handleTouchMove" @touchend="handleTouchEnd">
 
+        <!-- FUTURE CHANGE: FIX THIS SO THAT ITS BEHIND THE ARTICLE INSTANCE -->
         <ArticleSwipe :action="swipeAction"></ArticleSwipe>
 
         <img class="article-image" v-if="article.imageUrl" :src="article.imageUrl" alt="Article Image"
@@ -228,7 +229,7 @@ const handleTouchEnd = (e) => {
     flex-direction: column;
     min-height: 100px;
     /* background-color: var(--main-color); */
-    transition: transform 0.1s ease;
+    /* transition: transform 1s ease; */
 }
 
 .event-page {
