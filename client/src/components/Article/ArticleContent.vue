@@ -10,7 +10,7 @@ const props = defineProps({ article: Object });
 const articleRef = ref(props.article || {});
 const translateY = ref(0);
 const startY = ref(0);
-const THRESHOLD = 1;
+const THRESHOLD = 100;
 const SCREENHEIGHT = window.innerHeight;
 
 const FRONTEND_URL = config.url.FRONTEND_URL
@@ -150,6 +150,7 @@ watch(
 
 // SWIPE DOWN TO DISMISS SECTION
 // FUTURE CHANGE: SWIPE TO DISMISS CAUSES THE GENRE LIST TO BE HIDDEN FROM THE USER
+// SWIPE DOWN TO DISMISS SECTION
 const handleTouchStart = (e) => {
     startY.value = e.touches[0].clientY;
     e.preventDefault();
@@ -294,7 +295,7 @@ const handleTransitionEnd = () => {
 
     display: flex;
     flex-direction: column;
-    /* transition: transform 0.3s eases; */
+    transition: transform 0.2s ease;
 }
 
 .image-container {
