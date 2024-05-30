@@ -109,6 +109,10 @@ async function processEvent(article) {
             // FUTURE CHANGE: THE NUMBER BELOW ISNT CORRECT. SAME ARTICLES ARENT SAVE TO DB
             articlesSaved: articleEventsAddedToQueueCount,
             dateCreated: new Date(),
+            socialScore: response[eventUri].socialScore,
+            sentiment: response[eventUri].sentiment,
+            summary: response[eventUri].summary,
+            concepts: response[eventUri].concepts,
         })
 
         // Save event (e) to DB if there are more than 1 articles in the full coverage
@@ -130,14 +134,19 @@ async function processArticle(article) { // Returns the updated article
     var a = new Article({
         title: article.title,
         url: article.url,
-        source: article.source.title,
+        source: article.source.uri,
         author: [], //authors,
         datePublished: new Date(article.dateTimePub),
         genre: [], //categoriesArray,
         eventUri: article.eventUri,
+        drUri: null,
         content: article.body,
         summarizedContent: '',
         imageUrl: article.image,
+        sentiment: article.sentiment,
+        concepts: article.concepts,
+        links: article.links,
+        shares: article.shares,
         uuid: uuidValue
     })
 
