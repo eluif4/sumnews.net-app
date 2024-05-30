@@ -186,9 +186,9 @@ async function getSourcesLogo(sources) {
 }
 
 // ----- EVENTS -----
-async function getEvents() {
+async function getEvents(filter = undefined, project = undefined, sort = { "autoNum": -1 }, skip = 0, limit = 0) {
     try {
-        const result = await Event.find().sort({ "autoNum": -1 })
+        const result = await Event.find(filter).select(project).sort(sort).skip(skip).limit(limit);
         return result;
     } catch (error) {
         console.error(`Error fetching events: `, error)
