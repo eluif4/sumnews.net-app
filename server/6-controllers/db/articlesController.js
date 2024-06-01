@@ -128,6 +128,29 @@ async function getArticlesFromEventController(req, res) {
     return res.send(result[0]);
 }
 
+async function getArticlesFromDrEventController(req, res) {
+    const drUri = req.body.drUri;
+    const pipeline = [
+        {
+            $lookup:
+            {
+                from: "articles",
+                localField: "drUri",
+                foreignField: "drUri",
+                as: "eventArticles",
+            },
+        },
+        {
+            $match:
+            {
+                drUri: drUri,
+            },
+        },
+    ]
+    const result = await aggregate('drEvents', pipeline);
+    return res.send(result[0]);
+}
+
 async function createDailyRecapController(req, res) {
     const dr = await createDailyRecap()
     res.send(dr)
@@ -176,6 +199,7 @@ module.exports = {
     getEventArticlesController,
     getEventByEventUriController,
     getArticlesFromEventController,
+    getArticlesFromDrEventController,
     createDailyRecapController,
     getDailyRecapByIdController,
     getDailyRecapsController,

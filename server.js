@@ -119,11 +119,11 @@ async function cronTask() {
 async function cronDailyRecap() {
     // CRON task runs at 18:00
     // cron.schedule('*/1 * * * *', async () => {
-    if (true) {
-        const sources = ['sumnews.net', 'msnbc.com', 'people.com', 'cnn.com']
+    if (false) {
+        // await fetch(``)
+        const sources = ['sumnews.net', 'bbc.com', 'theguardian.com', 'finance.yahoo.com']
         for (const source of sources) {
-            const dr = await createDailyRecap(source);
-            saveDocument(dr)
+            await createDailyRecap(source);
         }
     }
     // })
