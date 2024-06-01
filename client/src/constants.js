@@ -9,10 +9,10 @@ const prod = {
 
 const dev = {
     url: {
-        BACKEND_URL: 'http://localhost:3000/',
-        FRONTEND_URL: 'http://localhost:5173/',
-        // BASE_URL: 'http://10.0.0.5',
-        // FRONTEND_URL: 'http://192.168.1.120:5173/',
+        // BACKEND_URL: 'http://localhost:3000/',
+        // FRONTEND_URL: 'http://localhost:5173/',
+        BACKEND_URL: 'http://192.168.1.120:3000/',
+        FRONTEND_URL: 'http://192.168.1.120:5173/',
     },
 };
 
