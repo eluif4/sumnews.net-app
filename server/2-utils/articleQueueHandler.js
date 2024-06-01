@@ -83,7 +83,9 @@ async function processEvent(article) {
         I filter out most of the articles due to source and langauge therefore leaving me with only a fue dozen articles per event
         */
         try {
-            var response = await getArticlesFromEvent(eventUri);
+            var response = await getArticlesFromEvent(eventUri); // I dont get the event her but instead get Articles from the event.
+            // I need to call POSThttps://eventregistry.org/api/v1/event/getEvent to get information about the event. Usefule for when saving an event
+
             var eventArticles = response[eventUri].articles.results;
             eventArticles = eventArticles.filter(item => item.url !== article.url);
             // Remove the current url from the eventArticles array

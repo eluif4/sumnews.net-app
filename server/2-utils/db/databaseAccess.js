@@ -89,6 +89,15 @@ async function articlesSinceYesterday() {
     return articles
 }
 
+async function updateArticleByID(articleId, filter, newDoc = true) {
+    try {
+    const updatedArticle = await Article.findByIdAndUpdate(articleId, filter);
+    return updatedArticle
+    } catch(err) {
+        console.error(`Couldnt update article with id ${articleId}`, err)
+    }
+}
+
 async function eventsSinceYesterdayByPopularity(source) {
     // Return events since yesterdy from most popular to least
     const today = new Date();
@@ -188,7 +197,7 @@ async function getSourcesLogo(sources) {
 }
 
 // ----- EVENTS -----
-async function getEvents(filter = undefined, project = undefined, sort = { "autoNum": -1 }, skip = 0, limit = 0) {
+async function getEvents(filter = undefined, project = undefined, sort = { "dateCreated": -1 }, skip = 0, limit = 0) {
     try {
         const result = await Event.find(filter).select(project).sort(sort).skip(skip).limit(limit);
         return result;
@@ -223,6 +232,7 @@ module.exports = {
     saveDocument,
     doesArticleExist,
     articlesSinceYesterday,
+    updateArticleByID,
     eventsSinceYesterdayByPopularity,
     getArticlesFromDB,
     getUser,
