@@ -36,6 +36,24 @@ const fetchEventByUri = async (eventUri) => {
     return await response.json();
 };
 
+const fetchDrEventBydrUri = async (drUri) => {
+    var response = await fetch(`${BACKEND_URL}db/getArticlesFromDrEvent`, {
+        method: 'POST',
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            "drUri": drUri,
+        })
+    })
+
+    if (!response.ok) {
+        throw new Error(`Failed to fetch event for URI: ${eventUri}`);
+    }
+    return await response.json();
+}
+
 // Fetching dailyRecap and event details
 const fetchDailyRecap = async (id) => {
     try {
@@ -51,12 +69,10 @@ const fetchDailyRecap = async (id) => {
         });
 
         if (response.ok) {
-            // var text = await response.text();
-            // console.log(text)
             var tempdailyrecap = await response.json();
-            const eventsPromises = tempdailyrecap.events.map(eventUri => fetchEventByUri(eventUri));
-            var eventsObject = await Promise.all(eventsPromises);
-            tempdailyrecap.events = eventsObject;
+            const drEventsPromises = tempdailyrecap.drEvents.map(drUri => fetchDrEventBydrUri(drUri));
+            var drEventsObject = await Promise.all(drEventsPromises);
+            tempdailyrecap.events = drEventsObject;
             return tempdailyrecap;
         } else {
             throw new Error('Failed to fetch Daily Recap');
@@ -72,7 +88,7 @@ async function renderDailyRecap(id) {
     router.push({
         name: 'dailyrecap', params: {
             dailyrecapUUID: id,
-            eventUri: dailyrecap.events[0].eventUri,
+            drUri: dailyrecap.events[0].drUri,
             articleUUID: dailyrecap.events[0].eventArticles[0].uuid,
         }
     });
@@ -82,7 +98,8 @@ async function renderDailyRecap(id) {
 <template>
     <button class="mycontainer" @click="renderDailyRecap(id)">
         <div class="dailyrecap">
-            <img class="logo" :alt="source" :src="'data:image/jpeg;base64,' + sourceLogo" v-if="source != 'sumnews.net'">
+            <img class="logo" :alt="source" :src="'data:image/jpeg;base64,' + sourceLogo"
+                v-if="source != 'sumnews.net'">
             <img class="logo" :alt="source" :src="sourceLogo" v-else>
         </div>
         <!-- <p class="source-title">{{ source }}</p> -->
@@ -108,7 +125,7 @@ async function renderDailyRecap(id) {
     height: 60px;
     width: 60px;
     border-radius: 10px;
-    /* border: 2px solid #4d4d4d; */
+    border: 2px solid black;
 }
 
 .source-title {

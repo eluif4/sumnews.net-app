@@ -14,14 +14,14 @@ const route = useRoute();
 
 const props = defineProps({
     dailyrecapUUID: String,
-    eventUri: String,
+    drUri: String,
     articleUUID: String,
 });
 
 // FUTURE CHANGE: GET THESE VALUES FROM THE URL
 const dailyrecap = ref();
 const dailyrecapUUIDRef = ref(props.dailyrecapUUID);
-const eventUriRef = ref(props.eventUri);
+const drUriRef = ref(props.drUri);
 const articleUUIDRef = ref(props.articleUUID);
 const currentArticle = ref(null) // Current article with relation to the uuid in the URL
 const tempDailyRecapSkeleton = ref([{}, {}, {}])
@@ -32,7 +32,7 @@ const endY = ref(0);
 
 // COMPUTED PROPERTIES
 const currentEventIndex = computed(() => {
-    return dailyrecap.value?.events.findIndex(event => event.eventUri === eventUriRef.value);
+    return dailyrecap.value?.events.findIndex(event => event.drUri === drUriRef.value);
 });
 
 const currentArticleIndex = computed(() => {
@@ -59,6 +59,24 @@ const fetchEventByUri = async (eventUri) => {
     return await response.json();
 };
 
+const fetchDrEventBydrUri = async (drUri) => {
+    var response = await fetch(`${BACKEND_URL}db/getArticlesFromDrEvent`, {
+        method: 'POST',
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            "drUri": drUri,
+        })
+    })
+
+    if (!response.ok) {
+        throw new Error(`Failed to fetch event for URI: ${drUri}`);
+    }
+    return await response.json();
+}
+
 // Fetching dailyRecap and event details
 const setDailyRecap = async (dailyrecapUUID) => {
     try {
@@ -75,11 +93,10 @@ const setDailyRecap = async (dailyrecapUUID) => {
 
         if (response.ok) {
             var tempdailyrecap = await response.json();
-            const eventsPromises = tempdailyrecap.events.map(eventUri => fetchEventByUri(eventUri));
-            var eventsObject = await Promise.all(eventsPromises);
-            tempdailyrecap.events = eventsObject;
+            const drEventsPromises = tempdailyrecap.drEvents.map(drUri => fetchDrEventBydrUri(drUri));
+            var drEventsObject = await Promise.all(drEventsPromises);
+            tempdailyrecap.events = drEventsObject;
             dailyrecap.value = tempdailyrecap;
-            // Place the eventsObject inside the dailyrecap object
         } else {
             throw new Error('Failed to fetch Daily Recap');
         }
@@ -103,7 +120,7 @@ async function handleClick(event) {
     router.push({
         name: 'dailyrecap', params: {
             dailyrecapUUID: props.dailyrecapUUID,
-            eventUri: dailyrecap.value.events[currentEventIndex.value].eventUri,
+            drUri: dailyrecap.value.events[currentEventIndex.value].drUri,
             articleUUID: dailyrecap.value.events[currentEventIndex.value].eventArticles[articleIndex].uuid,
         }
     });
@@ -128,12 +145,12 @@ async function handleSlide() {
             eventIndex--
         }
 
-        eventUriRef.value = dailyrecap.value.events[eventIndex].eventUri;
+        drUriRef.value = dailyrecap.value.events[eventIndex].drUri;
         articleUUIDRef.value = dailyrecap.value.events[eventIndex].eventArticles[0].uuid;
         router.push({
             name: 'dailyrecap', params: {
                 dailyrecapUUID: props.dailyrecapUUID,
-                eventUri: eventUriRef.value,
+                drUri: drUriRef.value,
                 articleUUID: articleUUIDRef.value,
             }
         });
@@ -154,7 +171,7 @@ watch(
             var article = dailyrecap?.value.events[currentEventIndex.value].eventArticles[currentArticleIndex.value]
             if (article) {
                 // Setup inital dailyrecap values
-                eventUriRef.value = route.params.eventUri;
+                drUriRef.value = route.params.drUri;
                 articleUUIDRef.value = route.params.articleUUID;
                 currentArticle.value = article;
             } else {
@@ -171,7 +188,7 @@ watch(
         <div class="info-header">
             <div class="first">
                 <div class="left">
-                    <p class="title">Your Daily Recap</p>
+                    <p class="title">{{ dailyrecap.source == 'sumnews.net' ? 'Your Daily Recap' : `${dailyrecap.source} Recap`}}</p>
                 </div>
                 <div class="right">
                     <p class="article-count">{{ currentArticleIndex + 1 }} / {{
@@ -196,14 +213,15 @@ watch(
 
         <!-- EVENTS AND ARTICLES -->
         <div class="event-list">
-            <div class="event" v-for="(event, index) in dailyrecap.events" :key="event.eventUri">
+            <div class="event" v-for="(event, index) in dailyrecap.events" :key="event.drUri">
                 <!-- {{ event.eventArticles.length }} -->
                 <div class="article-list">
                     <div class="article" v-for="eventArticle in dailyrecap.events[currentEventIndex].eventArticles"
                         :key="eventArticle.id" v-if="currentArticle">
                         <!-- FUTURE CHANGE: WHILE THE REQUESTS LOAD PLACE SKELETONS -->
                         <DailyRecapItemSkeleton v-if="!dailyrecap"></DailyRecapItemSkeleton>
-                        <DailyRecapItem :article="currentArticle" v-else-if="currentArticle.uuid == articleUUIDRef"></DailyRecapItem>
+                        <DailyRecapItem :article="currentArticle" v-else-if="currentArticle.uuid == articleUUIDRef">
+                        </DailyRecapItem>
                         <!-- <DailyRecapItem :article="eventArticle" v-else></DailyRecapItem> -->
                     </div>
                 </div>
@@ -212,7 +230,7 @@ watch(
         </div>
 
         <!-- FOOTER SECTION -->
-        <div class="myfooter">
+        <!-- <div class="myfooter">
             <div class="count-container" v-if="dailyrecap">
                 <p class="event-count">{{ currentEventIndex + 1 }} / {{ dailyrecap.events.length }} Events</p>
             </div>
@@ -220,7 +238,7 @@ watch(
                 <div class="event-counter bubble" v-for="(event, index) in dailyrecap.events"
                     :class="{ 'active': index <= currentEventIndex }"></div>
             </div>
-        </div>
+        </div> -->
     </div>
 </template>
 
@@ -242,7 +260,7 @@ watch(
 
     color: white;
     background: rgb(0, 0, 0);
-    background: linear-gradient(0deg, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 1) 50%);
+    background: linear-gradient(0deg, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 1) 90%);
 
     display: flex;
     flex-direction: column;
@@ -281,7 +299,7 @@ watch(
 }
 
 .event {
-    height: 92%;
+    height: 100%;
     display: flex;
     flex-direction: column;
     width: 100%;
@@ -289,12 +307,12 @@ watch(
     overflow-y: hidden;
     margin-bottom: 20px;
     background: #404040;
-    border-radius: 25px 25px 10px 10px;
+    border-radius: 25px 25px 0 0 ;
     box-shadow: 0 4px 20px 0 #000000;
 }
 
 .article-list {
-    height: fit-content;
+    height: 100%;
     overflow-y: hidden;
     overflow-x: auto;
     display: flex;
@@ -349,7 +367,7 @@ watch(
 
 .event-count {
     text-align: right;
-    font-size: 12px;
+    font-size: 16px;
 }
 
 .active {
