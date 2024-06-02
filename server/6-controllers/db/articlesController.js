@@ -167,16 +167,16 @@ async function getDailyRecapByIdController(req, res) {
 async function getDailyRecapsController(req, res) {
     const today = new Date();
     today.setDate(today.getDate() + 1);
-    const todayFormatted = today.toISOString().slice(0, 10) + 'T00:00:00Z';
+    // const todayFormatted = today.toISOString().slice(0, 10) + 'T00:00:00Z';
 
     const yesterday = new Date();
     yesterday.setDate(yesterday.getDate() - 1);
-    const yesterdayFormatted = yesterday.toISOString().slice(0, 10) + 'T00:00:00Z';
+    // const yesterdayFormatted = yesterday.toISOString().slice(0, 10) + 'T00:00:00Z';
 
     var filter = {
         "dateCreated": {
-            "$gte": yesterdayFormatted,
-            "$lt": todayFormatted
+            "$gte": yesterday
+            // "$lt": today
         }
     };
 
