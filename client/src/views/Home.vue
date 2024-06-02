@@ -205,7 +205,8 @@ onMounted(() => {
 }
 
 .drcontainer {
-    margin: 10px;
+    margin: 10px 0;
+    padding: 0 10px;
     width: 100vw;
     overflow-x: auto;
     overflow-y: hidden;
