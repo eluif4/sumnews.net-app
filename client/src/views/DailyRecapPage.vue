@@ -146,7 +146,7 @@ const handleTouchMove = (event) => {
     } else if (currentEventIndex.value == dailyrecap.value?.events.length - 1 && moveX < 0) {
         moveX = 0
     }
-    eventList.style.transform = `translateX(${moveX}px)`;
+    // eventList.style.transform = `translateX(${moveX}px)`;
 }
 
 const handleTouchEnd = (event) => {
@@ -166,7 +166,7 @@ async function handleSlide() {
         }
 
         const newTranslateX = -currentEventIndex.value * 100;
-        eventList.style.transform = `translateX(${newTranslateX}%)`;
+        // eventList.style.transform = `translateX(${newTranslateX}%)`;
 
         drUriRef.value = dailyrecap.value.events[eventIndex].drUri;
         articleUUIDRef.value = dailyrecap.value.events[eventIndex].eventArticles[0].uuid;
@@ -211,8 +211,7 @@ watch(
         <div class="info-header">
             <div class="first">
                 <div class="left">
-                    <p class="title">{{ dailyrecap.source == 'sumnews.net' ? 'Your Daily Recap' : `${dailyrecap.source}
-                        Recap`}}</p>
+                    <p class="title">{{ dailyrecap.source == 'sumnews.net' ? 'Your Daily Recap' : `${dailyrecap.source}'s Daily Recap`}}</p>
                 </div>
                 <div class="right">
                     <p class="article-count">{{ currentArticleIndex + 1 }} / {{
@@ -367,7 +366,7 @@ watch(
     width: 100%;
     height: 70px;
     z-index: 100;
-    background: linear-gradient(0deg, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0) 100%);
+    background: linear-gradient(0deg, rgba(0, 0, 0, 1) 0%, rgb(64, 64, 64, 1) 100%);
 
     padding: 10px;
 
