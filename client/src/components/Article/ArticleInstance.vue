@@ -116,6 +116,11 @@ const fullCoverageAction = {
     strokeColor: isEventsRoute.value ? 'white' : '#62febd'
 }
 
+const dailyRecapAction = {
+    svg: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="22" viewBox="0 0 20 22" fill="none"><path d="M10.0001 13H10.0091M5.00006 21H15.0001M1.51806 9.306C1.13006 8.232 0.936062 7.695 1.01806 7.351C1.10906 6.974 1.37706 6.681 1.71906 6.583C2.03206 6.493 2.51906 6.71 3.49206 7.143C4.35206 7.525 4.78206 7.716 5.18706 7.706C5.63306 7.694 6.06106 7.516 6.40206 7.199C6.71206 6.912 6.91906 6.455 7.33406 5.541L8.24906 3.525C9.01306 1.842 9.39506 1 10.0001 1C10.6051 1 10.9871 1.842 11.7511 3.525L12.6661 5.541C13.0811 6.455 13.2891 6.912 13.5981 7.199C13.9391 7.515 14.3681 7.694 14.8131 7.706C15.2171 7.716 15.6481 7.525 16.5081 7.142C17.4821 6.71 17.9681 6.493 18.2811 6.583C18.6231 6.681 18.8911 6.974 18.9811 7.351C19.0641 7.695 18.8701 8.231 18.4811 9.306L16.8141 13.922C16.1001 15.897 15.7441 16.884 14.9971 17.442C14.2501 18 13.2851 18 11.3561 18H8.64406C6.71406 18 5.75006 18 5.00406 17.442C4.25706 16.884 3.90006 15.897 3.18606 13.922L1.51806 9.306Z" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+    actionFunction: undefined,
+}
+
 //FUTURE CHANGE: THIS DOESNT WORK
 const handleImageError = () => {
     console.log('image couldnt load')
@@ -208,6 +213,7 @@ const handleTouchEnd = (e) => {
                     <ActionItem :action="shareAction"></ActionItem>
                     <!-- <ActionItem :action="bookmarkAction"></ActionItem> -->
                     <ActionItem :action="fullCoverageAction" v-if="article.eventUri"></ActionItem>
+                    <ActionItem :action="dailyRecapAction" v-if="article.drUri"></ActionItem>
                 </div>
             </div>
         </div>
@@ -227,7 +233,8 @@ const handleTouchEnd = (e) => {
 
     display: flex;
     flex-direction: column;
-    min-height: 100px;
+    /* min-height: 100px; */
+    min-height: calc(100vw * 9 / 20); /* Ensures the image has at least a 16:9 aspect ratio */
     /* background-color: var(--main-color); */
     /* transition: transform 1s ease; */
 }
