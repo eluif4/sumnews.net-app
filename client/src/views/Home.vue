@@ -4,28 +4,22 @@ import { front_getArticlesFromDB } from '../scripts/utility'
 import { List } from '../main'
 import { useRoute } from 'vue-router';
 import { config } from '../constants.js'
-import CNNLogo from '@/assets/icons/cnn.com.png'
-import bgsumnewslogo from '@/assets/icons/sumnews.net.png';
-import NYPLogo from '@/assets/icons/nypost.com.png';
-import ForbesLogo from '@/assets/icons/forbes.com.png';
-import BILogo from '@/assets/icons/businessinsider.com.png';
-import YahooNewsLogo from '@/assets/icons/news.yahoo.com.png';
 
 const BACKEND_URL = config.url.BACKEND_URL
 const route = useRoute();
+
+import SumnewsLogo from '../assets/icons/sumnews.net.png'
 
 import Popup from '../components/Popups/Popup.vue'
 import Cookies from '../components/Popups/Cookies.vue'
 import ArticleSkeleton from '../components/Article/ArticleSkeleton.vue'
 import Header from '../components/Page/Header.vue'
-import Filter from '../components/Filter/Filter.vue'
-import ArticleContent from '../components/Article/ArticleContent.vue'
 import ArticleInstance from '../components/Article/ArticleInstance.vue'
 import DailyRecapButton from '../components/DailyRecap/DailyRecapButton.vue';
 import DailyRecapButtonSkeleton from '../components/DailyRecap/DailyRecapButtonSkeleton.vue'
 
 var skeletonArticles = [1, 2, 3, 4, 5, 6]
-var tempDailyRecapButtons = ref([{}, {}, {}, {}, {}, {}])
+var tempDailyRecapButtons = ref([{}, {}, {}, {}, {}, {}, {}, {}, {}, {}])
 var dailyRecapButtons = ref();
 
 // if (List.articles.length == 0) {
@@ -125,7 +119,28 @@ async function setDailyRecapButtons() {
     try {
         // Gets most recent daily recaps
         var response = await fetch(`${BACKEND_URL}db/getDailyRecaps`)
+        // For every source call a get source endpoint and get the source logo. Place it in the dailyrecap object
         var dailyRecaps = await response.json()
+        const dailyrecapsSources = dailyRecaps.map(dailyrecap => dailyrecap.source);
+        var response = await fetch(`${BACKEND_URL}db/getSourcesLogo`, {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                sources: dailyrecapsSources
+            })
+        })
+        var sourceLogos = await response.json();
+        for (const [index, dailyrecap] of dailyRecaps.entries()) {
+            if (dailyrecap.source === 'sumnews.net') {
+                dailyrecap.sourceLogo = SumnewsLogo;
+            }
+            else
+                dailyrecap.sourceLogo = sourceLogos[index].logo
+        }
+
         dailyRecapButtons.value = dailyRecaps
     } catch (error) {
         console.error(`There was a problem with fetching Daily Recaps`)
@@ -148,7 +163,7 @@ onMounted(() => {
     <div class="app-container">
         <div id="article-stack" @scroll="scrollHandler">
             <ArticleSkeleton v-for="skeleton in skeletonArticles" v-if="List.articles.length == 0"></ArticleSkeleton>
-            <router-link v-for="(article) in List.articles" :key="article.uuid"
+            <router-link v-for="(article) in List.articles" :key="article.uuid" style="min-width: 100%"
                 :to="{ name: 'article', params: { uuid: article.uuid } }">
                 <ArticleInstance :article="article" :key="article.uuid" v-if="article.imageUrl"></ArticleInstance>
             </router-link>
@@ -190,7 +205,8 @@ onMounted(() => {
 }
 
 .drcontainer {
-    padding: 4px 10px;
+    margin: 10px 0;
+    padding: 0 10px;
     width: 100vw;
     overflow-x: auto;
     overflow-y: hidden;
@@ -200,9 +216,6 @@ onMounted(() => {
     flex-wrap: nowrap;
     align-items: center;
     box-sizing: border-box;
-}
-
-.drcontainer {
     -ms-overflow-style: none;
     /* IE and Edge */
     scrollbar-width: none;

@@ -4,6 +4,7 @@ import { ref, onMounted, computed, watch } from 'vue';
 import { config } from '../constants';
 import router from '../router';
 import DailyRecapItem from '../components/DailyRecap/DailyRecapItem.vue'
+import DailyRecapItemSkeleton from '../components/DailyRecap/DailyRecapItemSkeleton.vue';
 import { front_getArticlesFromDB } from '../scripts/utility';
 import { useRoute } from 'vue-router';
 
@@ -13,24 +14,33 @@ const route = useRoute();
 
 const props = defineProps({
     dailyrecapUUID: String,
-    eventUri: String,
+    drUri: String,
     articleUUID: String,
 });
 
 // FUTURE CHANGE: GET THESE VALUES FROM THE URL
 const dailyrecap = ref();
 const dailyrecapUUIDRef = ref(props.dailyrecapUUID);
-const eventUriRef = ref(props.eventUri);
+const drUriRef = ref(props.drUri);
 const articleUUIDRef = ref(props.articleUUID);
 const currentArticle = ref(null) // Current article with relation to the uuid in the URL
+const tempDailyRecapSkeleton = ref([{}, {}, {}])
+
+const dynamicGap = computed(() => {
+    const articleCount = dailyrecap.value?.events[currentEventIndex.value].eventArticles.length;
+    const maxGap = 10; // Maximum gap in pixels
+    const minGap = 3;  // Minimum gap in pixels
+    const gap = Math.max(minGap, maxGap - (articleCount - 1));
+    return gap
+});
 
 // Scrolling
-const startY = ref(0)
-const endY = ref(0);
+const startX = ref(0)
+const endX = ref(0);
 
 // COMPUTED PROPERTIES
 const currentEventIndex = computed(() => {
-    return dailyrecap.value?.events.findIndex(event => event.eventUri === eventUriRef.value);
+    return dailyrecap.value?.events.findIndex(event => event.drUri === drUriRef.value);
 });
 
 const currentArticleIndex = computed(() => {
@@ -57,6 +67,24 @@ const fetchEventByUri = async (eventUri) => {
     return await response.json();
 };
 
+const fetchDrEventBydrUri = async (drUri) => {
+    var response = await fetch(`${BACKEND_URL}db/getArticlesFromDrEvent`, {
+        method: 'POST',
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            "drUri": drUri,
+        })
+    })
+
+    if (!response.ok) {
+        throw new Error(`Failed to fetch event for URI: ${drUri}`);
+    }
+    return await response.json();
+}
+
 // Fetching dailyRecap and event details
 const setDailyRecap = async (dailyrecapUUID) => {
     try {
@@ -73,12 +101,10 @@ const setDailyRecap = async (dailyrecapUUID) => {
 
         if (response.ok) {
             var tempdailyrecap = await response.json();
-            const eventsPromises = tempdailyrecap.events.map(eventUri => fetchEventByUri(eventUri));
-            var eventsObject = await Promise.all(eventsPromises);
-            tempdailyrecap.events = eventsObject;
+            const drEventsPromises = tempdailyrecap.drEvents.map(drUri => fetchDrEventBydrUri(drUri));
+            var drEventsObject = await Promise.all(drEventsPromises);
+            tempdailyrecap.events = drEventsObject;
             dailyrecap.value = tempdailyrecap;
-            console.log(dailyrecap.value)
-            // Place the eventsObject inside the dailyrecap object
         } else {
             throw new Error('Failed to fetch Daily Recap');
         }
@@ -102,37 +128,52 @@ async function handleClick(event) {
     router.push({
         name: 'dailyrecap', params: {
             dailyrecapUUID: props.dailyrecapUUID,
-            eventUri: dailyrecap.value.events[currentEventIndex.value].eventUri,
+            drUri: dailyrecap.value.events[currentEventIndex.value].drUri,
             articleUUID: dailyrecap.value.events[currentEventIndex.value].eventArticles[articleIndex].uuid,
         }
     });
 }
 
 const handleTouchStart = (event) => {
-    startY.value = event.touches[0].clientY;
+    startX.value = event.touches[0].clientX;
 };
 
+const handleTouchMove = (event) => {
+    var moveX = event.touches[0].clientX - startX.value;
+    const eventList = document.querySelector('.event-list');
+    if (currentEventIndex.value == 0 && moveX > 0) {
+        moveX = 0;
+    } else if (currentEventIndex.value == dailyrecap.value?.events.length - 1 && moveX < 0) {
+        moveX = 0
+    }
+    // eventList.style.transform = `translateX(${moveX}px)`;
+}
+
 const handleTouchEnd = (event) => {
-    endY.value = event.changedTouches[0].clientY;
+    endX.value = event.changedTouches[0].clientX;
     handleSlide();
 };
 
 async function handleSlide() {
-    const deltaY = startY.value - endY.value;
+    const deltaX = startX.value - endX.value;
     var eventIndex = currentEventIndex.value;
-    if (Math.abs(deltaY) > SLIDE_THRESHOLD) {
-        if (deltaY > 0 && eventIndex < dailyrecap.value.events.length - 1) {
+    const eventList = document.querySelector('.event-list');
+    if (Math.abs(deltaX) > SLIDE_THRESHOLD) {
+        if (deltaX > 0 && eventIndex < dailyrecap.value.events.length - 1) {
             eventIndex++
-        } else if (deltaY < 0 && eventIndex > 0) {
+        } else if (deltaX < 0 && eventIndex > 0) {
             eventIndex--
         }
 
-        eventUriRef.value = dailyrecap.value.events[eventIndex].eventUri;
+        const newTranslateX = -currentEventIndex.value * 100;
+        // eventList.style.transform = `translateX(${newTranslateX}%)`;
+
+        drUriRef.value = dailyrecap.value.events[eventIndex].drUri;
         articleUUIDRef.value = dailyrecap.value.events[eventIndex].eventArticles[0].uuid;
         router.push({
             name: 'dailyrecap', params: {
                 dailyrecapUUID: props.dailyrecapUUID,
-                eventUri: eventUriRef.value,
+                drUri: drUriRef.value,
                 articleUUID: articleUUIDRef.value,
             }
         });
@@ -153,7 +194,7 @@ watch(
             var article = dailyrecap?.value.events[currentEventIndex.value].eventArticles[currentArticleIndex.value]
             if (article) {
                 // Setup inital dailyrecap values
-                eventUriRef.value = route.params.eventUri;
+                drUriRef.value = route.params.drUri;
                 articleUUIDRef.value = route.params.articleUUID;
                 currentArticle.value = article;
             } else {
@@ -161,33 +202,16 @@ watch(
             }
         }
     })
-
-/*
-watch dailyrecap value
-once its filled turn a flag true to display all information
-else show skeleton
-*/
-
-// Doesnt work
-// watch([currentArticleIndex, currentEventIndex], ([newArticleIndex, newEventIndex], [oldArticleIndex, oldEventIndex]) => {
-//     if (newArticleIndex < 0 || newEventIndex < 0) {
-//         router.push('/error');
-//     }
-// });
-
-watch((currentArticleIndex, newArticleIndex, oldArticleIndex) => {
-    console.log(`CurrentArticleIndex ${newArticleIndex}`)
-})
 </script>
 
 <template>
-    <div class="dailyrecap-container" @click="handleClick" @touchstart="handleTouchStart" @touchend="handleTouchEnd"
-        v-if="dailyrecap">
+    <div class="dailyrecap-container" @click="handleClick" @touchstart="handleTouchStart" @touchmove="handleTouchMove"
+        @touchend="handleTouchEnd" v-if="dailyrecap">
         <!-- HEADER SECTION WITH ALL THE INFORMATION AND BACK BUTTON -->
         <div class="info-header">
             <div class="first">
                 <div class="left">
-                    <p class="title">Your Daily Recap</p>
+                    <p class="title">{{ dailyrecap.source == 'sumnews.net' ? 'Your Daily Recap' : `${dailyrecap.source}'s Daily Recap`}}</p>
                 </div>
                 <div class="right">
                     <p class="article-count">{{ currentArticleIndex + 1 }} / {{
@@ -202,24 +226,23 @@ watch((currentArticleIndex, newArticleIndex, oldArticleIndex) => {
                     </router-link>
                 </div>
             </div>
-            <div class="second count">
-                <div class="bubble count"
-                    v-for="(_, index) in dailyrecap.events[currentEventIndex].eventArticles.length"
-                    :class="{ 'active': index <= currentArticleIndex }">
+            <div class="second count" :style="{ 'gap': dynamicGap + 'px' }">
+                <div class="bubble" v-for="(_, index) in dailyrecap.events[currentEventIndex].eventArticles.length"
+                    :key="index" :class="{ 'active': index <= currentArticleIndex }">
                 </div>
             </div>
         </div>
 
         <!-- EVENTS AND ARTICLES -->
         <div class="event-list">
-            <div class="event" v-for="(event, index) in dailyrecap.events" :key="event.eventUri">
+            <div class="event" v-for="(event, index) in dailyrecap.events" :key="event.drUri">
                 <!-- {{ event.eventArticles.length }} -->
                 <div class="article-list">
                     <div class="article" v-for="eventArticle in dailyrecap.events[currentEventIndex].eventArticles"
                         :key="eventArticle.id" v-if="currentArticle">
                         <!-- FUTURE CHANGE: WHILE THE REQUESTS LOAD PLACE SKELETONS -->
-                        <DailyRecapItem :article="currentArticle"
-                            v-if="currentArticle.uuid == articleUUIDRef">
+                        <DailyRecapItemSkeleton v-if="!dailyrecap"></DailyRecapItemSkeleton>
+                        <DailyRecapItem :article="currentArticle" v-else-if="currentArticle.uuid == articleUUIDRef">
                         </DailyRecapItem>
                         <!-- <DailyRecapItem :article="eventArticle" v-else></DailyRecapItem> -->
                     </div>
@@ -233,9 +256,9 @@ watch((currentArticleIndex, newArticleIndex, oldArticleIndex) => {
             <div class="count-container" v-if="dailyrecap">
                 <p class="event-count">{{ currentEventIndex + 1 }} / {{ dailyrecap.events.length }} Events</p>
             </div>
-            <div class="bubble-container count" v-if="dailyrecap">
-                <div class="event-counter bubble" v-for="(event, index) in dailyrecap.events"
-                    :class="{ 'active': index <= currentEventIndex }"></div>
+            <div class="bubble-container" v-if="dailyrecap">
+                <div class="event-counter dot" v-for="(event, index) in dailyrecap.events"
+                    :class="{ 'active-dot': index == currentEventIndex }"></div>
             </div>
         </div>
     </div>
@@ -259,7 +282,7 @@ watch((currentArticleIndex, newArticleIndex, oldArticleIndex) => {
 
     color: white;
     background: rgb(0, 0, 0);
-    background: linear-gradient(0deg, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 1) 50%);
+    background: linear-gradient(0deg, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 1) 90%);
 
     display: flex;
     flex-direction: column;
@@ -286,19 +309,22 @@ watch((currentArticleIndex, newArticleIndex, oldArticleIndex) => {
     width: 100%;
     background-color: white;
     border-radius: 4px;
-    height: 10px;
+    height: 6px;
 }
 
 .event-list {
     width: 100%;
     height: 100%;
-    /* overflow-y: auto; */
     overflow-y: hidden;
     overflow-x: hidden;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    transition: transform 0.3s ease;
 }
 
 .event {
-    height: 92%;
+    height: 100%;
     display: flex;
     flex-direction: column;
     width: 100%;
@@ -306,12 +332,20 @@ watch((currentArticleIndex, newArticleIndex, oldArticleIndex) => {
     overflow-y: hidden;
     margin-bottom: 20px;
     background: #404040;
-    border-radius: 25px 25px 10px 10px;
+    border-radius: 25px 25px 0 0;
     box-shadow: 0 4px 20px 0 #000000;
+    flex: 0 0 100%;
+    /* Each event takes up full width of the container */
+    transition: transform 0.3s ease;
+    /* Smooth transition */
+}
+
+.active {
+    transform: translateX(0);
 }
 
 .article-list {
-    height: fit-content;
+    height: 100%;
     overflow-y: hidden;
     overflow-x: auto;
     display: flex;
@@ -327,21 +361,21 @@ watch((currentArticleIndex, newArticleIndex, oldArticleIndex) => {
 .myfooter {
     position: absolute;
     bottom: 0;
-    left: 0;
+    /* left: 0; */
 
     width: 100%;
-    height: calc(8% - 20px);
+    height: 70px;
     z-index: 100;
-    background: linear-gradient(0deg, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0) 100%);
+    background: linear-gradient(0deg, rgba(0, 0, 0, 1) 0%, rgb(64, 64, 64, 0) 100%);
 
-    border-radius: 25px 25px 0 0;
     padding: 10px;
 
     color: white;
 
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
+    justify-content: space-evenly;
+    backdrop-filter: blur(4px);
 }
 
 .count {
@@ -361,15 +395,31 @@ watch((currentArticleIndex, newArticleIndex, oldArticleIndex) => {
 .bubble-container {
     display: flex;
     flex-direction: row;
+    justify-content: center;
+    align-items: center;
     gap: 10px
 }
 
 .event-count {
-    text-align: right;
-    font-size: 12px;
+    text-align: center;
+    font-size: 16px;
 }
 
 .active {
     background-color: var(--main-color) !important;
+}
+
+.dot {
+    width: 10px;
+    height: 10px;
+    background-color: white;
+    border-radius: 20px;
+}
+
+.active-dot {
+    width: 20px;
+    height: 20px;
+    border: 2px solid black;
+    background-color: var(--main-color);
 }
 </style>

@@ -5,7 +5,7 @@ const UTILS = path.join(__dirname, '../../2-utils')
 const DBUTILS = path.join(__dirname, '../../2-utils/db')
 const DatabaseAccess = path.join(DBUTILS, "/databaseAccess.js")
 const GetCollections = path.join(DBUTILS, "/getCollections.js")
-const { getArticlesFromDB, aggregate, getDailyRecap } = require(DatabaseAccess)
+const { getArticlesFromDB, aggregate, getDailyRecap, getSourcesLogo } = require(DatabaseAccess)
 const { getAllSources, getAllGenres } = require(GetCollections)
 const DailyRecap = path.join(UTILS, "/dailyRecaps.js")
 const { createDailyRecap } = require(DailyRecap)
@@ -128,6 +128,29 @@ async function getArticlesFromEventController(req, res) {
     return res.send(result[0]);
 }
 
+async function getArticlesFromDrEventController(req, res) {
+    const drUri = req.body.drUri;
+    const pipeline = [
+        {
+            $lookup:
+            {
+                from: "articles",
+                localField: "drUri",
+                foreignField: "drUri",
+                as: "eventArticles",
+            },
+        },
+        {
+            $match:
+            {
+                drUri: drUri,
+            },
+        },
+    ]
+    const result = await aggregate('drEvents', pipeline);
+    return res.send(result[0]);
+}
+
 async function createDailyRecapController(req, res) {
     const dr = await createDailyRecap()
     res.send(dr)
@@ -144,21 +167,27 @@ async function getDailyRecapByIdController(req, res) {
 async function getDailyRecapsController(req, res) {
     const today = new Date();
     today.setDate(today.getDate() + 1);
-    const todayFormatted = today.toISOString().slice(0, 10) + 'T00:00:00Z';
+    // const todayFormatted = today.toISOString().slice(0, 10) + 'T00:00:00Z';
 
     const yesterday = new Date();
     yesterday.setDate(yesterday.getDate() - 1);
-    const yesterdayFormatted = yesterday.toISOString().slice(0, 10) + 'T00:00:00Z';
+    // const yesterdayFormatted = yesterday.toISOString().slice(0, 10) + 'T00:00:00Z';
 
     var filter = {
         "dateCreated": {
-            "$gte": yesterdayFormatted,
-            "$lt": todayFormatted
+            "$gte": yesterday
+            // "$lt": today
         }
     };
 
     var drs = await getDailyRecap(filter);
     res.send(drs);
+}
+
+async function getSourcesLogoController(req, res) {
+    const sources = req.body.sources;
+    const sourcesLogo = await getSourcesLogo(sources);
+    res.send(sourcesLogo);
 }
 
 module.exports = {
@@ -170,7 +199,9 @@ module.exports = {
     getEventArticlesController,
     getEventByEventUriController,
     getArticlesFromEventController,
+    getArticlesFromDrEventController,
     createDailyRecapController,
     getDailyRecapByIdController,
     getDailyRecapsController,
+    getSourcesLogoController,
 }

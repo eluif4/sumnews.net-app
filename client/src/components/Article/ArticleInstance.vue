@@ -4,11 +4,24 @@ import { useRoute } from 'vue-router'
 import { config } from '../../constants'
 import router from '../../router/index.js';
 import { showPopup } from '../../scripts/utility.js';
+import ActionItem from '../Action/ActionItem.vue'
+import ArticleSwipe from './ArticleSwipe.vue';
 // import { actionShareFunction, fullCoverageActionFunction, bookmarkActionFunction } from '../../scripts/utility.js'
 
-const props = defineProps({ article: Object, });
+const props = defineProps({ article: Object });
 
-import ActionItem from '../Action/ActionItem.vue'
+const translateX = ref(0);
+const startX = ref(0);
+const startY = ref(0);
+const THRESHOLD = 100;
+const MAXIMUMX = 200; // PX FUTURE CHANGE: CHANGE TO PERCENTAGE
+const SENSITIVITY = 10;
+
+// ArticleSwipe setup
+const swipeAction = ref({})
+const showSwipeAction = ref(false);
+const swipeDirection = ref('');
+const isEventsRoute = ref(false)
 
 const FRONTEND_URL = config.url.FRONTEND_URL
 const BACKEND_URL = config.url.BACKEND_URL
@@ -16,8 +29,6 @@ const BACKEND_URL = config.url.BACKEND_URL
 const route = useRoute();
 
 // Watch router and design page accordingly
-const isEventsRoute = ref(false)
-
 watch(() => route.path, (newPath) => {
     if (newPath.includes('/event/')) {
         isEventsRoute.value = true
@@ -26,52 +37,6 @@ watch(() => route.path, (newPath) => {
         isEventsRoute.value = false
     }
 });
-
-// const getDaySuffix = (date) => {
-//     const day = date.getDate()
-//     if (day >= 11 && day <= 13) {
-//         return 'th';
-//     }
-
-//     const lastDigit = day % 10;
-//     switch (lastDigit) {
-//         case 1:
-//             return 'st';
-//         case 2:
-//             return 'nd';
-//         case 3:
-//             return 'rd';
-//         default:
-//             return 'th';
-//     }
-// };
-
-// const getDayOfWeek = (date) => {
-//     const daysOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-//     return daysOfWeek[date.getDay()];
-// };
-
-const getMonthOfYear = (date) => {
-    // const monthsOfYear = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
-    const monthsOfYear = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sept", "Oct", "Nov", "Dec"]
-    return monthsOfYear[date.getMonth()]
-}
-
-// const formattedDate = computed(() => {
-//     const datePublished = props.article.datePublished
-//     if (datePublished) {
-//         const inputDate = new Date(datePublished)
-
-//         const day = inputDate.getDate();
-//         const month = inputDate.getMonth() + 1; // Months are 0-based, so add 1
-//         const year = inputDate.getFullYear();
-//         const hours = inputDate.getHours() < 10 ? `0${inputDate.getHours()}` : inputDate.getHours();
-//         const minutes = inputDate.getMinutes() < 10 ? `0${inputDate.getMinutes()}` : inputDate.getMinutes();
-
-//         return `${getMonthOfYear(inputDate)} ${day}, ${year} at ${hours}:${minutes}`;
-//     }
-//     return datePublished; // Return an empty string if datePublished is undefined
-// });
 
 const relativeDate = computed(() => {
     const datePublished = new Date(props.article.datePublished);
@@ -151,15 +116,76 @@ const fullCoverageAction = {
     strokeColor: isEventsRoute.value ? 'white' : '#62febd'
 }
 
+const dailyRecapAction = {
+    svg: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="22" viewBox="0 0 20 22" fill="none"><path d="M10.0001 13H10.0091M5.00006 21H15.0001M1.51806 9.306C1.13006 8.232 0.936062 7.695 1.01806 7.351C1.10906 6.974 1.37706 6.681 1.71906 6.583C2.03206 6.493 2.51906 6.71 3.49206 7.143C4.35206 7.525 4.78206 7.716 5.18706 7.706C5.63306 7.694 6.06106 7.516 6.40206 7.199C6.71206 6.912 6.91906 6.455 7.33406 5.541L8.24906 3.525C9.01306 1.842 9.39506 1 10.0001 1C10.6051 1 10.9871 1.842 11.7511 3.525L12.6661 5.541C13.0811 6.455 13.2891 6.912 13.5981 7.199C13.9391 7.515 14.3681 7.694 14.8131 7.706C15.2171 7.716 15.6481 7.525 16.5081 7.142C17.4821 6.71 17.9681 6.493 18.2811 6.583C18.6231 6.681 18.8911 6.974 18.9811 7.351C19.0641 7.695 18.8701 8.231 18.4811 9.306L16.8141 13.922C16.1001 15.897 15.7441 16.884 14.9971 17.442C14.2501 18 13.2851 18 11.3561 18H8.64406C6.71406 18 5.75006 18 5.00406 17.442C4.25706 16.884 3.90006 15.897 3.18606 13.922L1.51806 9.306Z" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+    actionFunction: undefined,
+}
+
 //FUTURE CHANGE: THIS DOESNT WORK
 const handleImageError = () => {
     console.log('image couldnt load')
     // props.article.imageUrl = `../assets/icons/sumnews.net.png`
 }
+
+// SWIPE TO ACTION
+const handleTouchStart = (e) => {
+    startX.value = e.touches[0].clientX;
+    startY.value = e.touches[0].clientY;
+}
+
+const handleTouchMove = (e) => {
+    const currentX = e.touches[0].clientX;
+    const currentY = e.touches[0].clientY;
+    const deltaX = currentX - startX.value;
+    const deltaY = currentY - startY.value;
+
+    if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > SENSITIVITY) {
+        translateX.value = currentX - startX.value;
+
+        // Limit the translation value of MAXIMUMX
+        if (translateX.value > MAXIMUMX) {
+            translateX.value = MAXIMUMX;
+        } else if (translateX.value < -MAXIMUMX) {
+            translateX.value = -MAXIMUMX;
+        } else {
+            translateX.value = currentX - startX.value;
+        }
+
+        // Determine swipe direction and show appropriate action
+        if (translateX.value > 0) { // CHANGE TO > SENSITIVITY
+            swipeAction.value = { color: '#FFA012', svg: shareAction.svg, direction: 'right' }
+            swipeDirection.value = 'right';
+        } else {
+            swipeAction.value = { color: '#FF1212', svg: bookmarkAction.svg, direction: 'left' }
+            swipeDirection.value = 'left';
+        }
+
+        showSwipeAction.value = true;
+    }
+}
+
+const handleTouchEnd = (e) => {
+    if (Math.abs(translateX.value) > SENSITIVITY) {
+        if (translateX.value > THRESHOLD) { // If swipe to the right
+            // fullCoverageActionFunction()
+            bookmarkActionFunction();
+        } else if (translateX.value < -THRESHOLD) {
+            actionShareFunction();
+        }
+    }
+    // Reset translateX to 0 after the touch ends
+    translateX.value = 0;
+
+    showSwipeAction.value = false
+}
 </script>
 
 <template>
-    <div id="article-instance" class="article-instance">
+    <div id="article-instance" class="article-instance" :style="{ transform: `translateX(${translateX}px)` }"
+        @touchstart="handleTouchStart" @touchmove="handleTouchMove" @touchend="handleTouchEnd">
+
+        <!-- FUTURE CHANGE: FIX THIS SO THAT ITS BEHIND THE ARTICLE INSTANCE -->
+        <ArticleSwipe :action="swipeAction"></ArticleSwipe>
 
         <img class="article-image" v-if="article.imageUrl" :src="article.imageUrl" alt="Article Image"
             @error="handleImageError">
@@ -185,8 +211,9 @@ const handleImageError = () => {
 
                 <div class="actions">
                     <ActionItem :action="shareAction"></ActionItem>
-                    <ActionItem :action="bookmarkAction"></ActionItem>
+                    <!-- <ActionItem :action="bookmarkAction"></ActionItem> -->
                     <ActionItem :action="fullCoverageAction" v-if="article.eventUri"></ActionItem>
+                    <ActionItem :action="dailyRecapAction" v-if="article.drUri"></ActionItem>
                 </div>
             </div>
         </div>
@@ -196,7 +223,8 @@ const handleImageError = () => {
 <style scoped>
 .article-instance {
     width: 100%;
-    box-shadow: 0 0 10px 0px var(--browser-background-color);
+    min-width: 100%;
+    box-shadow: 0px 4px 10px 0px var(--browser-background-color);
     margin: 1% 0 4% 0;
     border-radius: var(--border-radius);
     box-sizing: border-box;
@@ -205,8 +233,10 @@ const handleImageError = () => {
 
     display: flex;
     flex-direction: column;
-
+    /* min-height: 100px; */
+    min-height: calc(100vw * 9 / 20); /* Ensures the image has at least a 16:9 aspect ratio */
     /* background-color: var(--main-color); */
+    /* transition: transform 1s ease; */
 }
 
 .event-page {
@@ -326,6 +356,7 @@ const handleImageError = () => {
     flex-direction: row;
     overflow: auto;
     gap: 10px;
+    min-height: 30px;
 }
 
 .genre {

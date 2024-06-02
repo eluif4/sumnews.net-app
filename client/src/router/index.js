@@ -225,12 +225,12 @@ const routes = [
         ]
     },
     {
-        path: '/dailyrecap/:dailyrecapUUID/:eventUri/:articleUUID',
+        path: '/dailyrecap/:dailyrecapUUID/:drUri/:articleUUID',
         name: 'dailyrecap',
         component: DailyRecapPage,
         props: route => ({
             dailyrecapUUID: route.params.dailyrecapUUID,
-            eventUri: route.params.eventUri,
+            drUri: route.params.drUri,
             articleUUID: route.params.articleUUID,
         })
     },

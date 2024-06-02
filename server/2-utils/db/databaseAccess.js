@@ -89,6 +89,15 @@ async function articlesSinceYesterday() {
     return articles
 }
 
+async function updateArticleByID(articleId, filter, newDoc = true) {
+    try {
+    const updatedArticle = await Article.findByIdAndUpdate(articleId, filter);
+    return updatedArticle
+    } catch(err) {
+        console.error(`Couldnt update article with id ${articleId}`, err)
+    }
+}
+
 async function eventsSinceYesterdayByPopularity(source) {
     // Return events since yesterdy from most popular to least
     const today = new Date();
@@ -152,7 +161,7 @@ async function aggregate(collection, pipeline) {
     }
 }
 
-// ----- GENRES -----
+// ----- SOURCES -----
 async function getAllSources() {
     try {
         const genres = await Source.find();
@@ -163,10 +172,34 @@ async function getAllSources() {
     }
 }
 
-// ----- EVENTS -----
-async function getEvents() {
+async function getSourcesLogo(sources) {
+    const filter = {
+        source: { $in: sources }
+    }
+
+    const sumnewsnetSource = {
+        _id: '1',
+        logo: '1',
+        source: '1'
+    }
+
     try {
-        const result = await Event.find().sort({ "autoNum": -1 })
+        const sourcesLogo = await Source.find(filter).select({ logo: 1, source: 1 });
+        if (sources.indexOf('sumnews.net') !== -1) {
+            sourcesLogo.splice(sources.indexOf('sumnews.net'), 0, sumnewsnetSource)
+        }
+        sourcesLogo.sort((a, b) => sources.indexOf(a.source) - sources.indexOf(b.source));
+        return sourcesLogo;
+    } catch (error) {
+        console.error(`Couldn't fetch Sources Logo`, error)
+        throw error;
+    }
+}
+
+// ----- EVENTS -----
+async function getEvents(filter = undefined, project = undefined, sort = { "dateCreated": -1 }, skip = 0, limit = 0) {
+    try {
+        const result = await Event.find(filter).select(project).sort(sort).skip(skip).limit(limit);
         return result;
     } catch (error) {
         console.error(`Error fetching events: `, error)
@@ -199,11 +232,13 @@ module.exports = {
     saveDocument,
     doesArticleExist,
     articlesSinceYesterday,
+    updateArticleByID,
     eventsSinceYesterdayByPopularity,
     getArticlesFromDB,
     getUser,
     saveUserToDB,
     aggregate,
+    getSourcesLogo,
     getAllSources,
     getEvents,
     getEventByEventUri,
