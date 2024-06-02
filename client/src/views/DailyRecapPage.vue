@@ -26,6 +26,14 @@ const articleUUIDRef = ref(props.articleUUID);
 const currentArticle = ref(null) // Current article with relation to the uuid in the URL
 const tempDailyRecapSkeleton = ref([{}, {}, {}])
 
+const dynamicGap = computed(() => {
+  const articleCount = dailyrecap.value?.events[currentEventIndex.value].eventArticles.length;
+  const maxGap = 10; // Maximum gap in pixels
+  const minGap = 3;  // Minimum gap in pixels
+  const gap = Math.max(minGap, maxGap - (articleCount - 1));
+  return gap
+});
+
 // Scrolling
 const startY = ref(0)
 const endY = ref(0);
@@ -203,9 +211,9 @@ watch(
                     </router-link>
                 </div>
             </div>
-            <div class="second count">
-                <div class="bubble count"
-                    v-for="(_, index) in dailyrecap.events[currentEventIndex].eventArticles.length"
+            <div class="second count" :style="{ 'gap': dynamicGap + 'px'}">
+                <div class="bubble"
+                    v-for="(_, index) in dailyrecap.events[currentEventIndex].eventArticles.length" :key="index"
                     :class="{ 'active': index <= currentArticleIndex }">
                 </div>
             </div>
@@ -230,15 +238,15 @@ watch(
         </div>
 
         <!-- FOOTER SECTION -->
-        <!-- <div class="myfooter">
+        <div class="myfooter">
             <div class="count-container" v-if="dailyrecap">
                 <p class="event-count">{{ currentEventIndex + 1 }} / {{ dailyrecap.events.length }} Events</p>
             </div>
-            <div class="bubble-container count" v-if="dailyrecap">
-                <div class="event-counter bubble" v-for="(event, index) in dailyrecap.events"
-                    :class="{ 'active': index <= currentEventIndex }"></div>
+            <div class="bubble-container" v-if="dailyrecap">
+                <div class="event-counter dot" v-for="(event, index) in dailyrecap.events"
+                    :class="{ 'active-dot': index == currentEventIndex }"></div>
             </div>
-        </div> -->
+        </div>
     </div>
 </template>
 
@@ -287,7 +295,7 @@ watch(
     width: 100%;
     background-color: white;
     border-radius: 4px;
-    height: 10px;
+    height: 6px;
 }
 
 .event-list {
@@ -328,21 +336,21 @@ watch(
 .myfooter {
     position: absolute;
     bottom: 0;
-    left: 0;
+    /* left: 0; */
 
     width: 100%;
-    height: calc(8% - 20px);
+    height: 70px;
     z-index: 100;
     background: linear-gradient(0deg, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0) 100%);
 
-    border-radius: 25px 25px 0 0;
     padding: 10px;
 
     color: white;
 
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
+    justify-content: space-evenly;
+    backdrop-filter: blur(4px);
 }
 
 .count {
@@ -362,15 +370,31 @@ watch(
 .bubble-container {
     display: flex;
     flex-direction: row;
+    justify-content: center;
+    align-items: center;
     gap: 10px
 }
 
 .event-count {
-    text-align: right;
+    text-align: center;
     font-size: 16px;
 }
 
 .active {
     background-color: var(--main-color) !important;
+}
+
+.dot {
+    width: 10px;
+    height: 10px;
+    background-color: white;
+    border-radius: 20px;
+}
+
+.active-dot {
+    width: 20px;
+    height: 20px;
+    border: 2px solid black;
+    background-color: var(--main-color);
 }
 </style>

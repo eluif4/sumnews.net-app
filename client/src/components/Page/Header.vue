@@ -163,11 +163,8 @@ watch(() => route.path, (newPath) => {
 
 <style scoped>
 .topbar {
-    /* width: 100%; */
-    height: var(--dropdown-height);
-    margin: 0 2% 0 2%;
+    margin: 10px;
     box-sizing: border-box;
-    /* background-color: white; */
     display: flex;
     flex-direction: row;
     align-items: center;

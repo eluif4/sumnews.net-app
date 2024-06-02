@@ -205,7 +205,7 @@ onMounted(() => {
 }
 
 .drcontainer {
-    padding: 4px 10px;
+    margin: 10px;
     width: 100vw;
     overflow-x: auto;
     overflow-y: hidden;
@@ -215,9 +215,6 @@ onMounted(() => {
     flex-wrap: nowrap;
     align-items: center;
     box-sizing: border-box;
-}
-
-.drcontainer {
     -ms-overflow-style: none;
     /* IE and Edge */
     scrollbar-width: none;

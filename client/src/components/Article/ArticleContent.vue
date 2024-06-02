@@ -362,6 +362,7 @@ const handleTransitionEnd = () => {
     /* FUTURE CHANGE: check why this isnt working */
     overflow: auto;
     gap: 10px;
+    min-height: 30px;
 }
 
 .genre {

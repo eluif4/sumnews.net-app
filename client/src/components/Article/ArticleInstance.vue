@@ -349,6 +349,7 @@ const handleTouchEnd = (e) => {
     flex-direction: row;
     overflow: auto;
     gap: 10px;
+    min-height: 30px;
 }
 
 .genre {
