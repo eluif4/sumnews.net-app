@@ -366,7 +366,7 @@ watch(
     width: 100%;
     height: 70px;
     z-index: 100;
-    background: linear-gradient(0deg, rgba(0, 0, 0, 1) 0%, rgb(64, 64, 64, 1) 100%);
+    background: linear-gradient(0deg, rgba(0, 0, 0, 1) 0%, rgb(64, 64, 64, 0) 100%);
 
     padding: 10px;
 

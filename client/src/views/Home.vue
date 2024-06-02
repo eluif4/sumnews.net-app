@@ -19,7 +19,7 @@ import DailyRecapButton from '../components/DailyRecap/DailyRecapButton.vue';
 import DailyRecapButtonSkeleton from '../components/DailyRecap/DailyRecapButtonSkeleton.vue'
 
 var skeletonArticles = [1, 2, 3, 4, 5, 6]
-var tempDailyRecapButtons = ref([{}, {}, {}, {}, {}, {}])
+var tempDailyRecapButtons = ref([{}, {}, {}, {}, {}, {}, {}, {}, {}, {}])
 var dailyRecapButtons = ref();
 
 // if (List.articles.length == 0) {
