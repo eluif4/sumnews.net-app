@@ -19,7 +19,7 @@ import DailyRecapButton from '../components/DailyRecap/DailyRecapButton.vue';
 import DailyRecapButtonSkeleton from '../components/DailyRecap/DailyRecapButtonSkeleton.vue'
 
 var skeletonArticles = [1, 2, 3, 4, 5, 6]
-var tempDailyRecapButtons = ref([{}, {}, {}, {}, {}, {}])
+var tempDailyRecapButtons = ref([{}, {}, {}, {}, {}, {}, {}, {}, {}, {}])
 var dailyRecapButtons = ref();
 
 // if (List.articles.length == 0) {
@@ -205,7 +205,8 @@ onMounted(() => {
 }
 
 .drcontainer {
-    padding: 4px 10px;
+    margin: 10px 0;
+    padding: 0 10px;
     width: 100vw;
     overflow-x: auto;
     overflow-y: hidden;
@@ -215,9 +216,6 @@ onMounted(() => {
     flex-wrap: nowrap;
     align-items: center;
     box-sizing: border-box;
-}
-
-.drcontainer {
     -ms-overflow-style: none;
     /* IE and Edge */
     scrollbar-width: none;

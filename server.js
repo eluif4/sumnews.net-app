@@ -120,8 +120,8 @@ async function cronDailyRecap() {
     // CRON task runs at 18:00
     // cron.schedule('*/1 * * * *', async () => {
     if (false) {
-        // await fetch(``)
-        const sources = ['sumnews.net', 'bbc.com', 'theguardian.com', 'finance.yahoo.com']
+        const response = await getAllSources()
+        const sources = ['sumnews.net', ...response.map(source => source.source)];
         for (const source of sources) {
             await createDailyRecap(source);
         }
