@@ -16,9 +16,9 @@ const translateX = ref(0);
 const startX = ref(0);
 const startY = ref(0);
 const hasTouchEnded = ref(false);
-const THRESHOLD = 20;
+const THRESHOLD = 80;
 const MAXIMUMX = 200;
-const SENSITIVITY = 30;
+const SENSITIVITY = 40;
 
 // Creating an object of the users actions
 const USER_GESTURES = {
@@ -75,7 +75,7 @@ const handleTouchMove = (e) => {
 
     const canSwipeLeft = deltaX < 0 && USER_GESTURES.leftSwipe.activateCondition(props.article); // Boolean: if can swipe left according to the activatecondition
     const canSwipeRight = deltaX > 0 && USER_GESTURES.rightSwipe.activateCondition(props.article); // Boolean: if can swipe right according to the activatecondition
-    if (AbsPos > SENSITIVITY || !hasTouchEnded.value) { // If movement is larger than sensitivity
+    if (AbsPos > SENSITIVITY) { // If movement is larger than sensitivity
         if (canSwipeLeft || canSwipeRight)
             translateX.value = currentX - startX.value; // Updates the position of ArticleInstance.vue
 
