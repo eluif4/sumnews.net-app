@@ -7,7 +7,7 @@ const Event = require('../4-models/events.js')
 const uuid = require('uuid');
 // const { articleQueue } = require('./ServerHelper')
 const { saveDocument, getEvents, getAllSources } = require('./db/databaseAccess.js')
-const { summarizeArticleWithGemini, assignGenreWithGemini } = require('../2-utils/api/geminiRequests')
+const { assignAndSummarize } = require('../2-utils/api/geminiRequests')
 const { getArticlesFromEvent } = require('../2-utils/api/getArticlesFromAPI')
 const { getAllGenres } = require('../2-utils/db/getCollections')
 
@@ -111,10 +111,10 @@ async function processEvent(article) {
             // FUTURE CHANGE: THE NUMBER BELOW ISNT CORRECT. SAME ARTICLES ARENT SAVE TO DB
             articlesSaved: articleEventsAddedToQueueCount,
             dateCreated: new Date(),
-            socialScore: response[eventUri].socialScore,
-            sentiment: response[eventUri].sentiment,
-            summary: response[eventUri].summary,
-            concepts: response[eventUri].concepts,
+            // socialScore: response[eventUri].socialScore,
+            // sentiment: response[eventUri].sentiment,
+            // summary: response[eventUri].summary,
+            // concepts: response[eventUri].concepts,
         })
 
         // Save event (e) to DB if there are more than 1 articles in the full coverage
@@ -162,41 +162,28 @@ async function processArticle(article) { // Returns the updated article
 
         a.author = authors;
 
-        // FINDING GENRES - article genres are save in 'categories'
-        // const categories = article.categories
-        // var categoriesArray = [];
-        // for (const c of categories) {
-        //     var cLabel = c.label.split('/')[1]
-        //     if (!categoriesArray.includes(cLabel)) {
-        //         categoriesArray.push(cLabel)
-        //     }
-        // }
-
-        // if (categoriesArray.length == 0)
-        //     categoriesArray.push('World')
-
-        // a.genre = categoriesArray
-
         // FINDING GENRES USING GEMINI
-        var chosenGenres = await assignGenreWithGemini(article)
-        var possibleGenres = (await getAllGenres()).map(genre => genre.genre)
-
+        // var response = await assignGenres(a)
         try {
-            chosenGenres = chosenGenres.match(/\[([^\[\]]*)\]/)[1].split(',').map(item => item.trim())
-        } catch (error) {
-            chosenGenres = ['World']
-        }
+            var response = await assignAndSummarize(a)
 
-        var validGenres = [];
-        for (const genre of chosenGenres) {
-            if (genreExistsInPossibleGenres(genre, possibleGenres))
-                validGenres.push(genre)
-        }
-        a.genre = validGenres;
+            var chosenGenres = response.genres.map(item => item.trim())
+            // FUTURE CHANGE: THIS IS A REDUNDANT CALL TO THE DATABASE. I DONT NEED TO CALL THIS EVERY TIME I HANDLE AN ARTICLE.
+            var possibleGenres = (await getAllGenres()).map(genre => genre.genre)
 
-        const summary = (await summarizeArticleWithGemini(a)) // Summarize content
-        if (summary) { // Successful summarizing
-            a.summarizedContent = summary
+            var validGenres = [];
+            for (const genre of chosenGenres) {
+                if (genreExistsInPossibleGenres(genre, possibleGenres))
+                    validGenres.push(genre)
+            }
+            a.genre = validGenres;
+
+            const summary = response.summary
+            if (summary) { // Successful summarizing
+                a.summarizedContent = summary
+            }
+        } catch(error) {
+            console.error('Couldnt assign / summarize article');
         }
     }
     return a;

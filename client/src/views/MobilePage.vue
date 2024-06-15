@@ -1,21 +1,28 @@
 <script setup>
 import { ref, watch, computed } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 
 const route = useRoute()
+const router = useRouter()
 const componentKey = ref(true)
+const isNavigatingForward = ref(true)
 
-watch(() => route.path, () => {
-    componentKey.value = !componentKey.value;
+// Watch the route path to toggle the component key and determine the navigation direction
+watch(() => route.path, (newPath, oldPath) => {
+    componentKey.value = !componentKey.value
+    const toDepth = newPath.split('/').length
+    const fromDepth = oldPath.split('/').length
+    isNavigatingForward.value = toDepth > fromDepth
 })
 </script>
 
+
 <template>
-    <!-- FUTURE CHANGE: slide right when going deeper in the route and left when coming back up -->
-    <transition name="srl" mode="out-in">
-        <router-view></router-view>
+    <!-- Use conditional class binding for transition name -->
+    <transition :name="isNavigatingForward ? 'slide-right' : 'slide-left'" mode="out-in">
+        <router-view :key="componentKey.value"></router-view>
     </transition>
-    <!-- FUTURE CHANGE: only the first animation works but not the rest -->
+    <!-- Additional transitions as needed -->
     <transition name="slideupdown" mode="out-in">
         <router-view name="additional"></router-view>
     </transition>
@@ -24,15 +31,29 @@ watch(() => route.path, () => {
     </transition>
 </template>
 
+
 <style scoped>
-.srl-enter-active,
-.srl-leave-active {
-    animation: slide-in-right 0.5s cubic-bezier(0.250, 0.460, 0.450, 0.940) both;
+.slide-right-enter-active,
+.slide-right-leave-active,
+.slide-left-enter-active,
+.slide-left-leave-active {
+    transition: transform 0.5s ease;
 }
 
-.srl-enter-from,
-.srl-leave-to {
-    animation: slide-in-left 0.5s cubic-bezier(0.250, 0.460, 0.450, 0.940) both;
+.slide-right-enter-from {
+    transform: translateX(100%);
+}
+
+.slide-right-leave-to {
+    transform: translateX(-100%);
+}
+
+.slide-left-enter-from {
+    transform: translateX(-100%);
+}
+
+.slide-left-leave-to {
+    transform: translateX(100%);
 }
 
 .slideupdown-enter-active,
@@ -49,13 +70,12 @@ watch(() => route.path, () => {
 
 .fade-enter-active,
 .fade-leave-active {
-    transition: opacity 0.5s cubic-bezier(0.250, 0.460, 0.450, 0.940) both;
+    transition: opacity 0.5s ease;
 }
 
 .fade-enter-from,
 .fade-leave-to {
-    opacity: 0 cubic-bezier(0.250, 0.460, 0.450, 0.940) both;
-    ;
+    opacity: 0;
 }
 
 @keyframes slide-in-bottom {
@@ -72,70 +92,12 @@ watch(() => route.path, () => {
 
 @keyframes slide-out-bottom {
     0% {
-        -webkit-transform: translateY(0);
         transform: translateY(0);
         opacity: 1;
     }
 
     100% {
-        -webkit-transform: translateY(1000px);
         transform: translateY(1000px);
-        opacity: 1;
-    }
-}
-
-@-webkit-keyframes slide-in-right {
-    0% {
-        -webkit-transform: translateX(1000px);
-        transform: translateX(1000px);
-        opacity: 0;
-    }
-
-    100% {
-        -webkit-transform: translateX(0);
-        transform: translateX(0);
-        opacity: 1;
-    }
-}
-
-@keyframes slide-in-right {
-    0% {
-        -webkit-transform: translateX(1000px);
-        transform: translateX(1000px);
-        opacity: 0;
-    }
-
-    100% {
-        -webkit-transform: translateX(0);
-        transform: translateX(0);
-        opacity: 1;
-    }
-}
-
-@-webkit-keyframes slide-in-left {
-    0% {
-        -webkit-transform: translateX(-1000px);
-        transform: translateX(-1000px);
-        opacity: 0;
-    }
-
-    100% {
-        -webkit-transform: translateX(0);
-        transform: translateX(0);
-        opacity: 1;
-    }
-}
-
-@keyframes slide-in-left {
-    0% {
-        -webkit-transform: translateX(-1000px);
-        transform: translateX(-1000px);
-        opacity: 0;
-    }
-
-    100% {
-        -webkit-transform: translateX(0);
-        transform: translateX(0);
         opacity: 1;
     }
 }

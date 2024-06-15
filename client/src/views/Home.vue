@@ -18,35 +18,9 @@ import ArticleInstance from '../components/Article/ArticleInstance.vue'
 import DailyRecapButton from '../components/DailyRecap/DailyRecapButton.vue';
 import DailyRecapButtonSkeleton from '../components/DailyRecap/DailyRecapButtonSkeleton.vue'
 
-var skeletonArticles = [1, 2, 3, 4, 5, 6]
+var skeletonArticles = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 var tempDailyRecapButtons = ref([{}, {}, {}, {}, {}, {}, {}, {}, {}, {}])
-var dailyRecapButtons = ref();
-
-// if (List.articles.length == 0) {
-if (route.path.includes('/event/')) {
-    front_getArticlesFromDB(
-        { "eventUri": route.params.eventUri },
-        undefined,
-        undefined,
-        10 * List.infiniteScrollCallCount,
-        10)
-        .then(response => {
-            let articlesToAdd = response.filter(article => !existsInFeed(article));
-            List.articles = List.articles.concat(articlesToAdd);
-            List.loading = false;
-        })
-}
-// } else {
-//     front_getArticlesFromDB()
-//         .then(response => {
-//             const articles = response.data
-//             for (const article of articles) {
-//                 if (!existsInFeed(article))
-//                     List.articles.push(article)
-//             }
-//         })
-// }
-// }
+var dailyRecapButtons = ref([]);
 
 function existsInFeed(insertArticle) {
     for (const article of List.articles) { // Loop over articles in dom (feed)
@@ -57,7 +31,6 @@ function existsInFeed(insertArticle) {
 }
 
 async function scrollHandler(event) {
-    // if (List.articles[List.articles.length - 1].genre[0] != errorGenre[0]) {
     // Total amount of scrolling - Client screen height
     const scollableHeight = event.target.scrollHeight - event.target.clientHeight
     const scrollPercentage = (event.target.scrollTop / scollableHeight) * 100
@@ -65,19 +38,13 @@ async function scrollHandler(event) {
     if (scrollPercentage >= 70 && !List.loading) {
         List.loading = true
         List.infiniteScrollCallCount++;
+        var articlesToAdd = [];
         // If scrolling for events
         if (route.path.includes('/event/')) {
-            front_getArticlesFromDB(
-                { "eventUri": route.params.eventUri },
-                undefined,
-                undefined,
-                10 * List.infiniteScrollCallCount,
-                10)
-                .then(response => {
-                    let articlesToAdd = response.filter(article => !existsInFeed(article));
-                    List.articles = List.articles.concat(articlesToAdd);
-                    List.loading = false;
-                })
+            const filter = {
+                "eventUri": route.params.eventUri
+            }
+            var response = await front_getArticlesFromDB(filter, undefined, undefined, 10 * List.infiniteScrollCallCount, 10)
         }
         else if (route.path.includes('/search')) {
             const response = await fetch(`${BACKEND_URL}db/search?search_query=${route.query.searchQuery}`, {
@@ -91,26 +58,28 @@ async function scrollHandler(event) {
                 })
             })
 
-            let articlesToAdd = await response.json()
+            articlesToAdd = await response.json()
             articlesToAdd = response.filter(article => !existsInFeed(article));
-            List.articles = List.articles.concat(articlesToAdd);
-            List.loading = false;
+        }
+        // Infinite scrolling if Filtering articles
+        else if (JSON.parse(localStorage.getItem('genres')).length > 0 || JSON.parse(localStorage.getItem('sources')).length > 0) {
+            const filter = {
+                $or: [
+                    { "genre": { "$in": JSON.parse(localStorage.getItem('genres')) } },
+                    { "source": { "$in": JSON.parse(localStorage.getItem('sources')) } }
+                ]
+            };
+
+            var response = await front_getArticlesFromDB(filter, undefined, undefined, 10 * List.infiniteScrollCallCount, 10)
         }
         // If scrolling in feed
         else {
-            front_getArticlesFromDB(
-                { "source": List.filterType.source, "genre": List.filterType.genre, "search": List.filterType.searchQuery },
-                undefined,
-                undefined,
-                // undefined,
-                10 * List.infiniteScrollCallCount,
-                10)
-                .then(response => {
-                    let articlesToAdd = response.filter(article => !existsInFeed(article));
-                    List.articles = List.articles.concat(articlesToAdd)
-                    List.loading = false
-                })
+            const filter = {}
+            var response = await front_getArticlesFromDB(filter, undefined, undefined, 10 * List.infiniteScrollCallCount, 10)
         }
+        articlesToAdd = response.filter(article => !existsInFeed(article));
+        List.articles = List.articles.concat(articlesToAdd)
+        List.loading = false
     }
     // }
 }
@@ -156,15 +125,15 @@ onMounted(() => {
 
 <template>
     <Header />
-    <div class="drcontainer" v-if="isPremium">
+    <div class="drcontainer">
         <DailyRecapButtonSkeleton v-for="dritem in tempDailyRecapButtons" :dr="dritem" v-if="!dailyRecapButtons" />
         <DailyRecapButton v-for="dritem in dailyRecapButtons" :key="dritem.id" :dr="dritem" v-else />
     </div>
     <div class="app-container">
         <div id="article-stack" @scroll="scrollHandler">
             <ArticleSkeleton v-for="skeleton in skeletonArticles" v-if="List.articles.length == 0"></ArticleSkeleton>
-            <router-link v-for="(article) in List.articles" :key="article.uuid" style="min-width: 100%"
-                :to="{ name: 'article', params: { uuid: article.uuid } }">
+            <router-link v-for="(article, index) in List.articles" :key="article.uuid" style="min-width: 100%"
+                :to="{ name: 'article', params: { uuid: article.uuid }, query: { index: index } }">
                 <ArticleInstance :article="article" :key="article.uuid" v-if="article.imageUrl"></ArticleInstance>
             </router-link>
         </div>

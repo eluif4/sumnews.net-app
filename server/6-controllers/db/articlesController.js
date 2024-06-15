@@ -65,7 +65,7 @@ async function getArticlesFromSearchController(req, res) {
         };
 
         const sort = { datePublished: -1 }
-        const articles = await getArticlesFromDB(filter, {}, sort, 0, infiniteScrollCallCount) //Change the last value to limit the amount of articles returned
+        const articles = await getArticlesFromDB(filter, {}, sort, 10, infiniteScrollCallCount) //Change the last value to limit the amount of articles returned
         res.send(articles)
     }
     catch (error) {

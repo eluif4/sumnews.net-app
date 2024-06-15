@@ -9,17 +9,22 @@ const FRONTEND_URL = config.url.FRONTEND_URL
 const BACKEND_URL = config.url.BACKEND_URL
 
 const app = createApp(App)
+// ----- RESET LOCAL STORAGE -----
+localStorage.setItem('genres', JSON.stringify([]))
+localStorage.setItem('sources', JSON.stringify([]))
 
 // ----- GLOBAL VARIABLES -----
+// FUTURE CHANGE: watch List and remove duplicate articles (using url)
 export const List = reactive({
   loading: false,
   infiniteScrollCallCount: 0,
-  filterType: {
-    source: "All",
-    genre: "All",
-    searchQuery: '',
-  },
   articles: [],
+})
+
+watch(List.articles, (newArticleList, oldArticlList) => {
+  for (const article of newArticleList) {
+    // check if article already exists
+  }
 })
 
 // ----- GET ALL SOURCES FROM DB -----
