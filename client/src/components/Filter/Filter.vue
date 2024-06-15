@@ -10,6 +10,10 @@ import FilterOption from './FilterOption.vue'
 const router = useRouter();
 const options = ref(['source', 'genre']);
 const selectedOption = ref('source');
+const translateY = ref(0);
+const startY = ref(0);
+const THRESHOLD = 100;
+const SCREENHEIGHT = window.innerHeight;
 // const reset = ref(false); // Reset FilterOption.vue isChecked ref value ( resets checked values )
 
 async function filterHandler() {
@@ -36,11 +40,40 @@ async function filterHandler() {
     List.articles = response;
     document.getElementById('article-stack').scrollTop = 0;
 }
+
+// SWIPE DOWN TO DISMISS SECTION
+const handleTouchStart = (e) => {
+    startY.value = e.touches[0].clientY;
+    e.preventDefault();
+}
+
+const handleTouchMove = (e) => {
+    const currentY = e.touches[0].clientY;
+    translateY.value = currentY - startY.value;
+    if (translateY.value < 0)
+        translateY.value = 0; // Prevent upward draggin
+    e.preventDefault();
+}
+
+const handleTouchEnd = (e) => {
+    if (translateY.value > THRESHOLD) {
+        translateY.value = SCREENHEIGHT;
+    } else {
+        translateY.value = 0;
+    }
+    e.preventDefault();
+}
+
+const handleTransitionEnd = () => {
+    if (translateY.value === SCREENHEIGHT)
+        goBack()
+}
 </script>
 
 <template>
-    <div class="filter">
-        <div class="top-row">
+    <div class="filter" :style="{ transform: `translateY(${translateY}px)` }" @transitionend="handleTransitionEnd">
+        <div class="close-bar"></div>
+        <div class="top-row"  @touchstart="handleTouchStart" @touchmove="handleTouchMove" @touchend="handleTouchEnd">
             <div @click="goBack" class="back-arrow">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
                     <path fill-rule="evenodd" clip-rule="evenodd"
@@ -185,5 +218,16 @@ async function filterHandler() {
     color: black;
     font-weight: bold;
     text-align: center;
+}
+
+.close-bar {
+    background-color: #606060;
+    width: 30%;
+    height: 5px;
+    position: absolute;
+    top: 10px;
+    right: calc((100% - 30%) / 2);
+    z-index: 100;
+    border-radius: 10px;
 }
 </style>
