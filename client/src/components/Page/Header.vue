@@ -4,28 +4,35 @@ import DOMPurify from 'dompurify'
 import { ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { config } from '../../constants.js'
-import { showPopup } from '../../scripts/utility.js'
+import { showPopup, front_getArticlesFromDB, goBack } from '../../scripts/utility.js'
 import { List } from '../../main.js'
 import router from '../../router/index.js'
 
 const FRONTEND_URL = config.url.FRONTEND_URL
 const BACKEND_URL = config.url.BACKEND_URL
 
+const PLACEHOLDER_TXT = 'Search for articles here';
 const route = useRoute();
-const searchQuery = ref('')
-const placeholder = ref(route.query.searchQuery ? route.query.searchQuery : 'Search for articles here') // set the placholder on page reload
-const isEventsRoute = ref(false)
-const isSearchRoute = ref(false)
+const genresLocalStorage = ref([]);
+const sourcesLocalStorage = ref([]);
+const searchQuery = ref(route.query.searchQuery);
+const isFiltering = ref(false);
+const isEventsRoute = ref(route.path.includes('/event'));
+const isSearchRoute = ref(route.path.includes('/search'));
+// Set the placholder on page reload
+const placeholder = ref(isSearchRoute.value ? searchQuery.value : isEventsRoute.value ? 'Full Coverage' : PLACEHOLDER_TXT);
 
 async function performSearch() {
-    if (searchQuery.value.length > 0) {
-        document.getElementById('search-input').blur()
-        sanitizeSearch()
+    if (searchQuery.value.length > 0) { // If searchQuery isnt empty
+        localStorage.setItem('searchQuery', searchQuery.value);
+        List.articles = [];
+        document.getElementById('search-input').blur() // Unfocus the search box and hide keyboard
+        sanitizeSearchQuery()
         placeholder.value = searchQuery.value;
 
         router.push({ path: '/search', query: { searchQuery: searchQuery.value } });
     } else {
-        showPopup(2, `Invalid search term - Please enter valid keywords`)
+        showPopup(2, `Invalid search query. Please enter a valid search expression`)
         const searchIcon = document.getElementById('search-icon');
         searchIcon.classList.add('invalid-input')
         setTimeout(() => {
@@ -34,7 +41,7 @@ async function performSearch() {
     }
 }
 
-function sanitizeSearch() {
+function sanitizeSearchQuery() {
     const searchIcon = document.getElementById('search-icon');
 
     searchQuery.value = DOMPurify.sanitize(searchQuery.value)
@@ -49,25 +56,31 @@ function sanitizeSearch() {
     searchQuery.value = searchQuery.value.split('').filter(char => validFormatRegex.test(char)).join('');
 }
 
-// function sanitizeSearch(searchQuery) {
-//     const searchIcon = document.getElementById('search-icon');
+async function resetHeader() {
+    localStorage.setItem('genres', JSON.stringify([]))
+    genresLocalStorage.value = []
 
-//     var response = DOMPurify.sanitize(searchQuery)
-//     response = response.slice(0, 64);
-//     console.log(response)
-//     const validFormatRegex = /^[a-zA-Z0-9., ]+$/;
-//     if (!validFormatRegex.test(response)) {
-//         searchIcon.classList.add('invalid-input')
-//         setTimeout(() => {
-//             searchIcon.classList.remove('invalid-input');
-//         }, 350);
-//     }
-//     response = response.split('').filter(char => validFormatRegex.test(char)).join('');
-//     return response;
-// }
+    localStorage.setItem('sources', JSON.stringify([]))
+    sourcesLocalStorage.value = []
+
+    isFiltering.value = false;
+    searchQuery.value = '';
+    placeholder.value = "Search for articles here"
+
+    List.articles = []
+    var response = await front_getArticlesFromDB();
+    List.articles = response
+    document.getElementById('article-stack').scrollTop = 0;
+    if (route.path.includes('/event')) {
+        goBack();
+    }
+    else {
+        router.push({ name: 'home' })
+    }
+}
 
 // Watch router and design page accordingly
-watch(() => route.path, (newPath) => {
+watch(() => route.path, (newPath, oldPath) => {
     if (newPath.includes('/event/')) {
         isEventsRoute.value = true;
         isSearchRoute.value = false;
@@ -75,6 +88,26 @@ watch(() => route.path, (newPath) => {
     } else if (newPath.includes('/search')) {
         isEventsRoute.value = false;
         isSearchRoute.value = true;
+    } else if (oldPath.includes('/filter')) {
+        genresLocalStorage.value = localStorage.getItem('genres');
+        sourcesLocalStorage.value = localStorage.getItem('sources');
+        const genres = JSON.parse(genresLocalStorage.value);
+        const sources = JSON.parse(sourcesLocalStorage.value);
+        isFiltering.value = genres.length > 0 || sources.length > 0
+
+        // Create placeholder text
+        placeholder.value = 'Filtering ';
+        if (genres.length > 0) {
+            placeholder.value += ` ${genres.join(", ")}`;
+        }
+
+        if (sources.length > 0 > 0) {
+            if (genres.length > 0 > 0) {
+                placeholder.value += `, `;
+            }
+            placeholder.value += `${sources.join(", ")}`;
+        }
+        // placeholder.value = `Filtering Sources:[${JSON.parse(sourcesLocalStorage.value).join(",")}] Genres:[${JSON.parse(genresLocalStorage.value).join(",")}]`;
     }
     else {
         isEventsRoute.value = false
@@ -88,7 +121,7 @@ watch(() => route.path, (newPath) => {
     <div class="topbar">
         <!-- FUTURE CHANGE: make search component -->
         <div class="search">
-            <div class="searchIconContainer" v-if="!isEventsRoute && !isSearchRoute">
+            <div class="searchIconContainer" v-if="!isEventsRoute && !isSearchRoute && !isFiltering">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none"
                     id="search-icon">
                     <path
@@ -99,16 +132,16 @@ watch(() => route.path, (newPath) => {
                 </svg>
             </div>
             <!-- FUTURE CHANGE: make this a back action -->
-            <router-link :to="{ path: '/' }" class="backActionContainer" v-else>
+            <div class="backActionContainer" @click="resetHeader" v-else>
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none">
                     <path fill-rule="evenodd" clip-rule="evenodd"
                         d="M22.125 12C22.125 12.2984 22.0065 12.5845 21.7955 12.7955C21.5845 13.0065 21.2984 13.125 21 13.125H5.71499L9.79499 17.205C9.90552 17.308 9.99417 17.4322 10.0557 17.5702C10.1171 17.7082 10.1502 17.8572 10.1529 18.0082C10.1555 18.1593 10.1278 18.3093 10.0712 18.4494C10.0146 18.5895 9.93037 18.7167 9.82354 18.8236C9.71672 18.9304 9.58947 19.0146 9.44938 19.0712C9.3093 19.1278 9.15926 19.1556 9.0082 19.1529C8.85715 19.1502 8.70818 19.1172 8.57018 19.0557C8.43218 18.9942 8.30798 18.9055 8.20499 18.795L2.20499 12.795C1.99431 12.5841 1.87598 12.2981 1.87598 12C1.87598 11.7019 1.99431 11.416 2.20499 11.205L8.20499 5.20501C8.41825 5.00629 8.70032 4.89811 8.99177 4.90325C9.28322 4.90839 9.5613 5.02646 9.76742 5.23258C9.97354 5.4387 10.0916 5.71678 10.0967 6.00823C10.1019 6.29968 9.99371 6.58175 9.79499 6.79501L5.71499 10.875H21C21.2984 10.875 21.5845 10.9935 21.7955 11.2045C22.0065 11.4155 22.125 11.7016 22.125 12Z"
                         fill="#4F4F4F" />
                 </svg>
-            </router-link>
+            </div>
 
             <input id="search-input" type="text" :placeholder="placeholder" class="search-box" :disabled="isEventsRoute"
-                @keyup.enter="performSearch" v-model="searchQuery" @input="sanitizeSearch" @click.stop />
+                @keyup.enter="performSearch" v-model="searchQuery" @input="sanitizeSearchQuery" @click.stop />
 
             <router-link :to="{ path: '/filter' }" class="filter" v-if="!isEventsRoute">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="18" viewBox="0 0 20 18" fill="none">
@@ -138,25 +171,6 @@ watch(() => route.path, (newPath) => {
                     </clipPath>
                 </defs>
             </svg>
-
-            <!-- <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 26 26" fill="none" v-else>
-                <g clip-path="url(#clip0_1_201)">
-                    <path
-                        d="M21.8843 20.1012C20.7305 18.2422 18.1907 16.25 12.9988 16.25C7.80691 16.25 5.26866 18.2406 4.11328 20.1012C5.17779 21.4358 6.52952 22.5131 8.0679 23.253C9.60628 23.9929 11.2917 24.3764 12.9988 24.375C14.7059 24.3764 16.3913 23.9929 17.9297 23.253C19.468 22.5131 20.8198 21.4358 21.8843 20.1012Z"
-                        fill="white" />
-                    <path fill-rule="evenodd" clip-rule="evenodd"
-                        d="M13 14.625C14.2929 14.625 15.5329 14.1114 16.4471 13.1971C17.3614 12.2829 17.875 11.0429 17.875 9.75C17.875 8.45707 17.3614 7.21709 16.4471 6.30285C15.5329 5.38861 14.2929 4.875 13 4.875C11.7071 4.875 10.4671 5.38861 9.55285 6.30285C8.63861 7.21709 8.125 8.45707 8.125 9.75C8.125 11.0429 8.63861 12.2829 9.55285 13.1971C10.4671 14.1114 11.7071 14.625 13 14.625Z"
-                        fill="white" />
-                    <path fill-rule="evenodd" clip-rule="evenodd"
-                        d="M13 1.625C9.98316 1.625 7.08989 2.82343 4.95666 4.95666C2.82343 7.08989 1.625 9.98316 1.625 13C1.625 16.0168 2.82343 18.9101 4.95666 21.0433C7.08989 23.1766 9.98316 24.375 13 24.375C16.0168 24.375 18.9101 23.1766 21.0433 21.0433C23.1766 18.9101 24.375 16.0168 24.375 13C24.375 9.98316 23.1766 7.08989 21.0433 4.95666C18.9101 2.82343 16.0168 1.625 13 1.625ZM0 13C0 9.55219 1.36964 6.24558 3.80761 3.80761C6.24558 1.36964 9.55219 0 13 0C16.4478 0 19.7544 1.36964 22.1924 3.80761C24.6304 6.24558 26 9.55219 26 13C26 16.4478 24.6304 19.7544 22.1924 22.1924C19.7544 24.6304 16.4478 26 13 26C9.55219 26 6.24558 24.6304 3.80761 22.1924C1.36964 19.7544 0 16.4478 0 13Z"
-                        fill="white" />
-                </g>
-                <defs>
-                    <clipPath id="clip0_1_201">
-                        <rect width="26" height="26" fill="white" />
-                    </clipPath>
-                </defs>
-            </svg> -->
         </router-link>
     </div>
 </template>
@@ -178,7 +192,8 @@ watch(() => route.path, (newPath) => {
     box-sizing: border-box;
     background-color: #EBEFEE;
     font-size: 12px;
-    border-radius: var(--border-radius);;
+    border-radius: var(--border-radius);
+    ;
     position: relative;
     display: flex;
     align-items: center;

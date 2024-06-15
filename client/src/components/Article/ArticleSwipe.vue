@@ -6,14 +6,6 @@ const props = defineProps({ action: Object })
 const color = computed(() => props.action.color)
 const svg = computed(() => props.action.svg)
 const direction = computed(() => props.action.direction)
-
-// console.log(color)
-
-// Optional: Watch the whole action object
-watch(() => props.action, (newAction, oldAction) => {
-  console.log('action changed from', oldAction, 'to', newAction);
-  // Add any additional logic you need to handle when action changes
-});
 </script>
 
 <template>

@@ -1,27 +1,59 @@
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, watch, onMounted } from 'vue';
 
 const props = defineProps({
-    filterOption: {
+    option: {
         type: Object,
         required: true,
-    },
-    isChecked: {
-        type: Boolean,
-        default: false,
     }
 });
+const isChecked = ref(false) // v-model to state in checkbox input ( checked \ unchecked )
+const localStorageKey = ref('') // 'genres' or 'sources' key depending if user is filtering SOURCE or GENRE
+const arrayInLocalStorage = ref([]) // values of 'genres' or 'sources' in localStorage
 
-const isChecked = ref(false);
-const genre = computed(() => props.filterOption.genre);
-const source = computed(() => props.filterOption.source);
+// option.value = the value checked (either source value or genre value)
+const option = computed(() => {
+    if (props.option.genre) {
+        localStorageKey.value = 'genres'
+        return props.option.genre
+    }
+    else if (props.option.source)
+        localStorageKey.value = 'sources'
+    return props.option.source
+})
+
+onMounted(() => {
+    // Connects the checked state of an input to the values in localStorage ( both for 'genres' and for 'sources' )
+    // EXPLANATION: if 'sources' localstorage = ['foxnews.com', 'msn.com', 'nypost.com'], then those input values will be checked
+
+    for (const valInLocalStorage of JSON.parse(localStorage.getItem(localStorageKey.value)) || []) {
+        if (valInLocalStorage == option.value)
+            isChecked.value = true
+    }
+})
+
+watch(isChecked, (newVal, oldVal) => { // Watch for when input is checked \ unchecked
+    // option.value = the value checked (either source value or genre value)
+    // localStorageKey.value = where to save to localstorage 'genres' or 'sources'
+    arrayInLocalStorage.value = JSON.parse(localStorage.getItem(localStorageKey.value)) || []
+
+    // FUTURE CHANGE: check if doesnt already exist in loclastorage
+    if (newVal) { // If is checked
+        if (!arrayInLocalStorage.value.includes(option.value)) { // Only add values to localStorage if they arent in localStorage
+            arrayInLocalStorage.value.push(option.value)
+            localStorage.setItem(localStorageKey.value, JSON.stringify(arrayInLocalStorage.value))
+        }
+    } else { // If is unchecked
+        arrayInLocalStorage.value = arrayInLocalStorage.value.filter(item => item !== option.value)
+        localStorage.setItem(localStorageKey.value, JSON.stringify(arrayInLocalStorage.value))
+    }
+})
 </script>
 
-<!-- FUTURE CHANGE: unbind inputs in source and genre -->
 <template>
-    <div class="checkbox-wrapper-47">
-        <input type="checkbox" name="cb" :id="`cb-${props.filterOption._id}`" v-model="filterOption.isChecked"/>
-        <label :for="`cb-${props.filterOption._id}`">{{ genre ? genre : source }}</label>
+    <div class="checkbox-wrapper-47" @click="inputClick">
+        <input type="checkbox" name="cb" :id="`cb-${props.option._id}`" v-model="isChecked" />
+        <label :for="`cb-${props.option._id}`">{{ option }}</label>
     </div>
 </template>
 
@@ -71,8 +103,6 @@ const source = computed(() => props.filterOption.source);
     height: 2em;
     background: var(--main-color);
     border-color: black;
-    /* background: #b7e6c9; */
-    /* border-color: #2cbc63; */
 }
 
 .checkbox-wrapper-47 label,

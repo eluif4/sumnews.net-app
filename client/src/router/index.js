@@ -23,12 +23,18 @@ const FRONTEND_URL = config.url.FRONTEND_URL;
 
 const routes = [
     {
-        path: '/', component: Home,
+        path: '/',
+        component: Home,
         name: 'home',
         reload: false,
         beforeEnter: async (to, from, next) => {
-            if (from && !from.fullPath.includes('/article')) {
-                // Logic to execute if the user came from a URL that includes '/event'
+            const isFromArticleAndArticleListIsEmpty = from.fullPath.includes('/article') && List.articles.length == 0;
+            const isFromFilterAndArticleListIsEmpty = from.fullPath.includes('/filter') && List.articles.length == 0;
+
+            const isFromArticlePath = from.fullPath.includes('/article');
+            const isFromFilterPath = from.fullPath.includes('/filter');
+            // Execute only if user is coming from home page and article list is empty
+            if (List.articles.length == 0 && !(isFromArticlePath || isFromFilterPath)) {
                 List.articles = []
                 front_getArticlesFromDB()
                     .then(response => {
@@ -38,8 +44,7 @@ const routes = [
                         }
                     })
             } else {
-                // Logic to execute if the user did not come from a URL that includes '/event'
-                console.log('User did not come from an event URL');
+                // Logic to execute if use is coming from other paths into home
             }
             next(); // Continue with the navigation
         }
@@ -61,14 +66,15 @@ const routes = [
         },
         beforeEnter: async (to, from, next) => {
             try {
-                const response = await front_getArticlesFromDB({ uuid: to.params.uuid }, undefined, undefined, undefined, 1);
-                var article = response[0];
-                // If after the db fetch there is an article, send it to the ArticleContent component
+                var article = List.articles[to.query.index];
+                if (!article) {
+                    const response = await front_getArticlesFromDB({ uuid: to.params.uuid }, undefined, undefined, undefined, 1);
+                    article = response[0];
+                }
                 if (article) {
                     to.params.article = article;
                     next();
                 }
-                // Else redirect to '/404' route
                 else {
                     next('/404');
                 }
@@ -112,22 +118,24 @@ const routes = [
     {
         path: '/event/:eventUri', component: Home, props: false,
         beforeEnter: async (to, from) => {
-            try {
-                List.articles = [];
-                const scrollElement = document.getElementById('article-stack');
-                if (scrollElement != null) {
-                    scrollElement.scrollTo({ top: 0 })
+            if (!from.path.includes('/article')) {
+                try {
+                    List.articles = [];
+                    const scrollElement = document.getElementById('article-stack');
+                    if (scrollElement != null) {
+                        scrollElement.scrollTo({ top: 0 })
+                    }
+                    fetch(`${BACKEND_URL}db/eventArticles?eventUri=${to.params.eventUri}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            List.articles = data;
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                        });
+                } catch (error) {
+                    console.error(`Something went wrong with the event page`, error)
                 }
-                fetch(`${BACKEND_URL}db/eventArticles?eventUri=${to.params.eventUri}`)
-                    .then(response => response.json())
-                    .then(data => {
-                        List.articles = data;
-                    })
-                    .catch(error => {
-                        console.error('Error:', error);
-                    });
-            } catch (error) {
-                console.error(`Something went wrong with the event page`, error)
             }
         }
     },
@@ -159,11 +167,8 @@ const routes = [
             })
 
             if (response.ok) {
-                const searchArticles = await response.json()
-                List.infiniteScrollCallCount = 0
-                List.filterType.source = 'All'
-                List.filterType.genre = 'All'
-                List.filterType.searchQuery = to.query.searchQuery
+                const searchArticles = await response.json();
+                List.infiniteScrollCallCount = 0;
                 List.articles = searchArticles;
             }
             else {

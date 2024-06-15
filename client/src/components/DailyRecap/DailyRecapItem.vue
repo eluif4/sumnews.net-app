@@ -174,7 +174,7 @@ const formattedDate = computed(() => {
 
     flex: 1;
     overflow-y: auto;
-    /* padding: 10px; */
+    padding-bottom: 70px;
 }
 
 .genre-list {
@@ -244,6 +244,10 @@ const formattedDate = computed(() => {
     color: white;
     padding: 10px 0;
     gap: 10px;
+}
+
+.summarized-content {
+    color: white;
 }
 </style>
 

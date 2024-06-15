@@ -1,42 +1,34 @@
 <script setup>
-import { ref, computed, watch, onMounted } from 'vue';
-import { useRoute } from 'vue-router'
-import { config } from '../../constants'
-import router from '../../router/index.js';
-import { showPopup } from '../../scripts/utility.js';
-import ActionItem from '../Action/ActionItem.vue'
+import { ref, computed, watch } from 'vue';;
+import { useRoute } from 'vue-router';
+import { config } from '../../constants';
+import { shareAction, fullCoverageAction, dailyRecapAction } from '../../scripts/actions';
+import { SHARE_SWIPE_ACTION, FULL_COVERAGE_SWIPE_ACTION } from '../../scripts/swipeActions';
+import ActionItem from '../Action/ActionItem.vue';
 import ArticleSwipe from './ArticleSwipe.vue';
-// import { actionShareFunction, fullCoverageActionFunction, bookmarkActionFunction } from '../../scripts/utility.js'
 
 const props = defineProps({ article: Object });
-
-const translateX = ref(0);
-const startX = ref(0);
-const startY = ref(0);
-const THRESHOLD = 100;
-const MAXIMUMX = 200; // PX FUTURE CHANGE: CHANGE TO PERCENTAGE
-const SENSITIVITY = 10;
-
-// ArticleSwipe setup
-const swipeAction = ref({})
-const showSwipeAction = ref(false);
-const swipeDirection = ref('');
-const isEventsRoute = ref(false)
 
 const FRONTEND_URL = config.url.FRONTEND_URL
 const BACKEND_URL = config.url.BACKEND_URL
 
-const route = useRoute();
+const translateX = ref(0);
+const startX = ref(0);
+const startY = ref(0);
+const hasTouchEnded = ref(false);
+const THRESHOLD = 20;
+const MAXIMUMX = 200;
+const SENSITIVITY = 30;
 
-// Watch router and design page accordingly
-watch(() => route.path, (newPath) => {
-    if (newPath.includes('/event/')) {
-        isEventsRoute.value = true
-    }
-    else {
-        isEventsRoute.value = false
-    }
-});
+// Creating an object of the users actions
+const USER_GESTURES = {
+    leftSwipe: SHARE_SWIPE_ACTION,
+    rightSwipe: FULL_COVERAGE_SWIPE_ACTION,
+}
+
+// ArticleSwipe setup
+const swipeAction = ref({})
+const showSwipeAction = ref(false);
 
 const relativeDate = computed(() => {
     const datePublished = new Date(props.article.datePublished);
@@ -68,66 +60,7 @@ const relativeDate = computed(() => {
     }
 })
 
-// ----- ACTION FUNCTIONS -----
-const actionShareFunction = async () => {
-    if (navigator.share) {
-        try {
-            await navigator.share({
-                title: `Check out this article on sumnews\n${props.article.title}`,
-                text: `I found an interesting article on sumnews from ${props.article.source}.`,
-                url: `${FRONTEND_URL}article/${props.article.uuid}`,
-            });
-        } catch (error) {
-            console.error('Error sharing:', error.message);
-            // showPopup(2)
-        }
-    } else {
-        if (window.isSecureContext) {
-            navigator.clipboard.writeText(`Checkout this article on sumnews\n${FRONTEND_URL}article/${props.article.uuid}`)
-            showPopup(1, "Link copied to clipboard succesfully")
-        } else {
-            showPopup(2, "Oops, something went wrong...")
-        }
-    }
-}
-
-function bookmarkActionFunction() {
-    showPopup(1, "Your article has been bookmarked succesfully")
-}
-
-function fullCoverageActionFunction() {
-    router.push(`/event/${props.article.eventUri}`)
-}
-
-// ----- ACTION VARS -----
-const shareAction = {
-    svg: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M22 7H14C12.182 7 11.087 7.892 10.68 8.3C10.555 8.427 10.492 8.49 10.49 8.49C10.49 8.492 10.427 8.555 10.3 8.68C9.892 9.087 9 10.182 9 12V15M22 7L17 2M22 7L17 12" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M3.465 20.535C4.93 22 7.287 22 12.003 22C16.718 22 19.076 22 20.54 20.535C21.782 19.294 21.971 17.412 22 13.998M3.465 20.535C2 19.07 2 16.713 2 11.997M3.465 20.535C4.929 22 7.286 22 12 22C16.714 22 19.071 22 20.535 20.535C21.776 19.295 21.965 17.413 21.995 13.999M3.465 20.535C2 19.071 2 16.714 2 12M3.465 3.46C4.706 2.218 6.588 2.029 10.002 2M2.055 8C2.165 5.807 2.491 4.438 3.465 3.464C4.705 2.224 6.587 2.034 10 2.005" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg>`,
-    actionFunction: actionShareFunction,
-}
-
-const bookmarkAction = {
-    svg: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M3 11.098V16.091C3 19.187 3 20.736 3.734 21.412C4.084 21.735 4.526 21.938 4.997 21.992C5.984 22.105 7.137 21.085 9.442 19.046C10.462 18.145 10.971 17.694 11.56 17.576C11.85 17.516 12.15 17.516 12.44 17.576C13.03 17.694 13.539 18.145 14.558 19.046C16.863 21.085 18.016 22.105 19.003 21.991C19.473 21.938 19.916 21.735 20.266 21.412C21 20.736 21 19.188 21 16.091V11.097C21 6.809 21 4.665 19.682 3.332C18.364 2 16.242 2 12 2C7.757 2 5.636 2 4.318 3.332C3.511 4.148 3.198 5.27 3.077 7M15 6H9" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg>`,
-    actionFunction: bookmarkActionFunction,
-}
-
-const fullCoverageAction = {
-    svg: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M3 14V10C3 6.229 3 4.343 4.172 3.172C5.343 2 7.229 2 11 2H13C16.771 2 18.657 2 19.828 3.172C20.482 3.825 20.771 4.7 20.898 6M21 10V14C21 17.771 21 19.657 19.828 20.828C18.657 22 16.771 22 13 22H11C7.229 22 5.343 22 4.172 20.828C3.518 20.175 3.229 19.3 3.102 18M8 14H13M8 10H9M16 10H12" stroke="${!isEventsRoute.value ? 'white' : '#62febd'}" stroke-width="1.5" stroke-linecap="round"/></svg>`,
-    actionFunction: fullCoverageActionFunction,
-    strokeColor: isEventsRoute.value ? 'white' : '#62febd'
-}
-
-const dailyRecapAction = {
-    svg: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="22" viewBox="0 0 20 22" fill="none"><path d="M10.0001 13H10.0091M5.00006 21H15.0001M1.51806 9.306C1.13006 8.232 0.936062 7.695 1.01806 7.351C1.10906 6.974 1.37706 6.681 1.71906 6.583C2.03206 6.493 2.51906 6.71 3.49206 7.143C4.35206 7.525 4.78206 7.716 5.18706 7.706C5.63306 7.694 6.06106 7.516 6.40206 7.199C6.71206 6.912 6.91906 6.455 7.33406 5.541L8.24906 3.525C9.01306 1.842 9.39506 1 10.0001 1C10.6051 1 10.9871 1.842 11.7511 3.525L12.6661 5.541C13.0811 6.455 13.2891 6.912 13.5981 7.199C13.9391 7.515 14.3681 7.694 14.8131 7.706C15.2171 7.716 15.6481 7.525 16.5081 7.142C17.4821 6.71 17.9681 6.493 18.2811 6.583C18.6231 6.681 18.8911 6.974 18.9811 7.351C19.0641 7.695 18.8701 8.231 18.4811 9.306L16.8141 13.922C16.1001 15.897 15.7441 16.884 14.9971 17.442C14.2501 18 13.2851 18 11.3561 18H8.64406C6.71406 18 5.75006 18 5.00406 17.442C4.25706 16.884 3.90006 15.897 3.18606 13.922L1.51806 9.306Z" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
-    actionFunction: undefined,
-}
-
-//FUTURE CHANGE: THIS DOESNT WORK
-const handleImageError = () => {
-    console.log('image couldnt load')
-    // props.article.imageUrl = `../assets/icons/sumnews.net.png`
-}
-
-// SWIPE TO ACTION
+// Swipe Gestures
 const handleTouchStart = (e) => {
     startX.value = e.touches[0].clientX;
     startY.value = e.touches[0].clientY;
@@ -138,26 +71,26 @@ const handleTouchMove = (e) => {
     const currentY = e.touches[0].clientY;
     const deltaX = currentX - startX.value;
     const deltaY = currentY - startY.value;
+    const AbsPos = Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX)
 
-    if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > SENSITIVITY) {
-        translateX.value = currentX - startX.value;
+    const canSwipeLeft = deltaX < 0 && USER_GESTURES.leftSwipe.activateCondition(props.article); // Boolean: if can swipe left according to the activatecondition
+    const canSwipeRight = deltaX > 0 && USER_GESTURES.rightSwipe.activateCondition(props.article); // Boolean: if can swipe right according to the activatecondition
+    if (AbsPos > SENSITIVITY || !hasTouchEnded.value) { // If movement is larger than sensitivity
+        if (canSwipeLeft || canSwipeRight)
+            translateX.value = currentX - startX.value; // Updates the position of ArticleInstance.vue
 
-        // Limit the translation value of MAXIMUMX
-        if (translateX.value > MAXIMUMX) {
+        // Limit the movement of ArticleInstance.vue value using MAXIMUMX
+        if (translateX.value > MAXIMUMX) { // Right
             translateX.value = MAXIMUMX;
-        } else if (translateX.value < -MAXIMUMX) {
+        } else if (translateX.value < -MAXIMUMX) { // Left
             translateX.value = -MAXIMUMX;
-        } else {
-            translateX.value = currentX - startX.value;
         }
 
-        // Determine swipe direction and show appropriate action
-        if (translateX.value > 0) { // CHANGE TO > SENSITIVITY
-            swipeAction.value = { color: '#FFA012', svg: shareAction.svg, direction: 'right' }
-            swipeDirection.value = 'right';
-        } else {
-            swipeAction.value = { color: '#FF1212', svg: bookmarkAction.svg, direction: 'left' }
-            swipeDirection.value = 'left';
+        // Determine swipe action relative to direction
+        if (translateX.value > 0) {
+            swipeAction.value = USER_GESTURES.rightSwipe;
+        } else if (translateX.value < 0) {
+            swipeAction.value = USER_GESTURES.leftSwipe;
         }
 
         showSwipeAction.value = true;
@@ -165,18 +98,24 @@ const handleTouchMove = (e) => {
 }
 
 const handleTouchEnd = (e) => {
+    hasTouchEnded.value = true;
     if (Math.abs(translateX.value) > SENSITIVITY) {
-        if (translateX.value > THRESHOLD) { // If swipe to the right
-            // fullCoverageActionFunction()
-            bookmarkActionFunction();
-        } else if (translateX.value < -THRESHOLD) {
-            actionShareFunction();
+        if (translateX.value > THRESHOLD) { // If swipe from left
+            if (USER_GESTURES.rightSwipe.action.actionFunction.length > 0)
+                USER_GESTURES.rightSwipe.action.actionFunction(props.article);
+            else
+                USER_GESTURES.rightSwipe.action.actionFunction();
+        } else if (translateX.value < -THRESHOLD) { // If swipe from right
+            if (USER_GESTURES.leftSwipe.action.actionFunction.length > 0)
+                USER_GESTURES.leftSwipe.action.actionFunction(props.article);
+            else
+                USER_GESTURES.leftSwipe.action.actionFunction();
         }
     }
     // Reset translateX to 0 after the touch ends
     translateX.value = 0;
-
-    showSwipeAction.value = false
+    showSwipeAction.value = false;
+    hasTouchEnded.value = false;
 }
 </script>
 
@@ -185,11 +124,10 @@ const handleTouchEnd = (e) => {
         @touchstart="handleTouchStart" @touchmove="handleTouchMove" @touchend="handleTouchEnd">
 
         <!-- FUTURE CHANGE: FIX THIS SO THAT ITS BEHIND THE ARTICLE INSTANCE -->
-        <ArticleSwipe :action="swipeAction"></ArticleSwipe>
+        <ArticleSwipe :action="swipeAction" v-if="showSwipeAction"></ArticleSwipe>
 
         <img class="article-image" v-if="article.imageUrl" :src="article.imageUrl" alt="Article Image"
             @error="handleImageError">
-        <!-- <img class="article-image" v-else src="../assets/icons/sumnews.net.png" alt="Article Image"> -->
         <div class="shader">
             <div class="genre-list">
                 <div class="genre" v-for="genre in article.genre" @click="clickGenre(genre)">{{ genre }}</div>
@@ -210,10 +148,9 @@ const handleTouchEnd = (e) => {
                 </div>
 
                 <div class="actions">
-                    <ActionItem :action="shareAction"></ActionItem>
-                    <!-- <ActionItem :action="bookmarkAction"></ActionItem> -->
-                    <ActionItem :action="fullCoverageAction" v-if="article.eventUri"></ActionItem>
-                    <ActionItem :action="dailyRecapAction" v-if="article.drUri"></ActionItem>
+                    <ActionItem :action="shareAction" :article="article"></ActionItem>
+                    <ActionItem :action="fullCoverageAction" :article="article" v-if="article.eventUri"></ActionItem>
+                    <ActionItem :action="dailyRecapAction" :article="article" v-if="article.drUri"></ActionItem>
                 </div>
             </div>
         </div>
@@ -224,7 +161,7 @@ const handleTouchEnd = (e) => {
 .article-instance {
     width: 100%;
     min-width: 100%;
-    box-shadow: 0px 4px 10px 0px var(--browser-background-color);
+    box-shadow: 0px 6px 10px 0px #7c7c7c;
     margin: 1% 0 4% 0;
     border-radius: var(--border-radius);
     box-sizing: border-box;
@@ -233,10 +170,8 @@ const handleTouchEnd = (e) => {
 
     display: flex;
     flex-direction: column;
-    /* min-height: 100px; */
-    min-height: calc(100vw * 9 / 20); /* Ensures the image has at least a 16:9 aspect ratio */
-    /* background-color: var(--main-color); */
-    /* transition: transform 1s ease; */
+    /* Ensures the image has at least a 20:9 aspect ratio */
+    min-height: calc(100vw * 9 / 20);
 }
 
 .event-page {
@@ -245,7 +180,6 @@ const handleTouchEnd = (e) => {
 
 .article-instance.error {
     background: var(--error-color);
-    /* background: linear-gradient(180deg, var(--error-color), #60606033); */
 }
 
 .visual-content {
@@ -276,11 +210,7 @@ const handleTouchEnd = (e) => {
     gap: 10px;
     width: fit-content;
     height: fit-content;
-    /* position: absolute; */
-    /* right: 10px; */
-    /* top: 10px; */
     flex-wrap: nowrap;
-    /* z-index: 99999; */
 }
 
 .article-video {
@@ -294,7 +224,6 @@ const handleTouchEnd = (e) => {
 .source-datePublished {
     position: absolute;
     width: fit-content;
-    /* margin: 10px; */
     bottom: 0px;
     padding: 10px;
     box-sizing: border-box;
@@ -309,7 +238,6 @@ const handleTouchEnd = (e) => {
 
 .article-title {
     font-size: 16px;
-    /* font-weight: bold; */
     color: white;
 }
 
@@ -319,7 +247,6 @@ const handleTouchEnd = (e) => {
 
 .textual-content {
     width: 100%;
-    /* padding: 5px 10px 5px 10px; */
     position: relative;
 
     display: flex;
@@ -329,7 +256,6 @@ const handleTouchEnd = (e) => {
 }
 
 .article-image {
-    /* aspect-ratio: 16 / 9; */
     border-radius: var(--border-radius);
     width: 100%;
 }
@@ -345,8 +271,6 @@ const handleTouchEnd = (e) => {
     flex-wrap: nowrap;
     align-items: flex-end;
     justify-content: space-between;
-    /* padding: 0 10px; */
-    /* margin: 10px 0; */
     width: 100%;
 }
 
@@ -364,7 +288,6 @@ const handleTouchEnd = (e) => {
     color: black;
     background-color: #E5CDC8;
     background: var(--main-color);
-    /* background-attachment: fixed; */
     border-radius: 4px;
     padding: 3px 10px;
     box-sizing: border-box;
@@ -422,6 +345,14 @@ a.isArticleInstanceOpen {
 .source-date {
     color: white;
     font-size: 14px;
-    /* opacity: 0.8; */
+}
+</style>
+
+<style>
+.authorsAndDate {
+    background-color: #353535ab;
+    padding: 10px;
+    border-radius: 10px;
+    color: white;
 }
 </style>
