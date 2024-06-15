@@ -1,9 +1,20 @@
 <script setup>
+import router from '../../router';
 import { goBack } from '../../scripts/utility.js'
+import { useRoute } from 'vue-router';
+const route = useRoute();
+
+function handleClick() {
+    if (route.name == 'eventArticles') {
+        router.push({ name: 'home' })
+    } else {
+        goBack();
+    }
+}
 </script>
 
 <template>
-    <div class="backdrop" @click="goBack"></div>
+    <div class="backdrop" @click="handleClick"></div>
     <!-- <router-link to="/" class="backdrop"></router-link> -->
 </template>
 

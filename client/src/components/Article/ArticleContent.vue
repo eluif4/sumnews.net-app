@@ -10,6 +10,8 @@ import router from '../../router';
 const route = useRoute();
 const props = defineProps({ article: Object });
 const articleRef = ref(props.article || {});
+const isFromFullCoverage = ref(false);
+
 const translateY = ref(0);
 const startY = ref(0);
 const THRESHOLD = 100;
@@ -46,7 +48,7 @@ const formattedSummarizedContent = computed(() => {
         // .replace(/<vocab>/g, '<span class="vocab">')
         .replace(/<squote>/g, '<span class="squote">')
         .replace(/<quote>/g, '<span class="quote">')
-        // .replace('**', '<b>')
+        .replace(/\*\*/g, '') // Remove all bolding | FUTURE CHANGE: add bolding and search for the keywords on google
         // .replace(/<\/vocab>/g, '</span>')
         .replace(/<\/squote>/g, '</span>')
         .replace(/<\/quote>/g, '</span>')
@@ -82,7 +84,6 @@ setRefAggregatedResults();
 watch(
     () => route.params.uuid,
     async (newuuid) => {
-        console.log('watch fired')
         if (newuuid) {
             const response = await front_getArticlesFromDB({ uuid: newuuid }, undefined, undefined, undefined, 1);
             const article = response[0];
@@ -98,8 +99,6 @@ watch(
         }
     })
 
-// SWIPE DOWN TO DISMISS SECTION
-// FUTURE CHANGE: SWIPE TO DISMISS CAUSES THE GENRE LIST TO BE HIDDEN FROM THE USER
 // SWIPE DOWN TO DISMISS SECTION
 const handleTouchStart = (e) => {
     startY.value = e.touches[0].clientY;
@@ -124,9 +123,13 @@ const handleTouchEnd = (e) => {
 }
 
 const handleTransitionEnd = () => {
-    if (translateY.value === SCREENHEIGHT)
-        goBack()
-        // router.push({ name: 'home' })
+    if (translateY.value === SCREENHEIGHT) {
+        if (route.name == 'eventArticles') {
+            router.push({ name: 'home' })
+        } else {
+            goBack()
+        }
+    }
 }
 </script>
 
@@ -139,11 +142,11 @@ const handleTransitionEnd = () => {
             @touchend="handleTouchEnd">
             <div class="close-bar"></div>
             <div class="actions">
-                <ActionItem :action="shareAction" :article="article"></ActionItem>
+                <ActionItem :action="shareAction" :article="articleRef.value"></ActionItem>
                 <!-- <ActionItem :action="bookmarkAction"></ActionItem> -->
-                <ActionItem :action="fullCoverageAction" :article="article" v-if="articleRef.eventUri"></ActionItem>
-                <ActionItem :action="dailyRecapAction" :article="article" v-if="article.drUri"></ActionItem>
-                <ActionItem :action="backAction" :article="article" class="backAction"></ActionItem>
+                <ActionItem :action="fullCoverageAction" :article="articleRef" v-if="articleRef.eventUri"></ActionItem>
+                <ActionItem :action="dailyRecapAction" :article="articleRef" v-if="articleRef.drUri"></ActionItem>
+                <ActionItem :action="backAction" :article="articleRef" class="backAction"></ActionItem>
             </div>
 
             <!-- FUTURE CHANGE: if image isnt able to load because of network error -->
@@ -405,7 +408,7 @@ const handleTransitionEnd = () => {
     height: 5px;
     position: absolute;
     top: 10px;
-    right: 37%;
+    right: calc((100% - 30%) / 2);
     z-index: 100;
     border-radius: 10px;
 }
