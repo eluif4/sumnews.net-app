@@ -91,11 +91,18 @@ async function articlesSinceYesterday() {
 
 async function updateArticleByID(articleId, filter, newDoc = true) {
     try {
-    const updatedArticle = await Article.findByIdAndUpdate(articleId, filter);
-    return updatedArticle
-    } catch(err) {
+        const updatedArticle = await Article.findByIdAndUpdate(articleId, filter);
+        return updatedArticle
+    } catch (err) {
         console.error(`Couldnt update article with id ${articleId}`, err)
     }
+}
+
+async function BM25(pipeline) {
+    // Use the 
+    const cursor = await Article.aggregate(pipeline);
+    const articles = await cursor.toArray();
+    return articles
 }
 
 async function eventsSinceYesterdayByPopularity(source) {
@@ -235,6 +242,7 @@ module.exports = {
     updateArticleByID,
     eventsSinceYesterdayByPopularity,
     getArticlesFromDB,
+    BM25,
     getUser,
     saveUserToDB,
     aggregate,
