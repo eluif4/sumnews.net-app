@@ -50,7 +50,7 @@ async function PostArticlesController(req, res) {
 async function getArticlesFromSearchController(req, res) {
     try {
         var search_query = validationResult(req)
-        const infiniteScrollCallCount = req.body.infiniteScrollCallCount * 10;
+        const infiniteScrollCallCount = parseInt(req.body.infiniteScrollCallCount ? req.body.infiniteScrollCallCount : 0) * 10;
         search_query = req.query.search_query.trim();
 
         const pipeline = [
