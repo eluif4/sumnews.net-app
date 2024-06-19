@@ -110,9 +110,9 @@ async function setDailyRecapButtons() {
                 dailyrecap.sourceLogo = sourceLogos[index].logo
         }
 
-        dailyRecapButtons.value = dailyRecaps
+        dailyRecapButtons.value = dailyRecaps;
     } catch (error) {
-        console.error(`There was a problem with fetching Daily Recaps`)
+        console.error(`Failed to fetch Daily Recaps`)
     }
 }
 
@@ -125,7 +125,7 @@ onMounted(() => {
 
 <template>
     <Header />
-    <div class="drcontainer">
+    <div class="drcontainer" v-if="dailyRecapButtons.length > 0">
         <DailyRecapButtonSkeleton v-for="dritem in tempDailyRecapButtons" :dr="dritem" v-if="!dailyRecapButtons" />
         <DailyRecapButton v-for="dritem in dailyRecapButtons" :key="dritem.id" :dr="dritem" v-else />
     </div>
@@ -157,7 +157,7 @@ onMounted(() => {
     width: 100%;
 
     overflow-y: auto;
-    padding: 10px 2% 10px 2%;
+    padding: 0 2% 10px 2%;
     box-sizing: border-box;
 
     -ms-overflow-style: none;

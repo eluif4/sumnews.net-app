@@ -3,7 +3,7 @@ import { ref, computed, watch } from 'vue';;
 import { useRoute } from 'vue-router';
 import { config } from '../../constants';
 import { shareAction, fullCoverageAction, dailyRecapAction } from '../../scripts/actions';
-import { SHARE_SWIPE_ACTION, FULL_COVERAGE_SWIPE_ACTION } from '../../scripts/swipeActions';
+import { OPEN_ORIGINAL_ARTICLE_SWIPE_ACTION, FULL_COVERAGE_SWIPE_ACTION } from '../../scripts/swipeActions';
 import ActionItem from '../Action/ActionItem.vue';
 import ArticleSwipe from './ArticleSwipe.vue';
 
@@ -12,6 +12,7 @@ const props = defineProps({ article: Object });
 const FRONTEND_URL = config.url.FRONTEND_URL
 const BACKEND_URL = config.url.BACKEND_URL
 
+const swipeStarted = ref(false);
 const translateX = ref(0);
 const startX = ref(0);
 const startY = ref(0);
@@ -22,7 +23,7 @@ const SENSITIVITY = 40;
 
 // Creating an object of the users actions
 const USER_GESTURES = {
-    leftSwipe: SHARE_SWIPE_ACTION,
+    leftSwipe: OPEN_ORIGINAL_ARTICLE_SWIPE_ACTION,
     rightSwipe: FULL_COVERAGE_SWIPE_ACTION,
 }
 
@@ -76,6 +77,7 @@ const handleTouchMove = (e) => {
     const canSwipeLeft = deltaX < 0 && USER_GESTURES.leftSwipe.activateCondition(props.article); // Boolean: if can swipe left according to the activatecondition
     const canSwipeRight = deltaX > 0 && USER_GESTURES.rightSwipe.activateCondition(props.article); // Boolean: if can swipe right according to the activatecondition
     if (AbsPos > SENSITIVITY) { // If movement is larger than sensitivity
+        swipeStarted.value = true;
         if (canSwipeLeft || canSwipeRight)
             translateX.value = currentX - startX.value; // Updates the position of ArticleInstance.vue
 
@@ -98,6 +100,7 @@ const handleTouchMove = (e) => {
 }
 
 const handleTouchEnd = (e) => {
+    swipeStarted.value = false
     hasTouchEnded.value = true;
     if (Math.abs(translateX.value) > SENSITIVITY) {
         if (translateX.value > THRESHOLD) { // If swipe from left
@@ -121,14 +124,16 @@ const handleTouchEnd = (e) => {
 
 <template>
     <div id="article-instance" class="article-instance" :style="{ transform: `translateX(${translateX}px)` }"
-        @touchstart="handleTouchStart" @touchmove="handleTouchMove" @touchend="handleTouchEnd">
+        :class="{ 'animate': swipeStarted }" @touchstart="handleTouchStart" @touchmove="handleTouchMove"
+        @touchend="handleTouchEnd">
 
         <!-- FUTURE CHANGE: FIX THIS SO THAT ITS BEHIND THE ARTICLE INSTANCE -->
-        <ArticleSwipe :action="swipeAction" v-if="showSwipeAction"></ArticleSwipe>
+        <ArticleSwipe :action="swipeAction" v-if="showSwipeAction" :style="{ width: `${Math.abs(translateX) + 10}px` }">
+        </ArticleSwipe>
 
         <img class="article-image" v-if="article.imageUrl" :src="article.imageUrl" alt="Article Image"
-            @error="handleImageError">
-        <div class="shader">
+            :class="{ 'animate': swipeStarted }" @error="handleImageError">
+        <div class="shader" :class="{ 'animate': swipeStarted }">
             <div class="genre-list">
                 <div class="genre" v-for="genre in article.genre" @click="clickGenre(genre)">{{ genre }}</div>
             </div>
@@ -150,7 +155,7 @@ const handleTouchEnd = (e) => {
                 <div class="actions">
                     <ActionItem :action="shareAction" :article="article"></ActionItem>
                     <ActionItem :action="fullCoverageAction" :article="article" v-if="article.eventUri"></ActionItem>
-                    <ActionItem :action="dailyRecapAction" :article="article" v-if="article.drUri"></ActionItem>
+                    <!-- <ActionItem :action="dailyRecapAction" :article="article" v-if="article.drUri"></ActionItem> -->
                 </div>
             </div>
         </div>
@@ -258,6 +263,7 @@ const handleTouchEnd = (e) => {
 .article-image {
     border-radius: var(--border-radius);
     width: 100%;
+    min-height: calc(100vw * 9 / 20);
 }
 
 .summarized-content {
@@ -354,5 +360,9 @@ a.isArticleInstanceOpen {
     padding: 10px;
     border-radius: 10px;
     color: white;
+}
+
+.animate {
+    border-radius: 0 !important;
 }
 </style>

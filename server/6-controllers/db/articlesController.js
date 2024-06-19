@@ -1,11 +1,12 @@
 const path = require("path")
 const { validationResult } = require('express-validator')
 const { getEventByEventUri } = require("../../2-utils/db/databaseAccess")
+const Article = require("../../4-models/articles")
 const UTILS = path.join(__dirname, '../../2-utils')
 const DBUTILS = path.join(__dirname, '../../2-utils/db')
 const DatabaseAccess = path.join(DBUTILS, "/databaseAccess.js")
 const GetCollections = path.join(DBUTILS, "/getCollections.js")
-const { getArticlesFromDB, aggregate, getDailyRecap, getSourcesLogo } = require(DatabaseAccess)
+const { getArticlesFromDB, aggregate, getDailyRecap, getSourcesLogo, BM25 } = require(DatabaseAccess)
 const { getAllSources, getAllGenres } = require(GetCollections)
 const DailyRecap = path.join(UTILS, "/dailyRecaps.js")
 const { createDailyRecap } = require(DailyRecap)
@@ -49,27 +50,34 @@ async function PostArticlesController(req, res) {
 async function getArticlesFromSearchController(req, res) {
     try {
         var search_query = validationResult(req)
-        var infiniteScrollCallCount = req.body.infiniteScrollCallCount * 10;
+        const infiniteScrollCallCount = req.body.infiniteScrollCallCount * 10;
         search_query = req.query.search_query.trim();
-        // const search_query = sanitizeInput(req.query.search_query);
-        const searchRegex = new RegExp(search_query, 'i');
 
-        const filter = {
-            $or: [
-                { title: { $regex: searchRegex } },
-                { source: { $regex: searchRegex } },
-                { author: { $regex: searchRegex } },
-                { genre: { $regex: searchRegex } },
-                { summarizedContent: { $regex: searchRegex } }
-            ]
-        };
+        const pipeline = [
+            {
+                $search: {
+                    index: "default",
+                    text: {
+                        query: search_query,
+                        path: {
+                            wildcard: "*"
+                        }
+                    }
+                }
+            },
+            {
+                $skip: infiniteScrollCallCount
+            },
+            {
+                $limit: 10
+            }
+        ]
 
-        const sort = { datePublished: -1 }
-        const articles = await getArticlesFromDB(filter, {}, sort, 10, infiniteScrollCallCount) //Change the last value to limit the amount of articles returned
-        res.send(articles)
+        const articles = await BM25(pipeline);
+        res.send(articles);
     }
     catch (error) {
-        console.error("Problem getting articles... ", error)
+        console.error("Failed at /search. Make sure you are in developement mode ", error)
         res.status(500).send("Internal Server Error");
     }
 }
