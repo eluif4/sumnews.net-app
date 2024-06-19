@@ -68,8 +68,8 @@ async function resetHeader() {
     placeholder.value = "Search for articles here"
 
     List.articles = []
-    var response = await front_getArticlesFromDB();
-    List.articles = response
+    // var response = await front_getArticlesFromDB();
+    // List.articles = response
     document.getElementById('article-stack').scrollTop = 0;
     if (route.path.includes('/event')) {
         goBack();
