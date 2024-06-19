@@ -1,4 +1,4 @@
-import { bookmarkAction, dailyRecapAction, fullCoverageAction, shareAction } from "./actions";
+import { bookmarkAction, dailyRecapAction, fullCoverageAction, shareAction, openArticleAction } from "./actions";
 
 // export const EXAMPLE_SWIPE_ACTION = {
 //     color: '#FFFFFF', // Color of swipe background
@@ -37,4 +37,12 @@ export const DAILY_RECAP_SWIPE_ACTION = {
     svg: dailyRecapAction.svg,
     direction: 'right',
     activateCondition: (article) => !!article?.drUri,
+}
+
+export const OPEN_ORIGINAL_ARTICLE_SWIPE_ACTION = {
+    color: '#5D90E3',
+    action: openArticleAction,
+    svg: openArticleAction.svg,
+    direction: 'left',
+    activateCondition: (article) => true,
 }
