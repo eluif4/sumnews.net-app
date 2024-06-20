@@ -169,7 +169,7 @@ const handleTransitionEnd = () => {
                 <ActionItem :action="shareAction" :article="articleRef.value"></ActionItem>
                 <!-- <ActionItem :action="bookmarkAction"></ActionItem> -->
                 <ActionItem :action="fullCoverageAction" :article="articleRef" v-if="articleRef.eventUri"></ActionItem>
-                <ActionItem :action="dailyRecapAction" :article="articleRef" v-if="articleRef.drUri"></ActionItem>
+                <!-- <ActionItem :action="dailyRecapAction" :article="articleRef" v-if="articleRef.drUri"></ActionItem> -->
                 <ActionItem :action="backAction" :article="articleRef" class="backAction"></ActionItem>
             </div>
 
