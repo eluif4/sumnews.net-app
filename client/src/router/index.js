@@ -30,8 +30,9 @@ const routes = [
         beforeEnter: async (to, from, next) => {
             const isFromArticlePath = from.fullPath.includes('/article');
             const isFromFilterPath = from.fullPath.includes('/filter');
+            const isFromHomePath = from.fullPath.includes('/')
             // Execute only if user is coming from home page and article list is empty
-            if (List.articles.length == 0 && !(isFromArticlePath || isFromFilterPath)) {
+            if (List.articles.length == 0 && (isFromArticlePath || isFromFilterPath || isFromHomePath)) {
                 List.articles = []
                 front_getArticlesFromDB()
                     .then(response => {
