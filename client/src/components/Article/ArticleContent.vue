@@ -145,10 +145,13 @@ const handleTouchEnd = (e) => {
 
 const handleTransitionEnd = () => {
     if (translateY.value === SCREENHEIGHT) {
+        // if (!route.path.includes('index')) {
+        //     router.push({ name: 'fullCoverage', params: { eventUri: articleRef.value.eventUri } })
+        // }
         if (route.name == 'eventArticles') {
             router.push({ name: 'home' })
         } else {
-            goBack()
+            goBack();
         }
     }
 }

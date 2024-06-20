@@ -94,7 +94,7 @@ const handleTouchMove = (e) => {
     const deltaX = currentX - startX.value;
     const deltaY = currentY - startY.value;
     const AbsPos = Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX)
-    console.log(`Start: (${startX.value}, ${startY.value}), Delta: (${deltaX}, ${deltaY})`)
+    // console.log(`Start: (${startX.value}, ${startY.value}), Delta: (${deltaX}, ${deltaY})`)
 
     const canSwipeLeft = deltaX < 0 && USER_GESTURES.leftSwipe.activateCondition(articleRef.value); // Boolean: if can swipe left according to the activatecondition
     const canSwipeRight = deltaX > 0 && USER_GESTURES.rightSwipe.activateCondition(articleRef.value); // Boolean: if can swipe right according to the activatecondition

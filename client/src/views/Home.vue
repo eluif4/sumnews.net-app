@@ -126,7 +126,7 @@ onMounted(() => {
 <template>
     <Header />
     <div class="drcontainer">
-        <DailyRecapButtonSkeleton v-for="dritem in tempDailyRecapButtons" :dr="dritem" v-if="!dailyRecapButtons" />
+        <DailyRecapButtonSkeleton v-for="dritem in tempDailyRecapButtons" :dr="dritem" v-if="dailyRecapButtons.length === 0" />
         <DailyRecapButton v-for="dritem in dailyRecapButtons" :key="dritem.id" :dr="dritem" v-else />
     </div>
     <div class="app-container"

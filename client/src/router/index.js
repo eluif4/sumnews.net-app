@@ -31,8 +31,18 @@ const routes = [
             const isFromArticlePath = from.fullPath.includes('/article');
             const isFromFilterPath = from.fullPath.includes('/filter');
             const isFromHomePath = (from.fullPath == '/');
+            const sourcesInLocalStorage = localStorage.getItem('sources');
+            const genresInLocalStorage = localStorage.getItem('genres');
+
+            const isLocalStorageEmpty = (sourcesInLocalStorage === null || JSON.parse(sourcesInLocalStorage).length === 0) &&
+                (genresInLocalStorage === null || JSON.parse(genresInLocalStorage).length === 0);
+
             // Execute only if user is coming from home page and article list is empty
-            if (List.articles.length == 0 && (isFromArticlePath || isFromFilterPath || isFromHomePath)) {
+            if (
+                (isFromArticlePath && List.articles.length === 0) ||
+                (isFromFilterPath && isLocalStorageEmpty) ||
+                (isFromHomePath && List.articles.length === 0)
+            ) {
                 List.articles = []
                 front_getArticlesFromDB()
                     .then(response => {
@@ -114,7 +124,10 @@ const routes = [
         }
     },
     {
-        path: '/event/:eventUri', component: Home, props: false,
+        path: '/event/:eventUri', 
+        name: 'fullCoverage', 
+        component: Home, 
+        props: false,
         beforeEnter: async (to, from) => {
             if (!from.path.includes('/article')) {
                 try {

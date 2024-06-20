@@ -16,27 +16,28 @@ const direction = computed(() => props.action.direction)
 
 <style scoped>
 .swipe-container {
-    height: 100%;
-    width: 70%;
-    transition: transform 0.1s ease;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    /* box-shadow: 0px 4px 10px 0px var(--browser-background-color); */
-    background-color: transparent;
+  height: 100%;
+  width: 100px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  transition: transform 0.3s ease;
 }
 
 .right {
-    left: 0;
-    /* transform: translateX(-100%); */
+  right: 100%;
 }
 
 .left {
-    right: 0;
-    /* transform: translateX(100%); */
+  left: 100%;
+}
+
+.svg-container {
+  width: 30px;
+  height: 30px;
 }
 </style>
