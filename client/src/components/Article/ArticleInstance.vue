@@ -20,7 +20,8 @@ const startY = ref(0);
 const hasTouchEnded = ref(false);
 const THRESHOLD = 80;
 const MAXIMUMX = 200;
-const SENSITIVITY = 40;
+const SENSITIVITY = 10;
+// const XSENSITIVITY = 5;
 
 // Check if article image is valid
 function isValidImageUrl(url) {
@@ -93,13 +94,19 @@ const handleTouchMove = (e) => {
     const deltaX = currentX - startX.value;
     const deltaY = currentY - startY.value;
     const AbsPos = Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX)
+    console.log(`Start: (${startX.value}, ${startY.value}), Delta: (${deltaX}, ${deltaY})`)
 
     const canSwipeLeft = deltaX < 0 && USER_GESTURES.leftSwipe.activateCondition(articleRef.value); // Boolean: if can swipe left according to the activatecondition
     const canSwipeRight = deltaX > 0 && USER_GESTURES.rightSwipe.activateCondition(articleRef.value); // Boolean: if can swipe right according to the activatecondition
-    if (AbsPos > SENSITIVITY) { // If movement is larger than sensitivity
-        swipeStarted.value = true;
-        if (canSwipeLeft || canSwipeRight)
+    if (Math.abs(deltaY) < SENSITIVITY || swipeStarted.value) { // If movement is larger than sensitivity
+        if (canSwipeLeft) {
             translateX.value = currentX - startX.value; // Updates the position of ArticleInstance.vue
+            swipeStarted.value = true;
+        }
+        if (canSwipeRight) {
+            translateX.value = currentX - startX.value; // Updates the position of ArticleInstance.vue
+            swipeStarted.value = true;
+        }
 
         // Limit the movement of ArticleInstance.vue value using MAXIMUMX
         if (translateX.value > MAXIMUMX) { // Right
