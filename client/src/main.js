@@ -62,8 +62,16 @@ export const PopupAttributes = reactive({
   */
 })
 
-// ----- ALLOW FOR QUICK ARTICLE INFORMATION RETRIEVAL WHEN CLICKING ON AN ARTICLE -----
-export const selectedArticle = ref(null);
+// ----- SERVICE WORKER -----
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/service-worker.js').then(registration => {
+      console.log('ServiceWorker registration successful with scope: ', registration.scope);
+    }).catch(error => {
+      console.log('ServiceWorker registration failed: ', error);
+    });
+  });
+}
 
-app.use(router)
+app.use(router);
 app.mount('#app');

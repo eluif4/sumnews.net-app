@@ -1,6 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { front_getArticlesFromDB, showPopup } from '../scripts/utility'
-import { List, selectedArticle } from '../main'
+import { List } from '../main'
 import { config } from '../constants'
 
 import Home from '../views/Home.vue'
@@ -28,9 +28,6 @@ const routes = [
         name: 'home',
         reload: false,
         beforeEnter: async (to, from, next) => {
-            const isFromArticleAndArticleListIsEmpty = from.fullPath.includes('/article') && List.articles.length == 0;
-            const isFromFilterAndArticleListIsEmpty = from.fullPath.includes('/filter') && List.articles.length == 0;
-
             const isFromArticlePath = from.fullPath.includes('/article');
             const isFromFilterPath = from.fullPath.includes('/filter');
             // Execute only if user is coming from home page and article list is empty
