@@ -1,19 +1,13 @@
 {
     "headers": [
         {
-            "source": "/service-worker.js",
+            "source": "/client/service-worker.js",
             "headers": [
                 {
                     "key": "Content-Type",
                     "value": "application/javascript"
                 }
             ]
-        }
-    ],
-    "rewrites": [
-        {
-            "source": "/service-worker.js",
-            "destination": "/client/service-worker.js"
         }
     ]
 }
