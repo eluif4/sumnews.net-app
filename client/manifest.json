@@ -53,5 +53,20 @@
     "lang": "en-US",
     "scope": "/",
     "theme_color": "#62febd",
-    "background_color": "#ffffff"
+    "background_color": "#ffffff",
+    "screenshots": [
+        {
+            "src": "screenshots/screenshot-1280x720.png",
+            "sizes": "1280x720",
+            "type": "image/png",
+            "purpose": "any",
+            "form_factor": "wide"
+        },
+        {
+            "src": "screenshots/screenshot-750x1334.png",
+            "sizes": "750x1334",
+            "type": "image/png",
+            "purpose": "any"
+        }
+    ]
 }
