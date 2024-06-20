@@ -1,6 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { front_getArticlesFromDB, showPopup } from '../scripts/utility'
-import { List, selectedArticle } from '../main'
+import { List } from '../main'
 import { config } from '../constants'
 
 import Home from '../views/Home.vue'
@@ -28,13 +28,21 @@ const routes = [
         name: 'home',
         reload: false,
         beforeEnter: async (to, from, next) => {
-            const isFromArticleAndArticleListIsEmpty = from.fullPath.includes('/article') && List.articles.length == 0;
-            const isFromFilterAndArticleListIsEmpty = from.fullPath.includes('/filter') && List.articles.length == 0;
-
             const isFromArticlePath = from.fullPath.includes('/article');
             const isFromFilterPath = from.fullPath.includes('/filter');
+            const isFromHomePath = (from.fullPath == '/');
+            const sourcesInLocalStorage = localStorage.getItem('sources');
+            const genresInLocalStorage = localStorage.getItem('genres');
+
+            const isLocalStorageEmpty = (sourcesInLocalStorage === null || JSON.parse(sourcesInLocalStorage).length === 0) &&
+                (genresInLocalStorage === null || JSON.parse(genresInLocalStorage).length === 0);
+
             // Execute only if user is coming from home page and article list is empty
-            if (List.articles.length == 0 && !(isFromArticlePath || isFromFilterPath)) {
+            if (
+                (isFromArticlePath && List.articles.length === 0) ||
+                (isFromFilterPath && isLocalStorageEmpty) ||
+                (isFromHomePath && List.articles.length === 0)
+            ) {
                 List.articles = []
                 front_getArticlesFromDB()
                     .then(response => {
@@ -116,7 +124,10 @@ const routes = [
         }
     },
     {
-        path: '/event/:eventUri', component: Home, props: false,
+        path: '/event/:eventUri', 
+        name: 'fullCoverage', 
+        component: Home, 
+        props: false,
         beforeEnter: async (to, from) => {
             if (!from.path.includes('/article')) {
                 try {

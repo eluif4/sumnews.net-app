@@ -6,10 +6,31 @@ import { shareAction, bookmarkAction, fullCoverageAction, backAction, dailyRecap
 import { config } from '../../constants'
 import ActionItem from '../Action/ActionItem.vue';
 import router from '../../router';
+import errorImage from '../../assets/icons/sumnews.net_banner.png'
 
 const route = useRoute();
 const props = defineProps({ article: Object });
 const articleRef = ref(props.article || {});
+
+// Check if article image is valid
+function isValidImageUrl(url) {
+    return new Promise((resolve) => {
+        const img = new Image();
+        img.onload = () => resolve(true);
+        img.onerror = () => resolve(false);
+        img.src = url;
+    });
+}
+
+async function checkAndReplaceImageUrl() {
+    const isValid = await isValidImageUrl(articleRef.value.imageUrl);
+    if (!isValid) {
+        articleRef.value.imageUrl = errorImage;
+    }
+}
+
+checkAndReplaceImageUrl(); // Call the function to check and replace the imageUrl
+
 const isFromFullCoverage = ref(false);
 
 const translateY = ref(0);
@@ -124,10 +145,13 @@ const handleTouchEnd = (e) => {
 
 const handleTransitionEnd = () => {
     if (translateY.value === SCREENHEIGHT) {
+        // if (!route.path.includes('index')) {
+        //     router.push({ name: 'fullCoverage', params: { eventUri: articleRef.value.eventUri } })
+        // }
         if (route.name == 'eventArticles') {
             router.push({ name: 'home' })
         } else {
-            goBack()
+            goBack();
         }
     }
 }

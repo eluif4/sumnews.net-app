@@ -125,14 +125,16 @@ onMounted(() => {
 
 <template>
     <Header />
-    <div class="drcontainer" v-if="dailyRecapButtons.length > 0">
-        <DailyRecapButtonSkeleton v-for="dritem in tempDailyRecapButtons" :dr="dritem" v-if="!dailyRecapButtons" />
+    <div class="drcontainer">
+        <DailyRecapButtonSkeleton v-for="dritem in tempDailyRecapButtons" :dr="dritem" v-if="dailyRecapButtons.length === 0" />
         <DailyRecapButton v-for="dritem in dailyRecapButtons" :key="dritem.id" :dr="dritem" v-else />
     </div>
-    <div class="app-container">
+    <div class="app-container"
+        :style="dailyRecapButtons.length === 0 ? { height: 'var(--article-stack-nodr-height)' } : {}">
         <div id="article-stack" @scroll="scrollHandler">
-            <ArticleSkeleton v-for="skeleton in skeletonArticles" v-if="List.articles.length == 0"></ArticleSkeleton>
-            <router-link v-for="(article, index) in List.articles" :key="article.uuid" style="min-width: 100%"
+            <ArticleSkeleton v-for=" skeleton  in  skeletonArticles " v-if="List.articles.length == 0">
+            </ArticleSkeleton>
+            <router-link v-for="( article, index ) in  List.articles " :key="article.uuid" style="min-width: 100%"
                 :to="{ name: 'article', params: { uuid: article.uuid }, query: { index: index } }">
                 <ArticleInstance :article="article" :key="article.uuid" v-if="article.imageUrl"></ArticleInstance>
             </router-link>
@@ -148,7 +150,7 @@ onMounted(() => {
     background-color: transparent;
     position: absolute;
     z-index: 50;
-    height: calc(100% - var(--dropdown-height));
+    height: calc(var(--article-stack-height));
 }
 
 #article-stack {
@@ -157,7 +159,7 @@ onMounted(() => {
     width: 100%;
 
     overflow-y: auto;
-    padding: 0 2% 10px 2%;
+    padding: 0 2% 30px 2%;
     box-sizing: border-box;
 
     -ms-overflow-style: none;

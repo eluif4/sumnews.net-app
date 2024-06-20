@@ -5,7 +5,8 @@
 :root {
     /* ---COLOR DECLARATION--- */
     --main-color: #62FEBD;
-    --main-color-gradient: #62FEBD33; /* #cefae7 */
+    --main-color-gradient: #62FEBD33;
+    /* #cefae7 */
     --footer-menus-color: #585858;
     --browser-background-color: #161618;
     --overlay-color: rgba(59, 59, 59, 0.55);
@@ -17,14 +18,16 @@
     --content-width: 100vw;
 
     /* ---SIZE DECLARATION--- */
-    --header-height: 45px;
-    --dropdown-height: 70px;
-    --dropdown-open-height: 181px;
-    --dropdown-width: 90%;
-    --footer-height: 60px; /* <- Not used */
-    --article-stack-height: calc(100vh - var(--footer-height) - var(--header-height) - var(--dropdown-height));
-    --footer-icon-size: 25px;
-    --down-arrow-size: 30px;
+    --header-height: 50px;
+    --drcontainer-height: 60px;
+    /* --dropdown-height: 70px; */
+    /* --dropdown-open-height: 181px; */
+    /* --dropdown-width: 90%; */
+    /* --footer-height: 60px; <- Not used */
+    --article-stack-height: calc(100% - var(--header-height) - var(--drcontainer-height));
+    --article-stack-nodr-height: calc(100% - var(--header-height));
+    /* --footer-icon-size: 25px; */
+    /* --down-arrow-size: 30px; */
 
     /* ---Transitions --- */
     --transition-time: 500ms;

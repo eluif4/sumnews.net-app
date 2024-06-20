@@ -68,14 +68,15 @@ async function resetHeader() {
     placeholder.value = "Search for articles here"
 
     List.articles = []
-    // var response = await front_getArticlesFromDB();
-    // List.articles = response
+
     document.getElementById('article-stack').scrollTop = 0;
     if (route.path.includes('/event')) {
         goBack();
     }
     else {
         router.push({ name: 'home' })
+        var response = await front_getArticlesFromDB();
+        List.articles = response
     }
 }
 
@@ -95,17 +96,19 @@ watch(() => route.path, (newPath, oldPath) => {
         const sources = JSON.parse(sourcesLocalStorage.value);
         isFiltering.value = genres.length > 0 || sources.length > 0
 
-        // Create placeholder text
-        placeholder.value = 'Filtering ';
-        if (genres.length > 0) {
-            placeholder.value += ` ${genres.join(", ")}`;
-        }
-
-        if (sources.length > 0 > 0) {
-            if (genres.length > 0 > 0) {
-                placeholder.value += `, `;
+        if (isFiltering.value) {
+            // Create placeholder text
+            placeholder.value = 'Filtering ';
+            if (genres.length > 0) {
+                placeholder.value += ` ${genres.join(", ")}`;
             }
-            placeholder.value += `${sources.join(", ")}`;
+
+            if (sources.length > 0 > 0) {
+                if (genres.length > 0 > 0) {
+                    placeholder.value += `, `;
+                }
+                placeholder.value += `${sources.join(", ")}`;
+            }
         }
         // placeholder.value = `Filtering Sources:[${JSON.parse(sourcesLocalStorage.value).join(",")}] Genres:[${JSON.parse(genresLocalStorage.value).join(",")}]`;
     }
