@@ -6,9 +6,10 @@ import { shareAction, fullCoverageAction, dailyRecapAction } from '../../scripts
 import { OPEN_ORIGINAL_ARTICLE_SWIPE_ACTION, FULL_COVERAGE_SWIPE_ACTION } from '../../scripts/swipeActions';
 import ActionItem from '../Action/ActionItem.vue';
 import ArticleSwipe from './ArticleSwipe.vue';
+import errorImage from '../../assets/icons/sumnews.net_banner.png'
 
 const props = defineProps({ article: Object });
-
+const articleRef = ref(props.article || {})
 const FRONTEND_URL = config.url.FRONTEND_URL
 const BACKEND_URL = config.url.BACKEND_URL
 
@@ -21,6 +22,25 @@ const THRESHOLD = 80;
 const MAXIMUMX = 200;
 const SENSITIVITY = 40;
 
+// Check if article image is valid
+function isValidImageUrl(url) {
+    return new Promise((resolve) => {
+        const img = new Image();
+        img.onload = () => resolve(true);
+        img.onerror = () => resolve(false);
+        img.src = url;
+    });
+}
+
+async function checkAndReplaceImageUrl() {
+    const isValid = await isValidImageUrl(articleRef.value.imageUrl);
+    if (!isValid) {
+        articleRef.value.imageUrl = errorImage;
+    }
+}
+
+checkAndReplaceImageUrl(); // Call the function to check and replace the imageUrl
+
 // Creating an object of the users actions
 const USER_GESTURES = {
     leftSwipe: OPEN_ORIGINAL_ARTICLE_SWIPE_ACTION,
@@ -32,7 +52,7 @@ const swipeAction = ref({})
 const showSwipeAction = ref(false);
 
 const relativeDate = computed(() => {
-    const datePublished = new Date(props.article.datePublished);
+    const datePublished = new Date(articleRef.value.datePublished);
     const currentDate = new Date();
     const timeDiff = currentDate - datePublished;
     const seconds = Math.floor(timeDiff / 1000);
@@ -74,8 +94,8 @@ const handleTouchMove = (e) => {
     const deltaY = currentY - startY.value;
     const AbsPos = Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX)
 
-    const canSwipeLeft = deltaX < 0 && USER_GESTURES.leftSwipe.activateCondition(props.article); // Boolean: if can swipe left according to the activatecondition
-    const canSwipeRight = deltaX > 0 && USER_GESTURES.rightSwipe.activateCondition(props.article); // Boolean: if can swipe right according to the activatecondition
+    const canSwipeLeft = deltaX < 0 && USER_GESTURES.leftSwipe.activateCondition(articleRef.value); // Boolean: if can swipe left according to the activatecondition
+    const canSwipeRight = deltaX > 0 && USER_GESTURES.rightSwipe.activateCondition(articleRef.value); // Boolean: if can swipe right according to the activatecondition
     if (AbsPos > SENSITIVITY) { // If movement is larger than sensitivity
         swipeStarted.value = true;
         if (canSwipeLeft || canSwipeRight)
@@ -105,12 +125,12 @@ const handleTouchEnd = (e) => {
     if (Math.abs(translateX.value) > SENSITIVITY) {
         if (translateX.value > THRESHOLD) { // If swipe from left
             if (USER_GESTURES.rightSwipe.action.actionFunction.length > 0)
-                USER_GESTURES.rightSwipe.action.actionFunction(props.article);
+                USER_GESTURES.rightSwipe.action.actionFunction(articleRef.value);
             else
                 USER_GESTURES.rightSwipe.action.actionFunction();
         } else if (translateX.value < -THRESHOLD) { // If swipe from right
             if (USER_GESTURES.leftSwipe.action.actionFunction.length > 0)
-                USER_GESTURES.leftSwipe.action.actionFunction(props.article);
+                USER_GESTURES.leftSwipe.action.actionFunction(articleRef.value);
             else
                 USER_GESTURES.leftSwipe.action.actionFunction();
         }
@@ -131,31 +151,31 @@ const handleTouchEnd = (e) => {
         <ArticleSwipe :action="swipeAction" v-if="showSwipeAction" :style="{ width: `${Math.abs(translateX) + 10}px` }">
         </ArticleSwipe>
 
-        <img class="article-image" v-if="article.imageUrl" :src="article.imageUrl" alt="Article Image"
+        <img class="article-image" v-if="articleRef.imageUrl" :src="articleRef.imageUrl" alt="Article Image"
             :class="{ 'animate': swipeStarted }" @error="handleImageError">
         <div class="shader" :class="{ 'animate': swipeStarted }">
             <div class="genre-list">
-                <div class="genre" v-for="genre in article.genre" @click="clickGenre(genre)">{{ genre }}</div>
+                <div class="genre" v-for="genre in articleRef.genre" @click="clickGenre(genre)">{{ genre }}</div>
             </div>
 
             <div class="textual-content">
                 <div class="article-title">
-                    {{ article.title }}
+                    {{ articleRef.title }}
                 </div>
             </div>
 
             <div class="bottom_row">
                 <div class="authorsAndDate">
                     <div class="authors expanded">
-                        {{ article.author.length === 0 ? "" : "By: " + article.author.join(', ') }}
+                        {{ articleRef.author.length === 0 ? "" : "By: " + articleRef.author.join(', ') }}
                     </div>
-                    <div class="source-date">{{ article.source }}, {{ relativeDate }}</div>
+                    <div class="source-date">{{ articleRef.source }}, {{ relativeDate }}</div>
                 </div>
 
                 <div class="actions">
                     <ActionItem :action="shareAction" :article="article"></ActionItem>
-                    <ActionItem :action="fullCoverageAction" :article="article" v-if="article.eventUri"></ActionItem>
-                    <!-- <ActionItem :action="dailyRecapAction" :article="article" v-if="article.drUri"></ActionItem> -->
+                    <ActionItem :action="fullCoverageAction" :article="article" v-if="articleRef.eventUri"></ActionItem>
+                    <!-- <ActionItem :action="dailyRecapAction" :article="article" v-if="articleRef.drUri"></ActionItem> -->
                 </div>
             </div>
         </div>
