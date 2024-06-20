@@ -250,9 +250,9 @@ const routes = [
             articleUUID: route.params.articleUUID,
         })
     },
-    {
-        path: '/:catchAll(.*)', component: NotFound
-    },
+    // {
+    //     path: '/:catchAll(.*)', component: NotFound
+    // },
     {
         // FUTURE CHANGE: create a view for an article not found
         path: '/404', component: NotFound
