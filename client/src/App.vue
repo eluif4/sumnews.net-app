@@ -2,6 +2,8 @@
 import { computed } from 'vue'
 import DesktopPage from './views/DesktopPage.vue'
 import MobilePage from './views/MobilePage.vue'
+import android192 from '../favicon/android-chrome-192x192.png'
+import sw from '../service-worker.js'
 
 const isDesktop = computed(() => {
   return window.innerWidth > 768
