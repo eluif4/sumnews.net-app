@@ -53,7 +53,7 @@ const { articleQueue } = require('./server/2-utils/articleQueueHandler.js');
 //---RUN MAIN FUNCTION---
 async function cronTask() {
     // cron.schedule('*/60 * * * *', async () => {
-    if (false) {
+    if (true) {
         try {
             const date = new Date()
             console.log(kleur.bgBlue(`Task started @ ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`))

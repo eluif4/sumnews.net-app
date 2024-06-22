@@ -415,15 +415,19 @@ const handleTransitionEnd = () => {
 }
 
 .squote {
+    color: black;
     background-color: yellow;
     padding: 0 5px;
     border-radius: 4px;
+    padding: 0 2px;
 }
 
 .quote {
+    color: black;
     background-color: plum;
     /* margin: 0 5px; */
     border-radius: 4px;
+    padding: 0 2px;
 }
 
 .close-bar {

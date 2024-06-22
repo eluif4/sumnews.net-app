@@ -22,10 +22,6 @@ var skeletonArticles = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 var tempDailyRecapButtons = ref([{}, {}, {}, {}, {}, {}, {}, {}, {}, {}])
 var dailyRecapButtons = ref([]);
 
-console.log('testing')
-console.log('Home.vue ' + dailyRecapButtons.value.length)
-console.warn(Header.path)
-
 function existsInFeed(insertArticle) {
     for (const article of List.articles) { // Loop over articles in dom (feed)
         if (article.uuid == insertArticle.uuid)
