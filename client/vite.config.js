@@ -1,24 +1,9 @@
 import { fileURLToPath, URL } from 'node:url';
 import { defineConfig } from 'vite';
 import vue from '@vitejs/plugin-vue';
-import { VitePluginStaticCopy } from 'vite-plugin-static-copy';
 
 export default defineConfig({
-  plugins: [
-    vue(),
-    VitePluginStaticCopy({
-      targets: [
-        {
-          src: 'favicon/*',
-          dest: 'assets'
-        },
-        {
-          src: 'service-worker.js',
-          dest: '.'
-        }
-      ]
-    })
-  ],
+  plugins: [vue()],
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url))
@@ -38,5 +23,6 @@ export default defineConfig({
         entryFileNames: 'assets/[name].[hash].js'
       }
     }
-  }
+  },
+  publicDir: 'favicon' // Ensures the favicon folder is included in the build
 });
