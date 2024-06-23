@@ -198,11 +198,13 @@ onMounted(() => {
 }
 
 .squote {
+  color: black !important;
   background: #fff2cc;
   padding: 0 5px;
 }
 
 .quote {
+  color: black !important;
   background: #f2f2f2;
   padding: 0 5px;
 }
