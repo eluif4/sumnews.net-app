@@ -22,3 +22,53 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Dependencies
+node_modules/
+package-lock.json
+yarn.lock
+
+# Build directories
+build/
+dist/
+www/
+
+# Capacitor directories
+ios/
+android/
+# Include Capacitor configuration files
+!android/app/src/main/assets/capacitor.config.json
+!ios/App/App/capacitor.config.json
+
+# Android specific
+android/capacitor-cordova-android-plugins/
+android/.gradle/
+android/build/
+android/app/build/
+android/.idea/
+android/local.properties
+android/gradle/
+android/gradlew
+android/gradlew.bat
+
+# macOS specific files
+.DS_Store
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Optional npm cache directory
+.npm
+
+# Capacitor config
+capacitor.config.json
+ionic.config.json
+
+# Environment variables
+.env
+.env.*
+
+# VSCode settings
+.vscode/
