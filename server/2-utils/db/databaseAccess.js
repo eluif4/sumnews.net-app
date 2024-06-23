@@ -99,9 +99,8 @@ async function updateArticleByID(articleId, filter, newDoc = true) {
 }
 
 async function BM25(pipeline) {
-    // Use the 
-    const cursor = await Article.aggregate(pipeline);
-    const articles = await cursor.toArray();
+    // Use the BM25 algorithm (Search Index) provided by MongoDB through the $search aggregation stage 
+    const articles = await Article.aggregate(pipeline);
     return articles
 }
 
