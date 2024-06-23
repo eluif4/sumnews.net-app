@@ -158,7 +158,7 @@ const handleTouchEnd = (e) => {
         <ArticleSwipe :action="swipeAction" v-if="showSwipeAction" :style="{ width: `${Math.abs(translateX) + 10}px` }">
         </ArticleSwipe>
 
-        <img class="article-image" v-if="articleRef.imageUrl" :src="errorImage" alt="Article Image"
+        <img class="article-image" v-if="articleRef.imageUrl" :src="articleRef.imageUrl" alt="Article Image"
             :class="{ 'animate': swipeStarted }" @error="handleImageError">
         <div class="shader" :class="{ 'animate': swipeStarted }">
             <div class="genre-list">
