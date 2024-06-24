@@ -161,14 +161,15 @@ const handleTouchEnd = (e) => {
         <img class="article-image" v-if="articleRef.imageUrl" :src="articleRef.imageUrl" alt="Article Image"
             :class="{ 'animate': swipeStarted }" @error="handleImageError">
         <div class="shader" :class="{ 'animate': swipeStarted }">
-            <div class="genre-list">
-                <div class="genre" v-for="genre in articleRef.genre" @click="clickGenre(genre)">{{ genre }}</div>
-            </div>
-
+            
             <div class="textual-content">
-                <div class="article-title">
+                <div class="article-title text-shader">
                     {{ articleRef.title }}
                 </div>
+            </div>
+
+            <div class="genre-list">
+                <div class="genre" v-for="genre in articleRef.genre" @click="clickGenre(genre)">{{ genre }}</div>
             </div>
 
             <div class="bottom_row">
@@ -382,11 +383,12 @@ a.isArticleInstanceOpen {
 </style>
 
 <style>
-.authorsAndDate {
-    background-color: #353535ab;
+.text-shader {
+    background-color: #000000ab;
     padding: 10px;
-    border-radius: 10px;
+    border-radius: 4px;
     color: white;
+    width: fit-content;
 }
 
 .animate {
