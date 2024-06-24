@@ -181,15 +181,16 @@ const handleTransitionEnd = () => {
             <div class="shader"></div>
         </div>
         <div class="content-container" id="content-container">
+            <!-- ARTICLE TITLE -->
+            <div class="article-title">
+                {{ articleRef.title }}
+            </div>
+
             <!-- ARTICLE GENRES -->
             <div class="genre-list">
                 <div class="genre" v-for="genre in articleRef.genre">{{ genre }}</div>
             </div>
 
-            <!-- ARTICLE TITLE -->
-            <div class="article-title">
-                {{ articleRef.title }}
-            </div>
 
             <!-- AUTHORS, DATE AND SOURCE -->
             <div class="authorsAndDate">

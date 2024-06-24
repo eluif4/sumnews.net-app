@@ -48,12 +48,18 @@ watch(isChecked, (newVal, oldVal) => { // Watch for when input is checked \ unch
         localStorage.setItem(localStorageKey.value, JSON.stringify(arrayInLocalStorage.value))
     }
 })
+
+function capitalize(string) {
+    if (!string)
+        return string; // Handle empty or null string
+    return string.charAt(0).toUpperCase() + string.slice(1);
+}
 </script>
 
 <template>
     <div class="checkbox-wrapper-47" @click="inputClick">
         <input type="checkbox" name="cb" :id="`cb-${props.option._id}`" v-model="isChecked" />
-        <label :for="`cb-${props.option._id}`">{{ option }}</label>
+        <label :for="`cb-${props.option._id}`">{{ capitalize(option) }}</label>
     </div>
 </template>
 
