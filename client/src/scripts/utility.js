@@ -75,7 +75,10 @@ export async function front_getArticlesFromDB(
 
 export function goBack() {
     if (router) {
-        router.go(-1);
+        if (router.options.history.state.back != null)
+            router.go(-1);
+        else
+            router.push({ name: 'home' })
     }
 }
 
