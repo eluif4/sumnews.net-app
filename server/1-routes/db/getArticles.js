@@ -9,6 +9,7 @@ const { getArticlesController,
     getArticlesFromDrEventController,
     createDailyRecapController,
     getDailyRecapsController,
+    getDailyRecapButtonsController,
     getDailyRecapByIdController,
     getEventByEventUriController,
     getSourcesLogoController
@@ -25,7 +26,8 @@ app.post('/db/getArticlesFromDrEvent', getArticlesFromDrEventController)
 app.get('/db/createDailyRecap', createDailyRecapController)
 app.post('/db/getDailyRecapById', getDailyRecapByIdController)
 app.post('/db/getEventByEventUri', getEventByEventUriController)
-app.get('/db/getDailyRecaps', getDailyRecapsController)
+app.post('/db/getDailyRecaps', getDailyRecapsController)
+app.get('/db/getDailyRecapButtons', getDailyRecapButtonsController)
 app.post('/db/getSourcesLogo', getSourcesLogoController)
 
 module.exports = app;

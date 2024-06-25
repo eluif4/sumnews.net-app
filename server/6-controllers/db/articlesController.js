@@ -6,7 +6,7 @@ const UTILS = path.join(__dirname, '../../2-utils')
 const DBUTILS = path.join(__dirname, '../../2-utils/db')
 const DatabaseAccess = path.join(DBUTILS, "/databaseAccess.js")
 const GetCollections = path.join(DBUTILS, "/getCollections.js")
-const { getArticlesFromDB, aggregate, getDailyRecap, getSourcesLogo, BM25 } = require(DatabaseAccess)
+const { getArticlesFromDB, aggregate, getDailyRecap, getDailyRecapButtons, getSourcesLogo, BM25 } = require(DatabaseAccess)
 const { getAllSources, getAllGenres } = require(GetCollections)
 const DailyRecap = path.join(UTILS, "/dailyRecaps.js")
 const { createDailyRecap } = require(DailyRecap)
@@ -166,30 +166,21 @@ async function createDailyRecapController(req, res) {
 
 async function getDailyRecapByIdController(req, res) {
     const uuid = req.body.uuid;
-    var filter = { "id": uuid }
-    const response = await getDailyRecap(filter);
+    // var filter = { "id": uuid }
+    const response = await getDailyRecap(uuid);
     const dr = response[0]
     res.send(dr)
 }
 
 async function getDailyRecapsController(req, res) {
-    const today = new Date();
-    today.setDate(today.getDate() + 1);
-    // const todayFormatted = today.toISOString().slice(0, 10) + 'T00:00:00Z';
-
-    const yesterday = new Date();
-    yesterday.setDate(yesterday.getDate() - 1);
-    // const yesterdayFormatted = yesterday.toISOString().slice(0, 10) + 'T00:00:00Z';
-
-    var filter = {
-        "dateCreated": {
-            "$gte": yesterday
-            // "$lt": today
-        }
-    };
-
-    var drs = await getDailyRecap(filter);
+    const uuid = req.body.uuid;
+    var drs = await getDailyRecap(uuid);
     res.send(drs);
+}
+
+async function getDailyRecapButtonsController(req, res) {
+    var drbs = await getDailyRecapButtons();
+    res.send(drbs)
 }
 
 async function getSourcesLogoController(req, res) {
@@ -209,6 +200,7 @@ module.exports = {
     getArticlesFromEventController,
     getArticlesFromDrEventController,
     createDailyRecapController,
+    getDailyRecapButtonsController,
     getDailyRecapByIdController,
     getDailyRecapsController,
     getSourcesLogoController,
