@@ -134,6 +134,16 @@ async function createDailyRecap(source) {
     }
 }
 
+async function deleteAllDailyRecaps() {
+    try {
+        await DailyRecap.deleteMany({})
+        console.log('Deleted all DailyRecaps')
+    } catch (err) {
+        console.error('Error deleting all DailyRecaps', err)
+    }
+}
+
 module.exports = {
-    createDailyRecap
+    createDailyRecap,
+    deleteAllDailyRecaps
 }
