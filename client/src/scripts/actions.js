@@ -1,7 +1,7 @@
 import router from '../router'
 import { config } from '../constants';
 import { goBack, showPopup } from './utility';
-import { PopupAttributes } from '../main';
+import { PopupAttributes, List } from '../main';
 
 const FRONTEND_URL = config.url.FRONTEND_URL
 const BACKEND_URL = config.url.BACKEND_URL
@@ -42,6 +42,7 @@ function bookmarkActionFunction() {
 }
 
 function fullCoverageActionFunction(article) {
+    List.articles = [];
     router.push(`/event/${article.eventUri}`)
 }
 
