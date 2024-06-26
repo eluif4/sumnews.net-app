@@ -5,7 +5,6 @@ import { config } from '../constants';
 import router from '../router';
 import DailyRecapItem from '../components/DailyRecap/DailyRecapItem.vue'
 import DailyRecapItemSkeleton from '../components/DailyRecap/DailyRecapItemSkeleton.vue';
-import { front_getArticlesFromDB } from '../scripts/utility';
 import { useRoute } from 'vue-router';
 
 const BACKEND_URL = config.url.BACKEND_URL;
@@ -20,14 +19,13 @@ const props = defineProps({
 
 // FUTURE CHANGE: GET THESE VALUES FROM THE URL
 const dailyrecap = ref();
-const dailyrecapUUIDRef = ref(props.dailyrecapUUID);
 const drUriRef = ref(props.drUri);
 const articleUUIDRef = ref(props.articleUUID);
 const currentArticle = ref(null) // Current article with relation to the uuid in the URL
 const tempDailyRecapSkeleton = ref([{}, {}, {}])
 
 const dynamicGap = computed(() => {
-    const articleCount = dailyrecap.value?.events[currentEventIndex.value].eventArticles.length;
+    const articleCount = dailyrecap.value?.drEvents[currentEventIndex.value].articles.length;
     const maxGap = 10; // Maximum gap in pixels
     const minGap = 3;  // Minimum gap in pixels
     const gap = Math.max(minGap, maxGap - (articleCount - 1));
@@ -40,55 +38,17 @@ const endX = ref(0);
 
 // COMPUTED PROPERTIES
 const currentEventIndex = computed(() => {
-    return dailyrecap.value?.events.findIndex(event => event.drUri === drUriRef.value);
+    return dailyrecap.value?.drEvents.findIndex(event => event.drUri === drUriRef.value);
 });
 
 const currentArticleIndex = computed(() => {
-    // return dailyrecap.value?.events[currentEventIndex].flatMap(event => event.eventArticles).findIndex(article => article.uuid === articleUUIDRef.value);
-    return dailyrecap.value?.events[currentEventIndex.value].eventArticles.findIndex(article => article.uuid === props.articleUUID);
+    return dailyrecap.value?.drEvents[currentEventIndex.value].articles.findIndex(article => article.uuid === props.articleUUID);
 })
-
-// FUNCTIONS
-const fetchEventByUri = async (eventUri) => {
-    var response = await fetch(`${BACKEND_URL}db/getArticlesFromEvent`, {
-        method: 'POST',
-        headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            "eventUri": eventUri,
-        })
-    });
-
-    if (!response.ok) {
-        throw new Error(`Failed to fetch event for URI: ${eventUri}`);
-    }
-    return await response.json();
-};
-
-const fetchDrEventBydrUri = async (drUri) => {
-    var response = await fetch(`${BACKEND_URL}db/getArticlesFromDrEvent`, {
-        method: 'POST',
-        headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            "drUri": drUri,
-        })
-    })
-
-    if (!response.ok) {
-        throw new Error(`Failed to fetch event for URI: ${drUri}`);
-    }
-    return await response.json();
-}
 
 // Fetching dailyRecap and event details
 const setDailyRecap = async (dailyrecapUUID) => {
     try {
-        var response = await fetch(`${BACKEND_URL}db/getDailyRecapById`, {
+        var response = await fetch(`${BACKEND_URL}db/getDailyRecaps`, {
             method: 'POST',
             headers: {
                 'Accept': 'application/json',
@@ -100,11 +60,8 @@ const setDailyRecap = async (dailyrecapUUID) => {
         });
 
         if (response.ok) {
-            var tempdailyrecap = await response.json();
-            const drEventsPromises = tempdailyrecap.drEvents.map(drUri => fetchDrEventBydrUri(drUri));
-            var drEventsObject = await Promise.all(drEventsPromises);
-            tempdailyrecap.events = drEventsObject;
-            dailyrecap.value = tempdailyrecap;
+            var dr = await response.json();
+            dailyrecap.value = dr;
         } else {
             throw new Error('Failed to fetch Daily Recap');
         }
@@ -121,15 +78,15 @@ async function handleClick(event) {
         if (articleIndex != 0)
             articleIndex--;
     } else { // else right
-        if (articleIndex != dailyrecap.value.events[currentEventIndex.value].eventArticles.length - 1)
+        if (articleIndex != dailyrecap.value.drEvents[currentEventIndex.value].articles.length - 1)
             articleIndex++
     }
 
     router.push({
         name: 'dailyrecap', params: {
             dailyrecapUUID: props.dailyrecapUUID,
-            drUri: dailyrecap.value.events[currentEventIndex.value].drUri,
-            articleUUID: dailyrecap.value.events[currentEventIndex.value].eventArticles[articleIndex].uuid,
+            drUri: dailyrecap.value.drEvents[currentEventIndex.value].drUri,
+            articleUUID: dailyrecap.value.drEvents[currentEventIndex.value].articles[articleIndex].uuid,
         }
     });
 }
@@ -143,7 +100,7 @@ const handleTouchMove = (event) => {
     const eventList = document.querySelector('.event-list');
     if (currentEventIndex.value == 0 && moveX > 0) {
         moveX = 0;
-    } else if (currentEventIndex.value == dailyrecap.value?.events.length - 1 && moveX < 0) {
+    } else if (currentEventIndex.value == dailyrecap.value?.drEvents.length - 1 && moveX < 0) {
         moveX = 0
     }
     // eventList.style.transform = `translateX(${moveX}px)`;
@@ -159,7 +116,7 @@ async function handleSlide() {
     var eventIndex = currentEventIndex.value;
     const eventList = document.querySelector('.event-list');
     if (Math.abs(deltaX) > SLIDE_THRESHOLD) {
-        if (deltaX > 0 && eventIndex < dailyrecap.value.events.length - 1) {
+        if (deltaX > 0 && eventIndex < dailyrecap.value.drEvents.length - 1) {
             eventIndex++
         } else if (deltaX < 0 && eventIndex > 0) {
             eventIndex--
@@ -168,8 +125,8 @@ async function handleSlide() {
         const newTranslateX = -currentEventIndex.value * 100;
         // eventList.style.transform = `translateX(${newTranslateX}%)`;
 
-        drUriRef.value = dailyrecap.value.events[eventIndex].drUri;
-        articleUUIDRef.value = dailyrecap.value.events[eventIndex].eventArticles[0].uuid;
+        drUriRef.value = dailyrecap.value.drEvents[eventIndex].drUri;
+        articleUUIDRef.value = dailyrecap.value.drEvents[eventIndex].articles[0].uuid;
         router.push({
             name: 'dailyrecap', params: {
                 dailyrecapUUID: props.dailyrecapUUID,
@@ -183,7 +140,7 @@ async function handleSlide() {
 onMounted(async () => { // and on route change
     await setDailyRecap(props.dailyrecapUUID);
     // const response = await front_getArticlesFromDB({ uuid: props.articleUUID })
-    var article = dailyrecap?.value.events[currentEventIndex.value].eventArticles[currentArticleIndex.value]
+    var article = dailyrecap?.value.drEvents[currentEventIndex.value].articles[currentArticleIndex.value]
     currentArticle.value = article;
 });
 
@@ -191,7 +148,7 @@ watch(
     () => route.params.articleUUID,
     async (newuuid) => {
         if (newuuid) {
-            var article = dailyrecap?.value.events[currentEventIndex.value].eventArticles[currentArticleIndex.value]
+            var article = dailyrecap?.value.drEvents[currentEventIndex.value].articles[currentArticleIndex.value]
             if (article) {
                 // Setup inital dailyrecap values
                 drUriRef.value = route.params.drUri;
@@ -206,17 +163,20 @@ watch(
 
 <template>
     <div class="dailyrecap-container" @click="handleClick" @touchstart="handleTouchStart" @touchmove="handleTouchMove"
-        @touchend="handleTouchEnd" v-if="dailyrecap">
+        @touchend="handleTouchEnd">
         <!-- HEADER SECTION WITH ALL THE INFORMATION AND BACK BUTTON -->
         <div class="info-header">
             <div class="first">
                 <div class="left">
-                    <p class="title">{{ dailyrecap.source == 'sumnews.net' ? 'Your Daily Recap' : `${dailyrecap.source}'s Daily Recap`}}</p>
+                    <p class="title" v-if="dailyrecap">{{ dailyrecap.source == 'sumnews.net' ? 'Your Daily Recap' :
+        `${dailyrecap.source}'s Daily Recap` }}</p>
+                    <p class="title skeleton h-4 w-48" v-else></p>
                 </div>
                 <div class="right">
-                    <p class="article-count">{{ currentArticleIndex + 1 }} / {{
-            dailyrecap.events[currentEventIndex].eventArticles.length }} Articles
+                    <p class="article-count" v-if="dailyrecap">{{ currentArticleIndex + 1 }} / {{
+        dailyrecap.drEvents[currentEventIndex].articles.length }} Articles
                     </p>
+                    <p class="article-count skeleton h-4 w-16" v-else></p>
                     <router-link to="/" @click.stop>
                         <svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 19 19" fill="none">
                             <path
@@ -227,38 +187,47 @@ watch(
                 </div>
             </div>
             <div class="second count" :style="{ 'gap': dynamicGap + 'px' }">
-                <div class="bubble" v-for="(_, index) in dailyrecap.events[currentEventIndex].eventArticles.length"
-                    :key="index" :class="{ 'active': index <= currentArticleIndex }">
+                <div class="bubble" v-for="(_, index) in dailyrecap.drEvents[currentEventIndex].articles.length"
+                    :key="index" :class="{ 'active': index <= currentArticleIndex }" v-if="dailyrecap">
                 </div>
             </div>
         </div>
 
         <!-- EVENTS AND ARTICLES -->
         <div class="event-list">
-            <div class="event" v-for="(event, index) in dailyrecap.events" :key="event.drUri">
-                <!-- {{ event.eventArticles.length }} -->
+            <div class="event" v-for="(event, index) in dailyrecap.drEvents" :key="event.drUri" v-if="dailyrecap">
+                <!-- {{ event.articles.length }} -->
                 <div class="article-list">
-                    <div class="article" v-for="eventArticle in dailyrecap.events[currentEventIndex].eventArticles"
+                    <div class="article" v-for="eventArticle in dailyrecap.drEvents[currentEventIndex].articles"
                         :key="eventArticle.id" v-if="currentArticle">
                         <!-- FUTURE CHANGE: WHILE THE REQUESTS LOAD PLACE SKELETONS -->
-                        <DailyRecapItemSkeleton v-if="!dailyrecap"></DailyRecapItemSkeleton>
-                        <DailyRecapItem :article="currentArticle" v-else-if="currentArticle.uuid == articleUUIDRef">
+                        <DailyRecapItem :article="currentArticle" v-if="currentArticle.uuid == articleUUIDRef">
                         </DailyRecapItem>
                         <!-- <DailyRecapItem :article="eventArticle" v-else></DailyRecapItem> -->
                     </div>
                 </div>
-                <!-- <DailyRecapItem v-else :article="event.eventArticles[0]"></DailyRecapItem> -->
+                <!-- <DailyRecapItem v-else :article="event.articles[0]"></DailyRecapItem> -->
+            </div>
+            <div class="event" v-else>
+                <div class="article-list">
+                    <div class="article">
+                        <DailyRecapItemSkeleton v-if="!dailyrecap"></DailyRecapItemSkeleton>
+                    </div>
+                </div>
             </div>
         </div>
 
         <!-- FOOTER SECTION -->
         <div class="myfooter">
-            <div class="count-container" v-if="dailyrecap">
-                <p class="event-count">{{ currentEventIndex + 1 }} / {{ dailyrecap.events.length }} Events</p>
+            <div class="count-container">
+                <p class="event-count" v-if="dailyrecap">{{ currentEventIndex + 1 }} / {{ dailyrecap.drEvents.length }}
+                    Events</p>
+                <p class="event-count skeleton h-4 w-32" v-else></p>
             </div>
             <div class="bubble-container" v-if="dailyrecap">
-                <div class="event-counter dot" v-for="(event, index) in dailyrecap.events"
-                    :class="{ 'active-dot': index == currentEventIndex }"></div>
+                <div class="event-counter dot" v-for="(event, index) in dailyrecap.drEvents"
+                    :class="{ 'active-dot': index == currentEventIndex }">
+                </div>
             </div>
         </div>
     </div>
@@ -376,6 +345,7 @@ watch(
     flex-direction: column;
     justify-content: space-evenly;
     backdrop-filter: blur(4px);
+    align-items: center;
 }
 
 .count {
@@ -421,5 +391,9 @@ watch(
     height: 20px;
     border: 2px solid black;
     background-color: var(--main-color);
+}
+
+.skeleton {
+    background-color: #e5e6e6;
 }
 </style>

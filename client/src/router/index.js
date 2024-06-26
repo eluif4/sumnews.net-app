@@ -31,6 +31,7 @@ const routes = [
             const isFromArticlePath = from.fullPath.includes('/article');
             const isFromFilterPath = from.fullPath.includes('/filter');
             const isFromHomePath = (from.fullPath == '/');
+            const isFromDailyRecap = (from.fullPath.includes('/dailyrecap'))
             const sourcesInLocalStorage = localStorage.getItem('sources');
             const genresInLocalStorage = localStorage.getItem('genres');
 
@@ -41,7 +42,8 @@ const routes = [
             if (
                 (isFromArticlePath && List.articles.length === 0) ||
                 (isFromFilterPath && isLocalStorageEmpty) ||
-                (isFromHomePath && List.articles.length === 0)
+                (isFromHomePath && List.articles.length === 0) ||
+                (isFromDailyRecap)
             ) {
                 List.articles = []
                 front_getArticlesFromDB()
@@ -124,9 +126,9 @@ const routes = [
         }
     },
     {
-        path: '/event/:eventUri', 
-        name: 'fullCoverage', 
-        component: Home, 
+        path: '/event/:eventUri',
+        name: 'fullCoverage',
+        component: Home,
         props: false,
         beforeEnter: async (to, from) => {
             if (!from.path.includes('/article')) {

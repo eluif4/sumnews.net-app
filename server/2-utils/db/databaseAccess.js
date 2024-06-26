@@ -224,11 +224,122 @@ async function getEventByEventUri(eventUri) {
 }
 
 // ----- DAILY RECAP -----
-async function getDailyRecap(filter, sort = { "dateCreated": 1 }) {
+async function getDailyRecap(id) {
+    const match = {
+        '$match': {
+            id: id
+        }
+    }
+
+    const pipeline = [
+        {
+            '$unwind': {
+                'path': '$drEvents',
+                'preserveNullAndEmptyArrays': false
+            }
+        }, {
+            '$lookup': {
+                'from': 'articles',
+                'localField': 'drEvents',
+                'foreignField': 'drUri',
+                'as': 'eventArticles'
+            }
+        }, {
+            '$lookup': {
+                'from': 'sources',
+                'localField': 'source',
+                'foreignField': 'source',
+                'as': 'sourceDetails'
+            }
+        }, {
+            '$unwind': {
+                'path': '$sourceDetails',
+                'preserveNullAndEmptyArrays': true
+            }
+        }, { // FUTURE CHANGE: No need to retrieve sourceLogo here too
+            '$group': {
+                '_id': '$_id',
+                'source': {
+                    '$first': '$source'
+                },
+                'sourceLogo': {
+                    '$first': '$sourceDetails.logo'
+                },
+                'dateCreated': {
+                    '$first': '$dateCreated'
+                },
+                'drEvents': {
+                    '$push': {
+                        'drUri': '$drEvents',
+                        'articles': '$eventArticles'
+                    }
+                }
+            }
+        }, {
+            '$project': {
+                '_id': 1,
+                'source': 1,
+                'dateCreated': 1,
+                'drEvents': 1,
+                'sourceLogo': 1
+            }
+        }
+    ]
+
+    if (id) {
+        pipeline.unshift(match);
+    }
     try {
-        return await DailyRecap.find(filter).sort(sort)
+        var dailyrecap = await DailyRecap.aggregate(pipeline);
+        return dailyrecap[0];
     } catch (error) {
-        console.error('Error fetching DailyRecaps: ', error)
+        console.error('ERROR: Fetching DailyRecaps: ', error)
+        throw error;
+    }
+}
+
+async function getDailyRecapButtons() {
+    const pipeline = [
+        {
+            $lookup: {
+                from: "sources",
+                localField: "source",
+                foreignField: "source",
+                as: "sourceDetails"
+            }
+        },
+        {
+            $lookup:
+            {
+                from: "articles",
+                localField: "drEvents.0",
+                foreignField: "drUri",
+                as: "article"
+            }
+        },
+        {
+            $project: {
+                _id: 1,
+                id: 1,
+                source: 1,
+                sourceLogo: {
+                    $arrayElemAt: ["$sourceDetails.logo", 0]
+                },
+                drUri: {
+                    $arrayElemAt: ["$article.drUri", 0]
+                },
+                articleuuid: {
+                    $arrayElemAt: ["$article.uuid", 0]
+                },
+                dateCreated: 1
+            }
+        }
+    ]
+
+    try {
+        return await DailyRecap.aggregate(pipeline);
+    } catch (error) {
+        console.error('ERROR: Fetching DailyRecapButtons: ', error)
         throw error;
     }
 }
@@ -250,4 +361,5 @@ module.exports = {
     getEvents,
     getEventByEventUri,
     getDailyRecap,
+    getDailyRecapButtons,
 };

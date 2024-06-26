@@ -21,6 +21,7 @@ import DailyRecapButtonSkeleton from '../components/DailyRecap/DailyRecapButtonS
 var skeletonArticles = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 var tempDailyRecapButtons = ref([{}, {}, {}, {}, {}, {}, {}, {}, {}, {}])
 var dailyRecapButtons = ref([]);
+var hasFetchedDailyRecapFinished = ref(false)
 
 function existsInFeed(insertArticle) {
     for (const article of List.articles) { // Loop over articles in dom (feed)
@@ -87,30 +88,31 @@ async function scrollHandler(event) {
 async function setDailyRecapButtons() {
     try {
         // Gets most recent daily recaps
-        var response = await fetch(`${BACKEND_URL}db/getDailyRecaps`)
+        var response = await fetch(`${BACKEND_URL}db/getDailyRecapButtons`)
         // For every source call a get source endpoint and get the source logo. Place it in the dailyrecap object
         var dailyRecaps = await response.json()
-        const dailyrecapsSources = dailyRecaps.map(dailyrecap => dailyrecap.source);
-        var response = await fetch(`${BACKEND_URL}db/getSourcesLogo`, {
-            method: 'POST',
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                sources: dailyrecapsSources
-            })
-        })
-        var sourceLogos = await response.json();
-        for (const [index, dailyrecap] of dailyRecaps.entries()) {
-            if (dailyrecap.source === 'sumnews.net') {
-                dailyrecap.sourceLogo = SumnewsLogo;
-            }
-            else
-                dailyrecap.sourceLogo = sourceLogos[index].logo
-        }
+        // const dailyrecapsSources = dailyRecaps.map(dailyrecap => dailyrecap.source);
+        // var response = await fetch(`${BACKEND_URL}db/getSourcesLogo`, {
+        //     method: 'POST',
+        //     headers: {
+        //         'Accept': 'application/json',
+        //         'Content-Type': 'application/json'
+        //     },
+        //     body: JSON.stringify({
+        //         sources: dailyrecapsSources
+        //     })
+        // })
+        // var sourceLogos = await response.json();
+        // for (const [index, dailyrecap] of dailyRecaps.entries()) {
+        //     if (dailyrecap.source === 'sumnews.net') {
+        //         dailyrecap.sourceLogo = SumnewsLogo;
+        //     }
+        //     else
+        //         dailyrecap.sourceLogo = sourceLogos[index].logo
+        // }
 
         dailyRecapButtons.value = dailyRecaps;
+        hasFetchedDailyRecapFinished.value = true
     } catch (error) {
         console.error(`Failed to fetch Daily Recaps`)
     }
@@ -126,7 +128,8 @@ onMounted(() => {
 <template>
     <Header />
     <div class="drcontainer">
-        <DailyRecapButtonSkeleton v-for="dritem in tempDailyRecapButtons" :dr="dritem" v-if="dailyRecapButtons.length === 0" />
+        <DailyRecapButtonSkeleton v-for="dritem in tempDailyRecapButtons" :dr="dritem"
+            v-if="dailyRecapButtons.length === 0 && !hasFetchedDailyRecapFinished" />
         <DailyRecapButton v-for="dritem in dailyRecapButtons" :key="dritem.id" :dr="dritem" v-else />
     </div>
     <div class="app-container"

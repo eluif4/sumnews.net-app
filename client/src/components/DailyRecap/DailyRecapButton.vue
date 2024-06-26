@@ -13,9 +13,7 @@ const props = defineProps({
     },
 });
 
-const { source, sourceLogo, id } = props.dr;
-
-// FUTURE CHANGE: RETRIEVE SOURCELOGO FROM DB USING AGGREGATION
+const { source, sourceLogo, id, drUri, articleuuid } = props.dr;
 
 // FUNCTIONS
 const fetchEventByUri = async (eventUri) => {
@@ -57,7 +55,7 @@ const fetchDrEventBydrUri = async (drUri) => {
 // Fetching dailyRecap and event details
 const fetchDailyRecap = async (id) => {
     try {
-        var response = await fetch(`${BACKEND_URL}db/getDailyRecapById`, {
+        var response = await fetch(`${BACKEND_URL}db/getDailyRecaps`, {
             method: 'POST',
             headers: {
                 'Accept': 'application/json',
@@ -69,11 +67,12 @@ const fetchDailyRecap = async (id) => {
         });
 
         if (response.ok) {
-            var tempdailyrecap = await response.json();
-            const drEventsPromises = tempdailyrecap.drEvents.map(drUri => fetchDrEventBydrUri(drUri));
-            var drEventsObject = await Promise.all(drEventsPromises);
-            tempdailyrecap.events = drEventsObject;
-            return tempdailyrecap;
+            var dailyRecap = await response.json();
+            return dailyRecap;
+            // const drEventsPromises = tempdailyrecap.drEvents.map(drUri => fetchDrEventBydrUri(drUri));
+            // var drEventsObject = await Promise.all(drEventsPromises);
+            // tempdailyrecap.events = drEventsObject;
+            // return tempdailyrecap;
         } else {
             throw new Error('Failed to fetch Daily Recap');
         }
@@ -83,20 +82,27 @@ const fetchDailyRecap = async (id) => {
 };
 
 // Redirect the user to the correct URI after finding out the first article uuid
-async function renderDailyRecap(id) {
-    const dailyrecap = await fetchDailyRecap(id)
+async function renderDailyRecap(id, drUri, articleuuid) {
+    // const dailyrecap = await fetchDailyRecap(id)
+    // router.push({
+    //     name: 'dailyrecap', params: {
+    //         dailyrecapUUID: id,
+    //         drUri: dailyrecap.drEvents[0].drUri,
+    //         articleUUID: dailyrecap.drEvents[0].articles[0].uuid,
+    //     }
+    // });
     router.push({
         name: 'dailyrecap', params: {
             dailyrecapUUID: id,
-            drUri: dailyrecap.events[0].drUri,
-            articleUUID: dailyrecap.events[0].eventArticles[0].uuid,
+            drUri: drUri,
+            articleUUID: articleuuid,
         }
-    });
+    })
 }
 </script>
 
 <template>
-    <button class="mycontainer" @click="renderDailyRecap(id)">
+    <button class="mycontainer" @click="renderDailyRecap(props.dr.id, props.dr.drUri, props.dr.articleuuid)">
         <div class="dailyrecap">
             <img class="logo" :alt="source" :src="'data:image/jpeg;base64,' + sourceLogo"
                 v-if="source != 'sumnews.net'">
