@@ -47,7 +47,7 @@ app.use(express.static(path.join(__dirname, 'dist')));
 
 // Catch-all route to handle client-side routing
 app.get('privacy-policy', (req, res) => {
-    res.sendFile(path.join(__dirname, 'dist', '/server/privacy-policy.html'));
+    res.sendFile(path.join(__dirname, 'dist', '/privacy-policy.html'));
 });
 
 app.listen(port, function () {
