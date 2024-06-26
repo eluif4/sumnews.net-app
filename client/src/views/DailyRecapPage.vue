@@ -163,18 +163,20 @@ watch(
 
 <template>
     <div class="dailyrecap-container" @click="handleClick" @touchstart="handleTouchStart" @touchmove="handleTouchMove"
-        @touchend="handleTouchEnd" v-if="dailyrecap">
+        @touchend="handleTouchEnd">
         <!-- HEADER SECTION WITH ALL THE INFORMATION AND BACK BUTTON -->
         <div class="info-header">
             <div class="first">
                 <div class="left">
-                    <p class="title">{{ dailyrecap.source == 'sumnews.net' ? 'Your Daily Recap' :
-            `${dailyrecap.source}'s Daily Recap` }}</p>
+                    <p class="title" v-if="dailyrecap">{{ dailyrecap.source == 'sumnews.net' ? 'Your Daily Recap' :
+        `${dailyrecap.source}'s Daily Recap` }}</p>
+                    <p class="title skeleton h-4 w-48" v-else></p>
                 </div>
                 <div class="right">
-                    <p class="article-count">{{ currentArticleIndex + 1 }} / {{
-            dailyrecap.drEvents[currentEventIndex].articles.length }} Articles
+                    <p class="article-count" v-if="dailyrecap">{{ currentArticleIndex + 1 }} / {{
+        dailyrecap.drEvents[currentEventIndex].articles.length }} Articles
                     </p>
+                    <p class="article-count skeleton h-4 w-16" v-else></p>
                     <router-link to="/" @click.stop>
                         <svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 19 19" fill="none">
                             <path
@@ -186,37 +188,46 @@ watch(
             </div>
             <div class="second count" :style="{ 'gap': dynamicGap + 'px' }">
                 <div class="bubble" v-for="(_, index) in dailyrecap.drEvents[currentEventIndex].articles.length"
-                    :key="index" :class="{ 'active': index <= currentArticleIndex }">
+                    :key="index" :class="{ 'active': index <= currentArticleIndex }" v-if="dailyrecap">
                 </div>
             </div>
         </div>
 
         <!-- EVENTS AND ARTICLES -->
         <div class="event-list">
-            <div class="event" v-for="(event, index) in dailyrecap.drEvents" :key="event.drUri">
+            <div class="event" v-for="(event, index) in dailyrecap.drEvents" :key="event.drUri" v-if="dailyrecap">
                 <!-- {{ event.articles.length }} -->
                 <div class="article-list">
                     <div class="article" v-for="eventArticle in dailyrecap.drEvents[currentEventIndex].articles"
                         :key="eventArticle.id" v-if="currentArticle">
                         <!-- FUTURE CHANGE: WHILE THE REQUESTS LOAD PLACE SKELETONS -->
-                        <DailyRecapItemSkeleton v-if="!dailyrecap"></DailyRecapItemSkeleton>
-                        <DailyRecapItem :article="currentArticle" v-else-if="currentArticle.uuid == articleUUIDRef">
+                        <DailyRecapItem :article="currentArticle" v-if="currentArticle.uuid == articleUUIDRef">
                         </DailyRecapItem>
                         <!-- <DailyRecapItem :article="eventArticle" v-else></DailyRecapItem> -->
                     </div>
                 </div>
                 <!-- <DailyRecapItem v-else :article="event.articles[0]"></DailyRecapItem> -->
             </div>
+            <div class="event" v-else>
+                <div class="article-list">
+                    <div class="article">
+                        <DailyRecapItemSkeleton v-if="!dailyrecap"></DailyRecapItemSkeleton>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- FOOTER SECTION -->
         <div class="myfooter">
-            <div class="count-container" v-if="dailyrecap">
-                <p class="event-count">{{ currentEventIndex + 1 }} / {{ dailyrecap.drEvents.length }} Events</p>
+            <div class="count-container">
+                <p class="event-count" v-if="dailyrecap">{{ currentEventIndex + 1 }} / {{ dailyrecap.drEvents.length }}
+                    Events</p>
+                <p class="event-count skeleton h-4 w-32" v-else></p>
             </div>
             <div class="bubble-container" v-if="dailyrecap">
                 <div class="event-counter dot" v-for="(event, index) in dailyrecap.drEvents"
-                    :class="{ 'active-dot': index == currentEventIndex }"></div>
+                    :class="{ 'active-dot': index == currentEventIndex }">
+                </div>
             </div>
         </div>
     </div>
@@ -334,6 +345,7 @@ watch(
     flex-direction: column;
     justify-content: space-evenly;
     backdrop-filter: blur(4px);
+    align-items: center;
 }
 
 .count {
@@ -379,5 +391,9 @@ watch(
     height: 20px;
     border: 2px solid black;
     background-color: var(--main-color);
+}
+
+.skeleton {
+    background-color: #e5e6e6;
 }
 </style>
