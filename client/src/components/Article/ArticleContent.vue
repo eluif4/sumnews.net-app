@@ -162,9 +162,8 @@ const handleTransitionEnd = () => {
     <div class="article-container" :style="{ transform: `translateY(${translateY}px)` }"
         @transitionend="handleTransitionEnd">
         <!-- IMAGE, SHADER AND ACTIONS -->
-        <div class="image-container" @touchstart="handleTouchStart" @touchmove="handleTouchMove"
-            @touchend="handleTouchEnd">
-            <div class="close-bar"></div>
+        <div class="image-container">
+            <div class="close-bar" @click="goBack"></div>
             <div class="actions">
                 <ActionItem :action="shareAction" :article="articleRef.value"></ActionItem>
                 <!-- <ActionItem :action="bookmarkAction"></ActionItem> -->
@@ -173,12 +172,14 @@ const handleTransitionEnd = () => {
                 <ActionItem :action="backAction" :article="articleRef" class="backAction"></ActionItem>
             </div>
 
-            <!-- FUTURE CHANGE: if image isnt able to load because of network error -->
-            <img v-if="articleRef.imageUrl" :src="articleRef.imageUrl"
-                alt="Sorry :( It seems like the article image was unable to load" class="article-image">
-            <!-- <img v-else src="../assets/icons/sumnews.net.png"
+            <div @touchstart="handleTouchStart" @touchmove="handleTouchMove" @touchend="handleTouchEnd">
+                <!-- FUTURE CHANGE: if image isnt able to load because of network error -->
+                <img v-if="articleRef.imageUrl" :src="articleRef.imageUrl"
+                    alt="Sorry :( It seems like the article image was unable to load" class="article-image">
+                <!-- <img v-else src="../assets/icons/sumnews.net.png"
                 alt="Sorry :( It seems like the article image was unable to load" class="article-image"> -->
-            <div class="shader"></div>
+                <div class="shader"></div>
+            </div>
         </div>
         <div class="content-container" id="content-container">
             <!-- ARTICLE TITLE -->
@@ -438,7 +439,7 @@ const handleTransitionEnd = () => {
     position: absolute;
     top: 10px;
     right: calc((100% - 30%) / 2);
-    z-index: 100;
+    z-index: 1000;
     border-radius: 10px;
 }
 

@@ -131,7 +131,7 @@ const routes = [
         component: Home,
         props: false,
         beforeEnter: async (to, from) => {
-            if (!from.path.includes('/article')) {
+            if (!from.path.includes('/article') || List.articles.length === 0) {
                 try {
                     List.articles = [];
                     const scrollElement = document.getElementById('article-stack');
