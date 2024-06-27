@@ -31,7 +31,8 @@ const routes = [
             const isFromArticlePath = from.fullPath.includes('/article');
             const isFromFilterPath = from.fullPath.includes('/filter');
             const isFromHomePath = (from.fullPath == '/');
-            const isFromDailyRecap = (from.fullPath.includes('/dailyrecap'))
+            const isFromDailyRecapPath = (from.fullPath.includes('/dailyrecap'))
+            const isFromAccountPath = (from.fullPath.includes('/account'))
             const sourcesInLocalStorage = localStorage.getItem('sources');
             const genresInLocalStorage = localStorage.getItem('genres');
 
@@ -43,7 +44,8 @@ const routes = [
                 (isFromArticlePath && List.articles.length === 0) ||
                 (isFromFilterPath && isLocalStorageEmpty) ||
                 (isFromHomePath && List.articles.length === 0) ||
-                (isFromDailyRecap)
+                (isFromDailyRecapPath) ||
+                (isFromAccountPath)
             ) {
                 List.articles = []
                 front_getArticlesFromDB()
