@@ -12,7 +12,7 @@ const installPWA = async () => {
         } else {
             console.log('PWA installation declined');
         }
-        installPrompt = null; // Clear the saved prompt
+        installPrompt.value = null; // Clear the saved prompt
         showPWA.value = false; // Hide the install button
     }
 };
