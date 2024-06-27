@@ -289,6 +289,10 @@ onMounted(() => {
     padding: 10px 0;
     gap: 10px;
 }
+
+.summarized-content {
+    color: white
+}
 </style>
 
 <style>
@@ -318,4 +322,6 @@ onMounted(() => {
 .authorsAndDate div {
     font-size: 12px !important;
 }
+
+
 </style>

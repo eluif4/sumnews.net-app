@@ -1,31 +1,13 @@
-<script setup>
-import { ref, watch, computed } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-
-const route = useRoute()
-const router = useRouter()
-const componentKey = ref(true)
-const isNavigatingForward = ref(true)
-
-// Watch the route path to toggle the component key and determine the navigation direction
-watch(() => route.path, (newPath, oldPath) => {
-    componentKey.value = !componentKey.value
-    const toDepth = newPath.split('/').length
-    const fromDepth = oldPath.split('/').length
-    isNavigatingForward.value = toDepth > fromDepth
-})
-</script>
-
-
 <template>
-    <!-- Use conditional class binding for transition name -->
-    <transition :name="isNavigatingForward ? 'slide-right' : 'slide-left'" mode="out-in">
-        <router-view :key="componentKey.value"></router-view>
-    </transition>
+    <!-- <transition :name="transitionName" mode="out-in"> -->
+    <router-view></router-view>
+    <!-- </transition> -->
+
     <!-- Additional transitions as needed -->
     <transition name="slideupdown" mode="out-in">
         <router-view name="additional"></router-view>
     </transition>
+
     <transition name="fade">
         <router-view name="backdrop"></router-view>
     </transition>
@@ -33,29 +15,6 @@ watch(() => route.path, (newPath, oldPath) => {
 
 
 <style scoped>
-.slide-right-enter-active,
-.slide-right-leave-active,
-.slide-left-enter-active,
-.slide-left-leave-active {
-    transition: transform 0.5s ease;
-}
-
-.slide-right-enter-from {
-    transform: translateX(100%);
-}
-
-.slide-right-leave-to {
-    transform: translateX(-100%);
-}
-
-.slide-left-enter-from {
-    transform: translateX(-100%);
-}
-
-.slide-left-leave-to {
-    transform: translateX(100%);
-}
-
 .slideupdown-enter-active,
 .slideupdown-leave-active,
 .slideupdown-in-bottom {
@@ -77,6 +36,7 @@ watch(() => route.path, (newPath, oldPath) => {
 .fade-leave-to {
     opacity: 0;
 }
+
 
 @keyframes slide-in-bottom {
     0% {

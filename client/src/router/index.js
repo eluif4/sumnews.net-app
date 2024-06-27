@@ -26,7 +26,7 @@ const routes = [
         path: '/',
         component: Home,
         name: 'home',
-        reload: false,
+        // reload: false,
         beforeEnter: async (to, from, next) => {
             const isFromArticlePath = from.fullPath.includes('/article');
             const isFromFilterPath = from.fullPath.includes('/filter');
@@ -44,7 +44,6 @@ const routes = [
                 (isFromArticlePath && List.articles.length === 0) ||
                 (isFromFilterPath && isLocalStorageEmpty) ||
                 (isFromHomePath && List.articles.length === 0) ||
-                (isFromDailyRecapPath) ||
                 (isFromAccountPath)
             ) {
                 List.articles = []
@@ -196,10 +195,10 @@ const routes = [
         path: '/account',
         name: 'account',
         component: AccountPage,
-        meta: {
-            enterClass: "slide-in-bottom",
-            leaveClass: "slide-out-bottom",
-        }
+        // meta: {
+        //     enterClass: "slide-in-bottom",
+        //     leaveClass: "slide-out-bottom",
+        // }
     },
     {
         path: '/account/about',

@@ -155,7 +155,7 @@ const handleTouchEnd = (e) => {
         @touchend="handleTouchEnd">
 
         <!-- FUTURE CHANGE: FIX THIS SO THAT ITS BEHIND THE ARTICLE INSTANCE -->
-        <ArticleSwipe :action="swipeAction" v-if="showSwipeAction" :style="{ width: `${Math.abs(translateX) + 10}px` }">
+        <ArticleSwipe :action="swipeAction" v-if="showSwipeAction" :style="{ width: `${Math.abs(translateX) + 10}px` }" :opacity="Math.abs(translateX) / 100 - 0.05">
         </ArticleSwipe>
 
         <img class="article-image" v-if="articleRef.imageUrl" :src="articleRef.imageUrl" alt="Article Image"

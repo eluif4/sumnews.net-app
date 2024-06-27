@@ -165,7 +165,7 @@ const handleTransitionEnd = () => {
         <div class="image-container">
             <div class="close-bar" @click="goBack"></div>
             <div class="actions">
-                <ActionItem :action="shareAction" :article="articleRef.value"></ActionItem>
+                <ActionItem :action="shareAction" :article="articleRef"></ActionItem>
                 <!-- <ActionItem :action="bookmarkAction"></ActionItem> -->
                 <ActionItem :action="fullCoverageAction" :article="articleRef" v-if="articleRef.eventUri"></ActionItem>
                 <!-- <ActionItem :action="dailyRecapAction" :article="articleRef" v-if="articleRef.drUri"></ActionItem> -->
@@ -294,13 +294,13 @@ const handleTransitionEnd = () => {
     background: rgb(0, 0, 0);
     background: linear-gradient(180deg, rgba(0, 0, 0, 0.8) 0%, rgba(255, 255, 255, 0) 60%);
     /* Adjust the alpha value for the desired opacity */
-    border-radius: 25px;
+    border-radius: 25px 25px 0 0;
     pointer-events: none;
     /* Allows clicks to pass through the overlay to the image */
 }
 
 .article-image {
-    border-radius: 25px;
+    border-radius: 25px 25px 0 0;
     min-height: calc(100vw * 9 / 20);
 }
 
