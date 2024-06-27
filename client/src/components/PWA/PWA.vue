@@ -1,14 +1,6 @@
 <script setup>
 import { ref } from 'vue'
-//https://developer.mozilla.org/en-US/docs/Web/Progressive_web_apps/How_to/Trigger_install_prompt
-const showPWA = ref(false)
-let installPrompt = null
-
-window.addEventListener("beforeinstallprompt", (event) => {
-    event.preventDefault()
-    installPrompt = event
-    showPWA.value = true
-});
+import { showPWA, installPrompt } from '../../main'
 
 // Method to handle the PWA installation
 const installPWA = async () => {

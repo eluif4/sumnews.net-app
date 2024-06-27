@@ -75,5 +75,15 @@ if ('serviceWorker' in navigator) {
   });
 }
 
+//https://developer.mozilla.org/en-US/docs/Web/Progressive_web_apps/How_to/Trigger_install_prompt
+export const showPWA = ref(false)
+export var installPrompt = null
+
+window.addEventListener("beforeinstallprompt", (event) => {
+  event.preventDefault()
+  installPrompt = event
+  showPWA.value = true
+});
+
 app.use(router);
 app.mount('#app');
