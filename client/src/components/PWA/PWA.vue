@@ -4,9 +4,9 @@ import { showPWA, installPrompt } from '../../main'
 
 // Method to handle the PWA installation
 const installPWA = async () => {
-    if (installPrompt) {
-        installPrompt.prompt(); // Show the install prompt
-        const { outcome } = await installPrompt.userChoice; // Wait for the user's response
+    if (installPrompt.value) {
+        installPrompt.value.prompt(); // Show the install prompt
+        const { outcome } = await installPrompt.value.userChoice; // Wait for the user's response
         if (outcome === 'accepted') {
             console.log('PWA installed');
         } else {
