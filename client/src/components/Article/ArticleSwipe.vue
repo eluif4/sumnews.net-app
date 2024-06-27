@@ -1,6 +1,6 @@
 <script setup>
 import { computed, watch } from 'vue'
-const props = defineProps({ action: Object })
+const props = defineProps({ action: Object, opacity: Number })
 
 // Access props directly to maintain reactivity
 const color = computed(() => props.action.color)
@@ -9,8 +9,8 @@ const direction = computed(() => props.action.direction)
 </script>
 
 <template>
-    <div class="swipe-container" :style="{ backgroundColor: color }" :class="direction">
-        <div class="svg-container" v-html="svg"></div>
+    <div class="swipe-container" :style="{ backgroundColor: color, opacity: props.opacity }" :class="direction">
+        <div class="svg-container" v-html="svg" :style="{ opacity: props.opacity }"></div>
     </div>
 </template>
 
@@ -25,7 +25,6 @@ const direction = computed(() => props.action.direction)
   position: absolute;
   top: 0;
   bottom: 0;
-  transition: transform 0.3s ease;
 }
 
 .right {
