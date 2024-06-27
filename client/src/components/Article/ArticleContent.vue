@@ -294,13 +294,13 @@ const handleTransitionEnd = () => {
     background: rgb(0, 0, 0);
     background: linear-gradient(180deg, rgba(0, 0, 0, 0.8) 0%, rgba(255, 255, 255, 0) 60%);
     /* Adjust the alpha value for the desired opacity */
-    border-radius: 25px;
+    border-radius: 25px 25px 0 0;
     pointer-events: none;
     /* Allows clicks to pass through the overlay to the image */
 }
 
 .article-image {
-    border-radius: 25px;
+    border-radius: 25px 25px 0 0;
     min-height: calc(100vw * 9 / 20);
 }
 
