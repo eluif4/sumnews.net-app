@@ -165,7 +165,7 @@ const handleTransitionEnd = () => {
         <div class="image-container">
             <div class="close-bar" @click="goBack"></div>
             <div class="actions">
-                <ActionItem :action="shareAction" :article="articleRef.value"></ActionItem>
+                <ActionItem :action="shareAction" :article="articleRef"></ActionItem>
                 <!-- <ActionItem :action="bookmarkAction"></ActionItem> -->
                 <ActionItem :action="fullCoverageAction" :article="articleRef" v-if="articleRef.eventUri"></ActionItem>
                 <!-- <ActionItem :action="dailyRecapAction" :article="articleRef" v-if="articleRef.drUri"></ActionItem> -->
