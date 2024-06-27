@@ -81,7 +81,7 @@ export const installPrompt = ref(null)
 
 window.addEventListener("beforeinstallprompt", (event) => {
   event.preventDefault()
-  installPrompt = event
+  installPrompt.value = event
   showPWA.value = true
 });
 
