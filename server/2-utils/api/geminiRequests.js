@@ -33,7 +33,7 @@ When writing the summary make sure to adhere to the FORMATTING FOUNDATIONS liste
     EXAMPLE: <quote>With great power comes great responsibility</quote>
 3. **CREATING LISTS**: Use <ol>, <ul> and <li> tags to format lists.
     EXAMPLE: Top 5 movies this year <ul> <li> The Matrix - The matrix is a great movie to watch </li> <li> LaLa Land - With its amazing colors and cinematography, the movies is great for an interesting night </li> </ul>
-4. **BOLDING**:  Bold using two asterisks around the word(s) (**).
+4. **BOLDING**:  Bold using two asterisks (**) around the word(s).
     EXAMPLES: President **Joe Biden** responded that he would be visiting **Paris** tomorrow to meet with **Emmanuel Macron**.
 5. **VOCABULARY ENHANCEMENT**: Enclose significant words in <vocab> tags.
     EXAMPLE: It is <vocab>paramount</vocab> to drink water on a sunny day.
