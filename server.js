@@ -53,7 +53,7 @@ const { articleQueue } = require('./server/2-utils/articleQueueHandler.js');
 //---RUN MAIN FUNCTION---
 async function cronTask() {
     // cron.schedule('*/60 * * * *', async () => {
-    if (false) {
+    if (true) {
         try {
             const date = new Date()
             console.log(kleur.bgBlue(`Task started @ ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`))
@@ -119,8 +119,8 @@ async function cronTask() {
 async function cronDailyRecap() {
     // CRON task runs at 18:00
     // cron.schedule('*/1 * * * *', async () => {
-    if (false) {
-        await deleteAllDailyRecaps();
+    if (true) {
+        // await deleteAllDailyRecaps();
         const response = await getAllSources()
         const sources = ['sumnews.net', ...response.map(source => source.source)];
         for (const source of sources) {
@@ -130,5 +130,9 @@ async function cronDailyRecap() {
     // })
 }
 
+app.get('/createDailyRecapCron', async (req, res) => {
+    await cronDailyRecap();
+})
+
 cronTask().catch(err => console.log(err))
-cronDailyRecap().catch(err => console.log(err))
+// cronDailyRecap().catch(err => console.log(err))

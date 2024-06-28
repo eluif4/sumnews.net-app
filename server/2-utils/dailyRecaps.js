@@ -14,12 +14,10 @@ const yesterdayFormatted = yesterday.toISOString().slice(0, 10) + 'T00:00:00Z';
 
 async function createDailyRecap(source) {
     console.log(`Creating Daily Recap for ${source}`)
-    // FUTURE CHANGE: USE getEvents function instead of this and limit to 5 objects. WILL SAVE LOTS OF TIME
-    // var events = await eventsSinceYesterdayByPopularity(); // events are sorted by articleCount descending
-    var filter = {
+    var filter = { // Dont need to call this if source isnt sumnews.net
         "dateCreated": {
             "$gte": yesterdayFormatted,
-            "$lt": todayFormatted
+            // "$lt": todayFormatted
         }
     }
 
@@ -27,13 +25,13 @@ async function createDailyRecap(source) {
     var events = await getEvents(filter, undefined, sort, 0, 5)
     var drEvents = [];
     if (source === 'sumnews.net') {
-
+        var eventUris = events.map(event => event.eventUri)
         var eventUris = events.slice(0, 5).map(event => event.eventUri) // Save only top 5 'events'
         for (const eventUri of eventUris) { // Loop over events
             let drUri = `${source}_${uuidv4()}` // Create drUri (using sumnews.net as source)
 
-            // let apiResponse = await getArticlesFromEvent(eventUri) // Get Event Articles (from api) i need from db
-            let articles = await getArticlesFromDB({ eventUri: eventUri }, undefined, { datePublished: -1 })
+            // Get Event Articles from DB
+            let articles = await getArticlesFromDB({ eventUri: eventUri }, undefined, { datePublished: -1 }, 0, 0) // FUTURE CHANGE: remove limit = 10
             for (const article of articles) { // Loop over articles: update drUri property to the new drUri value (sumnews.net-uuid)
                 try {
                     if (!article.drUri) {
@@ -60,26 +58,27 @@ async function createDailyRecap(source) {
             }
         }
     } else {
-        const yesterday = new Date();
-        yesterday.setDate(yesterday.getDate() - 1);
+        // const yesterday = new Date();
+        // yesterday.setDate(yesterday.getDate() - 1);
 
         var filter = { // Create mongondb Filter
             "source": source,
-            "datePublished": { "$gte": new Date(yesterday) }
+            "datePublished": { "$gte": yesterdayFormatted },
+            "drUri": null // Documents that dont have drUri
         }
 
         const sort = { // Create mongodb Sort
             content: -1
         }
 
-        // Articles can already have a drUri from a previous source example: {uuid: 'e41f9847-7a36-419b-8fde-8c2be6eef4f9'}
-        var articles = await getArticlesFromDB(filter, undefined, sort, 0, 5); // Array of 5 longest articles in db from past 24 hours
+        // Array of 5 longest articles in db from past 24 hours that dont have a drUri
+        var articles = await getArticlesFromDB(filter, undefined, sort, 0, 5);
         var sourceEventArticles = [];
         for (const article of articles) {
-            if (!article.drUri) {
+            // if (!article.drUri) {
                 let drUri = `${source}_${uuidv4()}` // Create drUri (using sumnews.net as source)
 
-                if (article.eventUri != null) { // If Article is part of an Event
+                if (article.eventUri != null) { // If Article is part of an Event ( I may need to check if articles in event have drUri)
                     filter = { "source": source, "eventUri": article.eventUri } // Create mongondb Filter
                     sourceEventArticles = await getArticlesFromDB(filter) // Get all Article in source with same eventUri
 
@@ -94,6 +93,7 @@ async function createDailyRecap(source) {
                 } else {
                     try {
                         const updatedArticle = await updateArticleByID(article._id, { drUri: drUri }, true) // Update Article with new drUri
+                        sourceEventArticles.push(updatedArticle) // Add updated articles to event to save in dailyrecap
                         console.log(`Article { uuid: ${updatedArticle.uuid} } has been updated succesfully`)
                     } catch (err) {
                         console.error('Error updating article:', err);
@@ -111,9 +111,11 @@ async function createDailyRecap(source) {
 
                     await saveDocument(drEvent);
                 }
-            }
+            // }
         }
     }
+    
+    await deleteDailyRecap({ source: source });
 
     const dr = new DailyRecap({
         id: uuidv4(),
@@ -125,7 +127,7 @@ async function createDailyRecap(source) {
     try {
         if (dr.drEvents.length > 0) {
             await saveDocument(dr)
-            console.log(`DailyRecap ${dr.id} was saved succesfully`)
+            console.log(`DailyRecap (${dr.source})${dr.id} was saved succesfully`)
         } else {
             console.log(`DailyRecap doesnt have any events and therefore wasnt saved to DB`)
         }
@@ -133,6 +135,26 @@ async function createDailyRecap(source) {
         console.error(`There was a problem saving DailyRecap ${dr.id}`)
     }
 }
+
+async function deleteDailyRecap(filter) {
+    // Delete a single DailyRecap document according to the param: filter passed
+    if (!filter || Object.keys(filter).length === 0) {
+        console.error("Error: Empty filter provided. No document will be deleted.");
+        return;
+    }
+
+    try {
+        const result = await DailyRecap.findOneAndDelete(filter);
+        if (result) {
+            console.log("Document deleted successfully:", result);
+        } else {
+            console.log("No document found matching the filter.");
+        }
+    } catch (err) {
+        console.error("Error deleting DailyRecap:", err);
+    }
+}
+
 
 async function deleteAllDailyRecaps() {
     try {
@@ -145,5 +167,6 @@ async function deleteAllDailyRecaps() {
 
 module.exports = {
     createDailyRecap,
-    deleteAllDailyRecaps
+    deleteAllDailyRecaps,
+    deleteDailyRecap
 }
