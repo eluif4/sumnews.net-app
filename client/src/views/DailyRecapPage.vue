@@ -282,7 +282,7 @@ watch(
 }
 
 .event-list {
-    width: 100%;
+    width: 100vw;
     height: 100%;
     overflow-y: hidden;
     overflow-x: hidden;
@@ -294,9 +294,9 @@ watch(
 
 .event {
     height: 100%;
+    width: 100%;
     display: flex;
     flex-direction: column;
-    width: 100%;
     overflow-x: auto;
     overflow-y: hidden;
     margin-bottom: 20px;
@@ -315,6 +315,7 @@ watch(
 
 .article-list {
     height: 100%;
+    width: 100%;
     overflow-y: hidden;
     overflow-x: auto;
     display: flex;
@@ -324,7 +325,7 @@ watch(
 
 .article {
     height: 100%;
-    width: 100vh;
+    width: 100%;
 }
 
 .myfooter {
