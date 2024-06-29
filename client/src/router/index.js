@@ -44,7 +44,7 @@ const routes = [
                 (isFromArticlePath && List.articles.length === 0) ||
                 (isFromFilterPath && isLocalStorageEmpty) ||
                 (isFromHomePath && List.articles.length === 0) ||
-                (isFromAccountPath) ||
+                (isFromAccountPath && List.articles.length === 0) ||
                 (isFromDailyRecapPath && List.articles.length === 0)
             ) {
                 List.articles = []
