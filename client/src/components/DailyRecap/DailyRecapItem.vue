@@ -1,7 +1,11 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
+import { backAction, fullCoverageAction, shareAction } from '../../scripts/actions';
+import ActionItem from '../Action/ActionItem.vue';
+// import sumnewsbanner from '../../assets/icons/sumnews.net_banner.png';
+const props = defineProps({ article: Object, dailyrecap: Object });
 
-const props = defineProps({ article: Object });
+const { sourceLogo } = props.dailyrecap;
 
 // FUTURE CHANGE: IMPORT THE FOLLOWING VALUES FROM ARTICLECONTENT.VUE
 const formattedSummarizedContent = computed(() => {
@@ -9,7 +13,7 @@ const formattedSummarizedContent = computed(() => {
         // .replace(/<vocab>/g, '<span class="vocab">')
         .replace(/<squote>/g, '<span class="squote">')
         .replace(/<quote>/g, '<span class="quote">')
-        // .replace('**', '<b>')
+        .replace(/\*\*/g, '') // Remove all bolding | FUTURE CHANGE: add bolding and search for the keywords on google
         // .replace(/<\/vocab>/g, '</span>')
         .replace(/<\/squote>/g, '</span>')
         .replace(/<\/quote>/g, '</span>')
@@ -34,9 +38,9 @@ const formattedDate = computed(() => {
         const hours = inputDate.getHours() < 10 ? `0${inputDate.getHours()}` : inputDate.getHours();
         const minutes = inputDate.getMinutes() < 10 ? `0${inputDate.getMinutes()}` : inputDate.getMinutes();
 
-    return `${getMonthOfYear(inputDate)} ${day}, ${year} at ${hours}:${minutes}`;
-  }
-  return datePublished == undefined ? inputDate : datePublished;
+        return `${getMonthOfYear(inputDate)} ${day}, ${year} at ${hours}:${minutes}`;
+    }
+    return datePublished == undefined ? inputDate : datePublished;
 });
 
 const startX = ref(0);
@@ -45,48 +49,54 @@ const isSwiping = ref(false);
 const containerStyle = ref({ transform: 'translateX(0)' });
 
 const handleTouchStart = (event) => {
-  startX.value = event.touches[0].clientX;
-  isSwiping.value = true;
+    startX.value = event.touches[0].clientX;
+    isSwiping.value = true;
 };
 
 const handleTouchMove = (event) => {
-  if (isSwiping.value) {
-    currentX.value = event.touches[0].clientX;
-    const deltaX = currentX.value - startX.value;
-    containerStyle.value = { transform: `translateX(${deltaX}px)` };
-  }
+    if (isSwiping.value) {
+        currentX.value = event.touches[0].clientX;
+        const deltaX = currentX.value - startX.value;
+        containerStyle.value = { transform: `translateX(${deltaX}px)` };
+    }
 };
 
 const handleTouchEnd = () => {
-  if (isSwiping.value) {
-    const deltaX = currentX.value - startX.value;
-    if (deltaX > 100) {
-      containerStyle.value = { transform: 'translateX(100%)', transition: 'transform 0.3s ease' };
-    } else if (deltaX < -100) {
-      containerStyle.value = { transform: 'translateX(-100%)', transition: 'transform 0.3s ease' };
-    } else {
-      containerStyle.value = { transform: 'translateX(0)', transition: 'transform 0.3s ease' };
+    if (isSwiping.value) {
+        const deltaX = currentX.value - startX.value;
+        if (deltaX > 100) {
+            containerStyle.value = { transform: 'translateX(100%)', transition: 'transform 0.3s ease' };
+        } else if (deltaX < -100) {
+            containerStyle.value = { transform: 'translateX(-100%)', transition: 'transform 0.3s ease' };
+        } else {
+            containerStyle.value = { transform: 'translateX(0)', transition: 'transform 0.3s ease' };
+        }
+        isSwiping.value = false;
     }
-    isSwiping.value = false;
-  }
 };
 
 onMounted(() => {
-  containerStyle.value = { transform: 'translateX(0)', transition: 'transform 0.3s ease' };
+    containerStyle.value = { transform: 'translateX(0)', transition: 'transform 0.3s ease' };
 });
 </script>
 
 <template>
-  <div class="item-container"
-    @touchstart="handleTouchStart"
-    @touchmove="handleTouchMove"
-    @touchend="handleTouchEnd"
-    :style="containerStyle">
+    <div class="item-container" @touchstart="handleTouchStart" @touchmove="handleTouchMove" @touchend="handleTouchEnd"
+        :style="containerStyle">
 
-    <div class="image-container">
+        <div class="image-container">
             <!-- FUTURE CHANGE: if image isnt able to load because of network error -->
             <img v-if="article.imageUrl" :src="article.imageUrl"
                 alt="Sorry :( It seems like the article image was unable to load" class="article-image">
+            <!-- <img v-else src="sumnewsbanner"> -->
+            <div class="meta-data">
+                <img class="logo" :alt="article.source" :src="'data:image/jpeg;base64,' + sourceLogo">
+                <div class="actions">
+                    <ActionItem :action="shareAction" :article="article"></ActionItem>
+                    <ActionItem :action="fullCoverageAction" :article="article" v-if="article.eventUri">
+                    </ActionItem>
+                </div>
+            </div>
         </div>
 
         <div class="content-container" id="content-container">
@@ -181,19 +191,22 @@ onMounted(() => {
 }
 
 .actions {
-    width: 100%;
+    /* width: 100%; */
     width: -moz-fit-content;
     height: -moz-fit-content;
-    padding: 20px;
+    padding: 18px;
 
-    position: absolute;
-    z-index: 999;
+    position: relative;
+    /* z-index: 999; */
 
     display: flex;
     flex-direction: row-reverse;
     justify-content: flex-start;
     flex-wrap: nowrap;
     gap: 20px;
+    right: 0;
+    background-color: rgba(0, 0, 0, 0.67);
+    border-radius: 10px;
 }
 
 .backAction {
@@ -293,6 +306,27 @@ onMounted(() => {
 .summarized-content {
     color: white
 }
+
+
+.meta-data {
+    position: absolute;
+    bottom: 0;
+    padding: 15px;
+    height: 90px;
+    width: 100%;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: row;
+    align-items: flex-end;
+    flex-wrap: nowrap;
+    justify-content: space-between;
+}
+
+.logo {
+    height: 60px;
+    width: 60px;
+    border-radius: 10px;
+}
 </style>
 
 <style>
@@ -306,10 +340,11 @@ onMounted(() => {
 }
 
 .squote {
-    background-color: yellow;
+    color: black;
+    background-color: rgb(152, 236, 255, 1);
     padding: 0 5px;
     border-radius: 4px;
-    color: black;
+    padding: 0 2px;
 }
 
 .quote {
@@ -322,6 +357,4 @@ onMounted(() => {
 .authorsAndDate div {
     font-size: 12px !important;
 }
-
-
 </style>

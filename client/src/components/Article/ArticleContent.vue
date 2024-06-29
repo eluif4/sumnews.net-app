@@ -418,7 +418,7 @@ const handleTransitionEnd = () => {
 
 .squote {
     color: black;
-    background-color: yellow;
+    background-color: rgb(152, 236, 255, 1);
     padding: 0 5px;
     border-radius: 4px;
     padding: 0 2px;
@@ -445,5 +445,11 @@ const handleTransitionEnd = () => {
 
 .summarized-content {
     color: #828282;
+}
+
+.summarized-content ul {
+    padding: revert;
+    list-style-type: disc;
+    margin: 0;
 }
 </style>

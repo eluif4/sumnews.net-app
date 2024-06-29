@@ -201,7 +201,7 @@ watch(
                     <div class="article" v-for="eventArticle in dailyrecap.drEvents[currentEventIndex].articles"
                         :key="eventArticle.id" v-if="currentArticle">
                         <!-- FUTURE CHANGE: WHILE THE REQUESTS LOAD PLACE SKELETONS -->
-                        <DailyRecapItem :article="currentArticle" v-if="currentArticle.uuid == articleUUIDRef">
+                        <DailyRecapItem :article="currentArticle" :dailyrecap="dailyrecap" v-if="currentArticle.uuid == articleUUIDRef">
                         </DailyRecapItem>
                         <!-- <DailyRecapItem :article="eventArticle" v-else></DailyRecapItem> -->
                     </div>
