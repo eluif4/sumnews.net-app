@@ -50,7 +50,7 @@ const containerStyle = ref({ transform: 'translateX(0)' });
 
 const handleTouchStart = (event) => {
     startX.value = event.touches[0].clientX;
-    isSwiping.value = true;
+    // isSwiping.value = true;
 };
 
 const handleTouchMove = (event) => {
@@ -194,7 +194,7 @@ onMounted(() => {
     /* width: 100%; */
     width: -moz-fit-content;
     height: -moz-fit-content;
-    padding: 18px;
+    padding: 8px;
 
     position: relative;
     /* z-index: 999; */
