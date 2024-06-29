@@ -33,6 +33,8 @@ const routes = [
             const isFromHomePath = (from.fullPath == '/');
             const isFromDailyRecapPath = (from.fullPath.includes('/dailyrecap'))
             const isFromAccountPath = (from.fullPath.includes('/account'))
+            const isFromErrorPage = (from.fullPath.includes('/404')) || (from.fullPath.includes('/error'));
+            const isFromEventPage = (from.fullPath.includes('/event'));
             const sourcesInLocalStorage = localStorage.getItem('sources');
             const genresInLocalStorage = localStorage.getItem('genres');
 
@@ -45,7 +47,9 @@ const routes = [
                 (isFromFilterPath && isLocalStorageEmpty) ||
                 (isFromHomePath && List.articles.length === 0) ||
                 (isFromAccountPath && List.articles.length === 0) ||
-                (isFromDailyRecapPath && List.articles.length === 0)
+                (isFromDailyRecapPath && List.articles.length === 0) ||
+                (isFromErrorPage && List.articles.length === 0) ||
+                (isFromEventPage && List.articles.length === 0)
             ) {
                 List.articles = []
                 front_getArticlesFromDB()
@@ -258,7 +262,6 @@ const routes = [
         path: '/:catchAll(.*)', component: NotFound
     },
     {
-        // FUTURE CHANGE: create a view for an article not found
         path: '/404', component: NotFound
     },
     {

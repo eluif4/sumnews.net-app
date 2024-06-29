@@ -76,15 +76,6 @@ async function cronTask() {
             // Get all articles from yesterday and today
             const articlesInDB = await articlesSinceYesterday();
 
-            // Calculate size of query
-            // var size = 0;
-            // articlesInDB.forEach(
-            //     function(doc) {
-            //         size += BSON.calculateObjectSize(doc)
-            //     }
-            // )
-            // console.log(size)
-
             // Loop over all articles from API request
             for (const article of articles) {
                 var articleExistsInDB = false;
@@ -115,12 +106,10 @@ async function cronTask() {
     // })
 }
 
-// FUTURE CHANGE: TURN THIS INTO A AN API CALL
 async function cronDailyRecap() {
     // CRON task runs at 18:00
     // cron.schedule('*/1 * * * *', async () => {
     if (true) {
-        // await deleteAllDailyRecaps();
         const response = await getAllSources()
         const sources = ['sumnews.net', ...response.map(source => source.source)];
         for (const source of sources) {

@@ -1,10 +1,13 @@
 <script setup>
+import router from '../router';
 </script>
 
 <template>
     <div class="container">
         <span class="title">Whoops! Seems like the page you are looking for doesn't exist</span>
-        <p class="subtext">Sorry but it looks like something went wrong, please try again or return to the home page</p>
+        <p class="subtext">Sorr but it looks like something went wrong, please try again or return to the home page</p>
+        <br>
+        <button @click="router.push({ name: 'home' })" class="btn">Back to home page</button>
     </div>
 </template>
 

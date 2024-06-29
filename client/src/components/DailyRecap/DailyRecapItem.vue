@@ -13,7 +13,7 @@ const formattedSummarizedContent = computed(() => {
         // .replace(/<vocab>/g, '<span class="vocab">')
         .replace(/<squote>/g, '<span class="squote">')
         .replace(/<quote>/g, '<span class="quote">')
-        .replace(/\*\*/g, '') // Remove all bolding | FUTURE CHANGE: add bolding and search for the keywords on google
+        .replace(/\*\*/g, '') // Remove all bolding
         // .replace(/<\/vocab>/g, '</span>')
         .replace(/<\/squote>/g, '</span>')
         .replace(/<\/quote>/g, '</span>')
@@ -238,7 +238,6 @@ onMounted(() => {
     width: 100%;
     display: flex;
     flex-direction: row;
-    /* FUTURE CHANGE: check why this isnt working */
     overflow: auto;
     gap: 10px;
     min-height: 30px;

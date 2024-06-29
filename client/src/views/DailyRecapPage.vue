@@ -17,7 +17,6 @@ const props = defineProps({
     articleUUID: String,
 });
 
-// FUTURE CHANGE: GET THESE VALUES FROM THE URL
 const dailyrecap = ref();
 const drUriRef = ref(props.drUri);
 const articleUUIDRef = ref(props.articleUUID);
@@ -196,17 +195,13 @@ watch(
         <!-- EVENTS AND ARTICLES -->
         <div class="event-list">
             <div class="event" v-for="(event, index) in dailyrecap.drEvents" :key="event.drUri" v-if="dailyrecap">
-                <!-- {{ event.articles.length }} -->
                 <div class="article-list">
                     <div class="article" v-for="eventArticle in dailyrecap.drEvents[currentEventIndex].articles"
                         :key="eventArticle.id" v-if="currentArticle">
-                        <!-- FUTURE CHANGE: WHILE THE REQUESTS LOAD PLACE SKELETONS -->
                         <DailyRecapItem :article="currentArticle" :dailyrecap="dailyrecap" v-if="currentArticle.uuid == articleUUIDRef">
                         </DailyRecapItem>
-                        <!-- <DailyRecapItem :article="eventArticle" v-else></DailyRecapItem> -->
                     </div>
                 </div>
-                <!-- <DailyRecapItem v-else :article="event.articles[0]"></DailyRecapItem> -->
             </div>
             <div class="event" v-else>
                 <div class="article-list">

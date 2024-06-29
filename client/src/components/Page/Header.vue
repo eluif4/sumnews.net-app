@@ -122,7 +122,6 @@ watch(() => route.path, (newPath, oldPath) => {
 
 <template>
     <div class="topbar">
-        <!-- FUTURE CHANGE: make search component -->
         <div class="search">
             <div class="searchIconContainer" v-if="!isEventsRoute && !isSearchRoute && !isFiltering">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none"
@@ -134,7 +133,6 @@ watch(() => route.path, (newPath, oldPath) => {
                         stroke-linejoin="round" />
                 </svg>
             </div>
-            <!-- FUTURE CHANGE: make this a back action -->
             <div class="backActionContainer" @click="resetHeader" v-else>
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none">
                     <path fill-rule="evenodd" clip-rule="evenodd"
@@ -154,7 +152,6 @@ watch(() => route.path, (newPath, oldPath) => {
                 </svg>
             </router-link>
         </div>
-        <!-- FUTURE CHANGE: make account page component -->
         <router-link to="/account" class="account">
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 26 26" fill="none">
                 <g clip-path="url(#clip0_1_201)">
