@@ -14,6 +14,8 @@ const yesterdayFormatted = yesterday.toISOString().slice(0, 10) + 'T00:00:00Z';
 
 async function createDailyRecap(source) {
     console.log(`Creating Daily Recap for ${source}`)
+
+    var drEvents = [];
     var filter = { // Dont need to call this if source isnt sumnews.net
         "dateCreated": {
             "$gte": yesterdayFormatted,
@@ -23,7 +25,7 @@ async function createDailyRecap(source) {
 
     var sort = { "articlesCount": -1 }
     var events = await getEvents(filter, undefined, sort, 0, 5)
-    var drEvents = [];
+
     if (source === 'sumnews.net') {
         var eventUris = events.map(event => event.eventUri)
         var eventUris = events.slice(0, 5).map(event => event.eventUri) // Save only top 5 'events'
@@ -57,7 +59,7 @@ async function createDailyRecap(source) {
                 await saveDocument(drEvent);
             }
         }
-    } else {
+    } else { // If source isnt sumnews.net
         // const yesterday = new Date();
         // yesterday.setDate(yesterday.getDate() - 1);
 
@@ -73,48 +75,49 @@ async function createDailyRecap(source) {
 
         // Array of 5 longest articles in db from past 24 hours that dont have a drUri
         var articles = await getArticlesFromDB(filter, undefined, sort, 0, 5);
-        var sourceEventArticles = [];
+        var sourceEventArticles;
         for (const article of articles) {
             // if (!article.drUri) {
-                let drUri = `${source}_${uuidv4()}` // Create drUri (using sumnews.net as source)
+            sourceEventArticles = [];
+            let drUri = `${source}_${uuidv4()}` // Create drUri (using sumnews.net as source)
 
-                if (article.eventUri != null) { // If Article is part of an Event ( I may need to check if articles in event have drUri)
-                    filter = { "source": source, "eventUri": article.eventUri } // Create mongondb Filter
-                    sourceEventArticles = await getArticlesFromDB(filter) // Get all Article in source with same eventUri
+            if (article.eventUri != null) { // If Article is part of an Event ( I may need to check if articles in event have drUri)
+                filter = { "source": source, "eventUri": article.eventUri } // Create mongondb Filter
+                sourceEventArticles = await getArticlesFromDB(filter) // Get all Article in source with same eventUri
 
-                    for (const article of sourceEventArticles) { // Loop over all Article in source with same eventUri
-                        try {
-                            const updatedArticle = await updateArticleByID(article._id, { drUri: drUri }, true) // Update Article with new drUri
-                            console.log(`Article { uuid: ${updatedArticle.uuid} } has been updated succesfully`)
-                        } catch (err) {
-                            console.error('Error updating article:', err);
-                        }
-                    }
-                } else {
+                for (const article of sourceEventArticles) { // Loop over all Article in source with same eventUri
                     try {
                         const updatedArticle = await updateArticleByID(article._id, { drUri: drUri }, true) // Update Article with new drUri
-                        sourceEventArticles.push(updatedArticle) // Add updated articles to event to save in dailyrecap
                         console.log(`Article { uuid: ${updatedArticle.uuid} } has been updated succesfully`)
                     } catch (err) {
                         console.error('Error updating article:', err);
                     }
                 }
-
-                if (sourceEventArticles.length > 0) {
-                    drEvents.push(drUri)
-                    let drEvent = new DrEvent({
-                        id: uuidv4(),
-                        drUri: drUri,
-                        savedArticles: sourceEventArticles.length,
-                        dateCreated: new Date(),
-                    })
-
-                    await saveDocument(drEvent);
+            } else {
+                try {
+                    const updatedArticle = await updateArticleByID(article._id, { drUri: drUri }, true) // Update Article with new drUri
+                    sourceEventArticles.push(updatedArticle) // Add updated articles to event to save in dailyrecap
+                    console.log(`Article { uuid: ${updatedArticle.uuid} } has been updated succesfully`)
+                } catch (err) {
+                    console.error('Error updating article:', err);
                 }
+            }
+
+            if (sourceEventArticles.length > 0) {
+                drEvents.push(drUri)
+                let drEvent = new DrEvent({
+                    id: uuidv4(),
+                    drUri: drUri,
+                    savedArticles: sourceEventArticles.length,
+                    dateCreated: new Date(),
+                })
+
+                await saveDocument(drEvent);
+            }
             // }
         }
     }
-    
+
     await deleteDailyRecap({ source: source });
 
     const dr = new DailyRecap({

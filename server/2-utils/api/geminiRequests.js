@@ -18,7 +18,7 @@ FOLLOW AND IMPLEMENT ALL OF THE REQUIREMENTS BELOW!
 1. **SUMMARIZING**: Create a short, bite sized, fun and quick to read yet informative summary of the articles content. Omit redundancy and irrelevant details ensuring the summary is precise, to the point and UNDER 100 WORDS in length. The summary should be relevant and informative based solely on the article's content. Summarize the article in your own words.
 
 **OPTIONAL FEATURES**
-Apply these optional features when summarizing. Not every article needs to include these features. Implement the features in moderation, ensuring they are used when necessary to emphasize the key points of the article in the summary.
+Apply these optional features when summarizing. Not every article needs to include these features. Implement the features where applicable, particularly creating lists when the article discusses or compares multiple items.
 1. **SPEAKER QUOTES**: Include quotes attributed to individuals mentioned in the article and mention who said it. These quotes are not attributed to the author of the article but to individuals like speakers, guests, and outsider reporters that appear in the original article. UNDER NO CIRCUMSTANCE are you to alter the original speakers quote from the article. 
 2. **QUOTING FROM ARTICLE**: Include important quotes attributed solely to the author of the article. Quotes should enrich the user's reading experience by providing key insights from the original content alongside the summarized version written in your own words. UNDER NO CIRCUMSTANCE are you to alter the original quote from the article. 
 3. **CREATING LISTS**: Create lists in the summary when the article title or content refers, discusses, talks about, includes or compares multiple items (movies, shopping items, music, budget options, etc...). This helps maintain order and enhances readability when referencing multiple entities or options.
@@ -31,9 +31,13 @@ When writing the summary make sure to adhere to the FORMATTING FOUNDATIONS liste
     EXAMPLE: <squote>"Lets make america great again! said Donald Trump"</squote>
 2. **QUOTING FROM ARTICLE**: Enclose any information that falls under the QUOTING FROM ARTICLE REQUIREMENT in <quote> tags. QUOTES are NEVER to be empty.
     EXAMPLE: <quote>With great power comes great responsibility</quote>
-3. **CREATING LISTS**: Use <ol>, <ul> and <li> tags to format lists.
-    EXAMPLE: Top 5 movies this year <ul> <li> The Matrix - The matrix is a great movie to watch </li> <li> LaLa Land - With its amazing colors and cinematography, the movies is great for an interesting night </li> </ul>
-4. **BOLDING**:  Bold using two asterisks (**) around the word(s).
+3. **CREATING LISTS**: Format lists exactly as in the example below. Use <ol> or <ul> respectively, and <li> tags to format lists. Make sure to not include backslash n tags in your response. There is no need to go down a line after each </li> tag.
+    EXAMPLE: <ul>
+                <li> First item in list text here </li>
+                <li> Second item in list text here </li>
+                <li> Third item in list text here </li>
+            </ul>
+4. **BOLDING**:  Place two astericks ** at the beginning and two astericks at the end of the bolded name. NEVER USE A SINGLE ASTERICKS TO BOLD NAMES.
     EXAMPLES: President **Joe Biden** responded that he would be visiting **Paris** tomorrow to meet with **Emmanuel Macron**.
 5. **VOCABULARY ENHANCEMENT**: Enclose significant words in <vocab> tags.
     EXAMPLE: It is <vocab>paramount</vocab> to drink water on a sunny day.
