@@ -4,7 +4,26 @@ import { goBack } from '../../scripts/utility.js'
 import { useRoute } from 'vue-router';
 const route = useRoute();
 
+// Values in localStorage on render
+const localStorageGenres = JSON.parse(localStorage.getItem('genres'));
+const localStorageSources = JSON.parse(localStorage.getItem('sources'));
+
 function handleClick() {
+    // Values in localStorage on click
+    const localStorageGenresAfterClick = JSON.parse(localStorage.getItem('genres'));
+    const localStorageSourcesAfterClick = JSON.parse(localStorage.getItem('sources'));
+
+    /*
+    If when backdrop is rendered both localstorages have different values (user didnt click apply), 
+    revert localstorage values to their previous ones
+    */
+    if (localStorageGenres != localStorageGenresAfterClick) {
+        localStorage.setItem('genres', JSON.stringify(localStorageGenres));
+    }
+    if (localStorageSources != localStorageSourcesAfterClick) {
+        localStorage.setItem('sources', JSON.stringify(localStorageSources));
+    }
+
     if (route.name == 'eventArticles') {
         router.push({ name: 'home' })
     } else {

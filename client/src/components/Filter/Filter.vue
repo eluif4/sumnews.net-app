@@ -68,13 +68,36 @@ const handleTransitionEnd = () => {
     if (translateY.value === SCREENHEIGHT)
         goBack()
 }
+
+// Values in localStorage on render
+const localStorageGenres = JSON.parse(localStorage.getItem('genres'));
+const localStorageSources = JSON.parse(localStorage.getItem('sources'));
+
+function backClick() {
+    // Values in localStorage on click
+    const localStorageGenresAfterClick = JSON.parse(localStorage.getItem('genres'));
+    const localStorageSourcesAfterClick = JSON.parse(localStorage.getItem('sources'));
+
+    /*
+    If when backdrop is rendered both localstorages have different values (user didnt click apply), 
+    revert localstorage values to their previous ones
+    */
+    if (localStorageGenres != localStorageGenresAfterClick) {
+        localStorage.setItem('genres', JSON.stringify(localStorageGenres));
+    }
+    if (localStorageSources != localStorageSourcesAfterClick) {
+        localStorage.setItem('sources', JSON.stringify(localStorageSources));
+    }
+
+    goBack();
+}
 </script>
 
 <template>
     <div class="filter">
         <!-- <div class="close-bar"></div> -->
         <div class="top-row">
-            <div @click="goBack" class="back-arrow">
+            <div @click="backClick" class="back-arrow">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
                     <path fill-rule="evenodd" clip-rule="evenodd"
                         d="M22.125 12C22.125 12.2984 22.0065 12.5845 21.7955 12.7955C21.5845 13.0065 21.2984 13.125 21 13.125H5.71499L9.79499 17.205C9.90552 17.308 9.99417 17.4322 10.0557 17.5702C10.1171 17.7082 10.1502 17.8572 10.1529 18.0082C10.1555 18.1593 10.1278 18.3093 10.0712 18.4494C10.0146 18.5895 9.93037 18.7167 9.82354 18.8236C9.71672 18.9304 9.58947 19.0146 9.44938 19.0712C9.3093 19.1278 9.15926 19.1556 9.0082 19.1529C8.85715 19.1502 8.70818 19.1172 8.57018 19.0557C8.43218 18.9942 8.30798 18.9055 8.20499 18.795L2.20499 12.795C1.99431 12.5841 1.87598 12.2981 1.87598 12C1.87598 11.7019 1.99431 11.4159 2.20499 11.205L8.20499 5.205C8.41825 5.00628 8.70032 4.89809 8.99177 4.90324C9.28322 4.90838 9.5613 5.02645 9.76742 5.23257C9.97354 5.43869 10.0916 5.71676 10.0967 6.00821C10.1019 6.29967 9.99371 6.58174 9.79499 6.795L5.71499 10.875H21C21.2984 10.875 21.5845 10.9935 21.7955 11.2045C22.0065 11.4155 22.125 11.7016 22.125 12Z"
