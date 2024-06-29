@@ -44,7 +44,8 @@ const routes = [
                 (isFromArticlePath && List.articles.length === 0) ||
                 (isFromFilterPath && isLocalStorageEmpty) ||
                 (isFromHomePath && List.articles.length === 0) ||
-                (isFromAccountPath)
+                (isFromAccountPath) ||
+                (isFromDailyRecapPath && List.articles.length === 0)
             ) {
                 List.articles = []
                 front_getArticlesFromDB()
