@@ -2,6 +2,7 @@ const { saveDocument, getArticlesFromDB, getEvents, updateArticleByID } = requir
 const { v4: uuidv4 } = require('uuid');
 const DrEvent = require('../4-models/drEvents')
 const DailyRecap = require("../4-models/dailyRecap");
+var cache = require('memory-cache')
 
 // Yesterday's date
 const yesterday = new Date();
@@ -154,18 +155,7 @@ async function deleteDailyRecap(filter) {
     }
 }
 
-
-async function deleteAllDailyRecaps() {
-    try {
-        await DailyRecap.deleteMany({})
-        console.log('Deleted all DailyRecaps')
-    } catch (err) {
-        console.error('Error deleting all DailyRecaps', err)
-    }
-}
-
 module.exports = {
     createDailyRecap,
-    deleteAllDailyRecaps,
     deleteDailyRecap
 }

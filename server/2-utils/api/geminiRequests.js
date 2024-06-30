@@ -1,10 +1,11 @@
+const cache = require('memory-cache')
+const { getAllGenres } = require('../db/getCollections')
+
 const {
     GoogleGenerativeAI,
     HarmCategory,
     HarmBlockThreshold,
 } = require("@google/generative-ai");
-
-const { getAllGenres } = require('../db/getCollections')
 
 const MODEL_NAME = "gemini-1.5-flash";
 const API_KEY = process.env.GEMINI_KEY;
@@ -83,9 +84,13 @@ const generationConfig = {
 };
 
 async function assignAndSummarize(article) {
+    const cachedGenres = cache.get('genres');
+    var allGenres = cachedGenres ? cachedGenres : await getAllGenres();
+    const genres = allGenres.map(genreObj => genreObj.genre);
+
     const MESSAGE = `TITLE: [${article.title}],
                      CONTENT: [${article.content}],
-                     GENRE LIST: [${await genres()}]`
+                     GENRE LIST: [${genres}]`
 
     try {
         const chatSession = model.startChat({
@@ -108,14 +113,6 @@ async function assignAndSummarize(article) {
         console.error(error)
     }
 }
-
-// Returns only the name of the genres instead of the whole object from the DB
-const genres = async () => {
-    const allGenres = await getAllGenres();
-    const genreNames = allGenres.map(genreObj => genreObj.genre);
-    const filteredGenres = genreNames.filter(genre => genre !== "All");
-    return filteredGenres;
-};
 
 module.exports = {
     assignAndSummarize
