@@ -6,10 +6,11 @@ const dotenv = require('dotenv');
 const express = require('express');
 const cors = require('cors');
 const { BSON } = require('mongodb')
+var cache = require('memory-cache')
 
 //---CONFIG---
 dotenv.config({ path: path.resolve(__dirname, './server/config/config.env') });
-const mongodb = require('./server/config/dbconfig'); // Connects to mongodb server
+const mongoose = require('./server/config/dbconfig'); // Connects to mongodb server
 
 //---FOLDERS---
 const ROUTES = path.join(__dirname, 'server/1-routes');
@@ -52,83 +53,103 @@ const { articleQueue } = require('./server/2-utils/articleQueueHandler.js');
 
 //---RUN MAIN FUNCTION---
 async function cronTask() {
-    // cron.schedule('*/60 * * * *', async () => {
-    if (false) {
-        try {
-            const date = new Date()
-            console.log(kleur.bgBlue(`Task started @ ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`))
+    cron.schedule('*/15 * * * *', async () => {
+        if (false) {
+            try {
+                const date = new Date()
+                console.log(kleur.bgBlue(`Task started @ ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`))
 
-            const allSources = (await getAllSources())
-            var sources = allSources.map(source => source.source)
+                var allSources;
+                const cachedSources = cache.get('sources');
+                allSources = cachedSources ? cachedSources : await getAllSources();
 
-            // FUTURE CHANGE: LOOK THROUGH ALL PAGES (IF THE API CALL IS QUICK AND I DONT HAVE TOO MANY SOURCES THEN I SHOULDNT WORRY ABOUT THIS)
+                var sources = allSources.map(source => source.source)
 
-            const apiresponse = await getArticlesUsingRecentActiviy(sources); // Get articles from newsapi.ai
-            const articles = apiresponse.recentActivityArticles.activity;
+                // FUTURE CHANGE: LOOK THROUGH ALL PAGES (IF THE API CALL IS QUICK AND I DONT HAVE TOO MANY SOURCES THEN I SHOULDNT WORRY ABOUT THIS)
 
-            // Sort articles from oldest to newest
-            articles.sort((a, b) => {
-                const dateA = new Date(a.dateTimePub);
-                const dateB = new Date(b.dateTimePub);
-                return dateA - dateB;
-            });
+                const apiresponse = await getArticlesUsingRecentActiviy(sources); // Get articles from newsapi.ai
+                const articles = apiresponse.recentActivityArticles.activity;
 
-            // Get all articles from yesterday and today
-            const articlesInDB = await articlesSinceYesterday();
+                // Sort articles from oldest to newest
+                articles.sort((a, b) => {
+                    const dateA = new Date(a.dateTimePub);
+                    const dateB = new Date(b.dateTimePub);
+                    return dateA - dateB;
+                });
 
-            // Calculate size of query
-            // var size = 0;
-            // articlesInDB.forEach(
-            //     function(doc) {
-            //         size += BSON.calculateObjectSize(doc)
-            //     }
-            // )
-            // console.log(size)
+                // Get all articles from yesterday and today // FUTURE CHANGE: save to caches as queue instead of calling db
+                const articlesInDB = await articlesSinceYesterday();
 
-            // Loop over all articles from API request
-            for (const article of articles) {
-                var articleExistsInDB = false;
-                const articleExistInQueue = articleQueue.exist(article);
+                // Loop over all articles from API request
+                for (const article of articles) {
+                    var articleExistsInDB = false;
+                    const articleExistInQueue = articleQueue.exist(article);
 
-                // Loop over all articles in DB from yesterday and today and check if current article exists in DB
-                for (const a of articlesInDB) {
-                    if (a.url == article.url)
-                        articleExistsInDB = true;
+                    // Loop over all articles in DB from yesterday and today and check if current article exists in DB
+                    for (const a of articlesInDB) {
+                        if (a.url == article.url)
+                            articleExistsInDB = true;
+                    }
+
+                    // If article isnt in DB or QUEUE
+                    if (!articleExistInQueue && !articleExistsInDB) {
+                        articleQueue.enqueue(article) // Adds article to queue
+                    }
+                }
+                console.log(kleur.blue(`Queue size (${articleQueue.size()})`))
+
+                if (!articleQueue.isEmpty()) { // and processqueue isnt 
+                    processQueue()
                 }
 
-                // If article isnt in DB or QUEUE
-                if (!articleExistInQueue && !articleExistsInDB) {
-                    articleQueue.enqueue(article) // Adds article to queue
-                }
             }
-            console.log(kleur.blue(`Queue size (${articleQueue.size()})`))
-
-            if (!articleQueue.isEmpty()) { // and processqueue isnt 
-                processQueue()
+            catch (error) {
+                console.error(kleur.red('Problem with cron ->'), error)
             }
-
         }
-        catch (error) {
-            console.error(kleur.red('Problem with cron ->'), error)
-        }
-    }
-    // })
+    })
 }
 
-// FUTURE CHANGE: TURN THIS INTO A AN API CALL
 async function cronDailyRecap() {
     // CRON task runs at 18:00
-    // cron.schedule('*/1 * * * *', async () => {
-    if (false) {
-        await deleteAllDailyRecaps();
-        const response = await getAllSources()
-        const sources = ['sumnews.net', ...response.map(source => source.source)];
-        for (const source of sources) {
-            await createDailyRecap(source);
+    cron.schedule('0 18 * * *', async () => {
+        if (true) {
+            const cachedSources = cache.get('sources');
+            response = cachedSources ? cachedSources : await getAllSources();
+
+            const sources = ['sumnews.net', ...response.map(source => source.source)];
+            for (const source of sources) {
+                await createDailyRecap(source);
+            }
         }
-    }
-    // })
+    })
+}
+
+app.get('/createDailyRecapCron', async (req, res) => {
+    await cronDailyRecap();
+})
+
+async function cacheSourcesEvery24H() {
+    // Save all sources in cache at midnight
+    cron.schedule('0 0 * * *', async () => {
+        const date = new Date()
+        console.log(`Caching all sources @ ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`)
+        const response = await getAllSources()
+        cache.put('sources', response)
+    })
+}
+
+async function cacheGenresEvery24H() {
+    // Save all genres in cache at midnight
+    cron.schedule('0 0 * * *', async () => {
+        const date = new Date()
+        console.log(`Caching all sources @ ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`)
+        const response = await getAllGenres()
+        cache.put('genres', response)
+    })
 }
 
 cronTask().catch(err => console.log(err))
 cronDailyRecap().catch(err => console.log(err))
+cacheSourcesEvery24H().catch(err => console.log(err))
+cacheGenresEvery24H().catch(err => console.log(err))

@@ -69,7 +69,7 @@ const formattedSummarizedContent = computed(() => {
         // .replace(/<vocab>/g, '<span class="vocab">')
         .replace(/<squote>/g, '<span class="squote">')
         .replace(/<quote>/g, '<span class="quote">')
-        .replace(/\*\*/g, '') // Remove all bolding | FUTURE CHANGE: add bolding and search for the keywords on google
+        .replace(/\*\*/g, '') // Remove all bolding
         // .replace(/<\/vocab>/g, '</span>')
         .replace(/<\/squote>/g, '</span>')
         .replace(/<\/quote>/g, '</span>')
@@ -158,7 +158,6 @@ const handleTransitionEnd = () => {
 </script>
 
 <template>
-    <!-- FUTURE CHANGE: add animation into routes -->
     <div class="article-container" :style="{ transform: `translateY(${translateY}px)` }"
         @transitionend="handleTransitionEnd">
         <!-- IMAGE, SHADER AND ACTIONS -->
@@ -166,18 +165,13 @@ const handleTransitionEnd = () => {
             <div class="close-bar" @click="goBack"></div>
             <div class="actions">
                 <ActionItem :action="shareAction" :article="articleRef"></ActionItem>
-                <!-- <ActionItem :action="bookmarkAction"></ActionItem> -->
                 <ActionItem :action="fullCoverageAction" :article="articleRef" v-if="articleRef.eventUri"></ActionItem>
-                <!-- <ActionItem :action="dailyRecapAction" :article="articleRef" v-if="articleRef.drUri"></ActionItem> -->
                 <ActionItem :action="backAction" :article="articleRef" class="backAction"></ActionItem>
             </div>
 
             <div @touchstart="handleTouchStart" @touchmove="handleTouchMove" @touchend="handleTouchEnd">
-                <!-- FUTURE CHANGE: if image isnt able to load because of network error -->
                 <img v-if="articleRef.imageUrl" :src="articleRef.imageUrl"
                     alt="Sorry :( It seems like the article image was unable to load" class="article-image">
-                <!-- <img v-else src="../assets/icons/sumnews.net.png"
-                alt="Sorry :( It seems like the article image was unable to load" class="article-image"> -->
                 <div class="shader"></div>
             </div>
         </div>
@@ -206,7 +200,6 @@ const handleTransitionEnd = () => {
             <!-- FULL COVERAGE -->
             <div class="fullcoverage-container" v-if="articleRef.eventUri">
                 <p class="fc-title">Read Full Coverage ({{ aggregatedResults.length }})</p>
-                <!-- FUTURE CHANGE: each link here should redirect to another /article/{{ articleguid }} link when clicked on this doesnt work need to fix it -->
                 <router-link :to="{ name: 'eventArticles', params: { uuid: fca.uuid } }" class="fullcoverage-article"
                     v-for="(fca, index) in aggregatedResults" :key="index">
                     <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 17 17" fill="none"
@@ -341,7 +334,6 @@ const handleTransitionEnd = () => {
     width: 100%;
     display: flex;
     flex-direction: row;
-    /* FUTURE CHANGE: check why this isnt working */
     overflow: auto;
     gap: 10px;
     min-height: 30px;
@@ -407,7 +399,6 @@ const handleTransitionEnd = () => {
 </style>
 
 <style>
-/* APPLY TEXT GEN FORMATTING ONTO SUMMARIZED TEXT */
 .vocab {
     /* background-color: #d4d4d4; */
     border-radius: 4px;
@@ -418,7 +409,7 @@ const handleTransitionEnd = () => {
 
 .squote {
     color: black;
-    background-color: yellow;
+    background-color: rgb(152, 236, 255, 1);
     padding: 0 5px;
     border-radius: 4px;
     padding: 0 2px;
@@ -445,5 +436,11 @@ const handleTransitionEnd = () => {
 
 .summarized-content {
     color: #828282;
+}
+
+.summarized-content ul {
+    padding: revert;
+    list-style-type: disc;
+    margin: 0;
 }
 </style>

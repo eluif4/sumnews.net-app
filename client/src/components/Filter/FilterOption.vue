@@ -33,11 +33,8 @@ onMounted(() => {
 })
 
 watch(isChecked, (newVal, oldVal) => { // Watch for when input is checked \ unchecked
-    // option.value = the value checked (either source value or genre value)
-    // localStorageKey.value = where to save to localstorage 'genres' or 'sources'
     arrayInLocalStorage.value = JSON.parse(localStorage.getItem(localStorageKey.value)) || []
 
-    // FUTURE CHANGE: check if doesnt already exist in loclastorage
     if (newVal) { // If is checked
         if (!arrayInLocalStorage.value.includes(option.value)) { // Only add values to localStorage if they arent in localStorage
             arrayInLocalStorage.value.push(option.value)

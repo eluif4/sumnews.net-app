@@ -3,10 +3,11 @@ const kleur = require('kleur')
 const Article = require('../4-models/articles.js')
 const Queue = require('../4-models/queue.js')
 const Event = require('../4-models/events.js')
+const cache = require('memory-cache')
 
 const uuid = require('uuid');
 // const { articleQueue } = require('./ServerHelper')
-const { saveDocument, getEvents, getAllSources } = require('./db/databaseAccess.js')
+const { saveDocument, getEvents, getAllSources, getEventByEventUri } = require('./db/databaseAccess.js')
 const { assignAndSummarize } = require('../2-utils/api/geminiRequests')
 const { getArticlesFromEvent } = require('../2-utils/api/getArticlesFromAPI')
 const { getAllGenres } = require('../2-utils/db/getCollections')
@@ -55,28 +56,17 @@ async function processQueue() {
 
 // Goes over given eventUri, get articles, filters them by source and language and add the relevant articles to articlQueue
 async function processEvent(article) {
-    /* 
-    Get events from DB
-    FUTURE CHANGE: With more events in db query times will become longer
-    */
-    /*
-    FUTURE CHANGE: const events = await getEvents(); this line get called eveytime I check if event exists in DB
-    This code is redundant and need to be called once to get all events and then run the for loop for validation
-    There is no need to access the DB so many times for a simple existance check
-    */
-    /* 
-    FUTURE CHANGE: const sources = await getAllSources(); this line get called everytime I check if event exists in DB
-    This code is redudand and needs to be called once to get all sources and then run the validation function
-    There is no need to access the DB so many times for a simple existance check
-    */
-    const events = await getEvents();
-    const allSources = (await getAllSources());
-    const eventUri = article.eventUri;
-    var sources = allSources.map(source => source.source)
-    var eventExists = eventUriExists(eventUri, events);
-    var articleEventsAddedToQueueCount = 0;
+    var doesEventExist = await getEventByEventUri(article.eventUri) // Returns value of event ( is no event return null )
 
-    if (!eventExists) {
+    if (!doesEventExist) {
+
+        const cachedSources = cache.get('sources');
+        var allSources = cachedSources ? cachedSources : await getAllSources();
+
+        const eventUri = article.eventUri;
+        var sources = allSources.map(source => source.source)
+        var articleEventsAddedToQueueCount = 0;
+
         /* 
         FUTURE CHANGE: I dont get all articles from event due to pagination. 
         The problem isnt vital because most of the events dont have pagination
@@ -105,7 +95,7 @@ async function processEvent(article) {
         }
 
         const e = new Event({
-            autoNum: events[0] != undefined ? events[0].autoNum + 1 : 0, // Add 1 to the latest eventUri, else set to 0
+            // autoNum: events[0] != undefined ? events[0].autoNum + 1 : 0, // Add 1 to the latest eventUri, else set to 0
             eventUri: eventUri,
             articlesCount: response[eventUri].articles.totalResults,
             // FUTURE CHANGE: THE NUMBER BELOW ISNT CORRECT. SAME ARTICLES ARENT SAVE TO DB
@@ -157,19 +147,20 @@ async function processArticle(article) { // Returns the updated article
         const authorsList = article.authors;
         var authors = [];
         for (const elem of authorsList) {
-            authors.push(elem.name) // FUTURE CHANGE: SAVE AUTHORS INFORMATION IN DB TO ALLOW USERS TO FOLLOW AUTHORS
+            authors.push(elem.name)
         }
 
         a.author = authors;
 
         // FINDING GENRES USING GEMINI
-        // var response = await assignGenres(a)
         try {
             var response = await assignAndSummarize(a)
 
             var chosenGenres = response.genres.map(item => item.trim())
-            // FUTURE CHANGE: THIS IS A REDUNDANT CALL TO THE DATABASE. I DONT NEED TO CALL THIS EVERY TIME I HANDLE AN ARTICLE.
-            var possibleGenres = (await getAllGenres()).map(genre => genre.genre)
+
+            const cachedGenres = cache.get('genres');
+            var allGenres = cachedGenres ? cachedGenres : await getAllGenres();
+            var possibleGenres = allGenres.map(genre => genre.genre)
 
             var validGenres = [];
             for (const genre of chosenGenres) {
@@ -182,8 +173,8 @@ async function processArticle(article) { // Returns the updated article
             if (summary) { // Successful summarizing
                 a.summarizedContent = summary
             }
-        } catch(error) {
-            console.error('Couldnt assign / summarize article');
+        } catch (error) {
+            console.error('Couldnt assign / summarize article', error);
         }
     }
     return a;

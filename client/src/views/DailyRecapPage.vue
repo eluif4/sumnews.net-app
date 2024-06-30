@@ -17,7 +17,6 @@ const props = defineProps({
     articleUUID: String,
 });
 
-// FUTURE CHANGE: GET THESE VALUES FROM THE URL
 const dailyrecap = ref();
 const drUriRef = ref(props.drUri);
 const articleUUIDRef = ref(props.articleUUID);
@@ -196,17 +195,13 @@ watch(
         <!-- EVENTS AND ARTICLES -->
         <div class="event-list">
             <div class="event" v-for="(event, index) in dailyrecap.drEvents" :key="event.drUri" v-if="dailyrecap">
-                <!-- {{ event.articles.length }} -->
                 <div class="article-list">
                     <div class="article" v-for="eventArticle in dailyrecap.drEvents[currentEventIndex].articles"
                         :key="eventArticle.id" v-if="currentArticle">
-                        <!-- FUTURE CHANGE: WHILE THE REQUESTS LOAD PLACE SKELETONS -->
-                        <DailyRecapItem :article="currentArticle" v-if="currentArticle.uuid == articleUUIDRef">
+                        <DailyRecapItem :article="currentArticle" :dailyrecap="dailyrecap" v-if="currentArticle.uuid == articleUUIDRef">
                         </DailyRecapItem>
-                        <!-- <DailyRecapItem :article="eventArticle" v-else></DailyRecapItem> -->
                     </div>
                 </div>
-                <!-- <DailyRecapItem v-else :article="event.articles[0]"></DailyRecapItem> -->
             </div>
             <div class="event" v-else>
                 <div class="article-list">
@@ -282,7 +277,7 @@ watch(
 }
 
 .event-list {
-    width: 100%;
+    width: 100vw;
     height: 100%;
     overflow-y: hidden;
     overflow-x: hidden;
@@ -294,9 +289,9 @@ watch(
 
 .event {
     height: 100%;
+    width: 100%;
     display: flex;
     flex-direction: column;
-    width: 100%;
     overflow-x: auto;
     overflow-y: hidden;
     margin-bottom: 20px;
@@ -315,6 +310,7 @@ watch(
 
 .article-list {
     height: 100%;
+    width: 100%;
     overflow-y: hidden;
     overflow-x: auto;
     display: flex;
@@ -324,7 +320,7 @@ watch(
 
 .article {
     height: 100%;
-    width: 100vh;
+    width: 100%;
 }
 
 .myfooter {
