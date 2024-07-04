@@ -29,24 +29,51 @@ watch(List.articles, (newArticleList, oldArticlList) => {
 
 // ----- GET ALL SOURCES FROM DB -----
 export const Sources = reactive({ list: [] })
-fetch(`${BACKEND_URL}db/getAllSources`)
-  .then(response => response.json())
-  .then(response => {
-    Sources.list = response
-  })
-  .catch(error => {
-    console.error('Error fetching sources in main.js', error)
-  })
+const allSourcesInLocalStorage = JSON.parse(localStorage.getItem('allSources'));
+const now = new Date();
+const sourcesLastUpdate = allSourcesInLocalStorage?.lastUpdate || new Date("01/01/2000");
+const sourcesDiffInDays = (now - sourcesLastUpdate) / (24 * 60 * 60 * 1000);
+
+// If there are values in localStorage and lastUpdate was less than 1 day ago
+if (allSourcesInLocalStorage) {
+  const allSources = allSourcesInLocalStorage?.sources || [];
+  Sources.list = allSources
+}
+// If there are no values in localStorage or lastUpdate was more than 1 day ago
+else if (!allSourcesInLocalStorage || sourcesDiffInDays > 1) {
+  fetch(`${BACKEND_URL}db/getAllSources`)
+    .then(response => response.json())
+    .then(response => {
+      localStorage.setItem('allSources', JSON.stringify({ sources: response, lastUpdate: now }));
+      Sources.list = response
+    })
+    .catch(error => {
+      console.error('Error fetching sources in main.js', error)
+    })
+}
 
 export const Genres = reactive({ list: [] })
-fetch(`${BACKEND_URL}db/getAllGenres`)
-  .then(response => response.json())
-  .then(response => {
-    Genres.list = response
-  })
-  .catch(error => {
-    console.error('Error fetching genres in main.js', error)
-  })
+const allGenresInLocalStorage = JSON.parse(localStorage.getItem('allGenres'));
+const genresLastUpdate = allGenresInLocalStorage?.lastUpdate || new Date('01/01/2000');
+const genresDiffInDays = (now - genresLastUpdate) / (24 * 60 * 60 * 1000);
+
+// If there are values in localStorage and lastUpdate was less than 1 day ago
+if (allSourcesInLocalStorage) {
+  const allGenres = allGenresInLocalStorage?.sources || [];
+  Genres.list = allGenres;
+}
+// If there are no values in localStorage or lastUpdate was more than 1 day ago
+else if (!allSourcesInLocalStorage || genresDiffInDays > 1) {
+  fetch(`${BACKEND_URL}db/getAllGenres`)
+    .then(response => response.json())
+    .then(response => {
+      localStorage.setItem('allGenres', JSON.stringify({ sources: response, lastUpdate: now }));
+      Genres.list = response
+    })
+    .catch(error => {
+      console.error('Error fetching genres in main.js', error)
+    })
+}
 
 // ----- POPUP PROPERTIES -----
 export const PopupAttributes = reactive({
