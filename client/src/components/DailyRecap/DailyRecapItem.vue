@@ -43,54 +43,55 @@ const formattedDate = computed(() => {
     return datePublished == undefined ? inputDate : datePublished;
 });
 
-const startX = ref(0);
-const currentX = ref(0);
-const isSwiping = ref(false);
-const containerStyle = ref({ transform: 'translateX(0)' });
+// const startX = ref(0);
+// const currentX = ref(0);
+// const isSwiping = ref(false);
+// const containerStyle = ref({ transform: 'translateX(0)' });
 
-const handleTouchStart = (event) => {
-    startX.value = event.touches[0].clientX;
-    // isSwiping.value = true;
-};
+// const handleTouchStart = (event) => {
+//     startX.value = event.touches[0].clientX;
+//     // isSwiping.value = true;
+// };
 
-const handleTouchMove = (event) => {
-    if (isSwiping.value) {
-        currentX.value = event.touches[0].clientX;
-        const deltaX = currentX.value - startX.value;
-        containerStyle.value = { transform: `translateX(${deltaX}px)` };
-    }
-};
+// const handleTouchMove = (event) => {
+//     if (isSwiping.value) {
+//         currentX.value = event.touches[0].clientX;
+//         const deltaX = currentX.value - startX.value;
+//         containerStyle.value = { transform: `translateX(${deltaX}px)` };
+//     }
+// };
 
-const handleTouchEnd = () => {
-    if (isSwiping.value) {
-        const deltaX = currentX.value - startX.value;
-        if (deltaX > 100) {
-            containerStyle.value = { transform: 'translateX(100%)', transition: 'transform 0.3s ease' };
-        } else if (deltaX < -100) {
-            containerStyle.value = { transform: 'translateX(-100%)', transition: 'transform 0.3s ease' };
-        } else {
-            containerStyle.value = { transform: 'translateX(0)', transition: 'transform 0.3s ease' };
-        }
-        isSwiping.value = false;
-    }
-};
+// const handleTouchEnd = () => {
+//     if (isSwiping.value) {
+//         const deltaX = currentX.value - startX.value;
+//         if (deltaX > 100) {
+//             containerStyle.value = { transform: 'translateX(100%)', transition: 'transform 0.3s ease' };
+//         } else if (deltaX < -100) {
+//             containerStyle.value = { transform: 'translateX(-100%)', transition: 'transform 0.3s ease' };
+//         } else {
+//             containerStyle.value = { transform: 'translateX(0)', transition: 'transform 0.3s ease' };
+//         }
+//         isSwiping.value = false;
+//     }
+// };
 
-onMounted(() => {
-    containerStyle.value = { transform: 'translateX(0)', transition: 'transform 0.3s ease' };
-});
+// onMounted(() => {
+//     containerStyle.value = { transform: 'translateX(0)', transition: 'transform 0.3s ease' };
+// });
 </script>
 
 <template>
-    <div class="item-container" @touchstart="handleTouchStart" @touchmove="handleTouchMove" @touchend="handleTouchEnd"
-        :style="containerStyle">
+    <div class="item-container" v-if="article">
 
         <div class="image-container">
             <!-- FUTURE CHANGE: if image isnt able to load because of network error -->
             <img v-if="article.imageUrl" :src="article.imageUrl"
                 alt="Sorry :( It seems like the article image was unable to load" class="article-image">
             <!-- <img v-else src="sumnewsbanner"> -->
-            <div class="meta-data">
-                <img class="logo" :alt="article.source" :src="'data:image/jpeg;base64,' + sourceLogo">
+            <div class="meta-data"
+                :style="{ justifyContent: dailyrecap.source === 'sumnews.net' ? 'end' : 'space-between' }">
+                <img v-if="dailyrecap.source != 'sumnews.net'" class="logo" :alt="article.source"
+                    :src="'data:image/jpeg;base64,' + sourceLogo">
                 <div class="actions">
                     <ActionItem :action="shareAction" :article="article"></ActionItem>
                     <ActionItem :action="fullCoverageAction" :article="article" v-if="article.eventUri">

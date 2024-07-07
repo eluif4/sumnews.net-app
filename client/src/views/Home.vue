@@ -88,33 +88,32 @@ async function scrollHandler(event) {
 async function setDailyRecapButtons() {
     try {
         // Gets most recent daily recaps
-        var response = await fetch(`${BACKEND_URL}db/getDailyRecapButtons`)
-        // For every source call a get source endpoint and get the source logo. Place it in the dailyrecap object
-        var dailyRecaps = await response.json()
-        // const dailyrecapsSources = dailyRecaps.map(dailyrecap => dailyrecap.source);
-        // var response = await fetch(`${BACKEND_URL}db/getSourcesLogo`, {
-        //     method: 'POST',
-        //     headers: {
-        //         'Accept': 'application/json',
-        //         'Content-Type': 'application/json'
-        //     },
-        //     body: JSON.stringify({
-        //         sources: dailyrecapsSources
-        //     })
-        // })
-        // var sourceLogos = await response.json();
-        // for (const [index, dailyrecap] of dailyRecaps.entries()) {
-        //     if (dailyrecap.source === 'sumnews.net') {
-        //         dailyrecap.sourceLogo = SumnewsLogo;
-        //     }
-        //     else
-        //         dailyrecap.sourceLogo = sourceLogos[index].logo
-        // }
+        const dailyRecapsInLocalStorage = JSON.parse(localStorage.getItem('dailyRecaps'));
+        const now = new Date();
+        const dailyRecapsLastUpdate = dailyRecapsInLocalStorage?.lastUpdate || new Date("01/01/2000");
+        // Set the time of lastUpdate to 6:05 PM
+        const lastUpdateWithTime = new Date(dailyRecapsLastUpdate);
+        lastUpdateWithTime.setHours(18, 5, 0, 0); // Set time to 6:05 PM
 
-        dailyRecapButtons.value = dailyRecaps;
-        hasFetchedDailyRecapFinished.value = true
+        const isPast1805 = now > lastUpdateWithTime;
+        
+        // If there are dailyRecaps in localstorage and it's not past 6 PM the day after lastUpdate
+        if (dailyRecapsInLocalStorage && !isPast1805) {
+            console.log('Getting from local storage')
+            dailyRecapButtons.value = dailyRecapsInLocalStorage.dailyRecapButtons;
+            hasFetchedDailyRecapFinished.value = true;
+        }
+        else {
+            console.log('Getting from db')
+            var response = await fetch(`${BACKEND_URL}db/getDailyRecapButtons`);
+            var dailyRecaps = await response.json();
+
+            localStorage.setItem('dailyRecaps', JSON.stringify({ "lastUpdate": now, "dailyRecapButtons": dailyRecaps }));
+            dailyRecapButtons.value = dailyRecaps;
+            hasFetchedDailyRecapFinished.value = true;
+        }
     } catch (error) {
-        console.error(`Failed to fetch Daily Recaps`)
+        console.error(`Failed to fetch Daily Recaps`, error)
     }
 }
 
