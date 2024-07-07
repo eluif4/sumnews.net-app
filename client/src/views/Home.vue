@@ -90,15 +90,19 @@ async function setDailyRecapButtons() {
         // Gets most recent daily recaps
         const dailyRecapsInLocalStorage = JSON.parse(localStorage.getItem('dailyRecaps'));
         const now = new Date();
-        const dailyRecapsLastUpdate = dailyRecapsInLocalStorage?.lastUpdate || new Date("01/01/2000");
+
+        const dailyRecapsLastUpdate = dailyRecapsInLocalStorage?.lastUpdate ? new Date(dailyRecapsInLocalStorage.lastUpdate) : new Date("01/01/2000");
         // Set the time of lastUpdate to 6:05 PM
         const lastUpdateWithTime = new Date(dailyRecapsLastUpdate);
         lastUpdateWithTime.setHours(18, 5, 0, 0); // Set time to 6:05 PM
 
         const isPast1805 = now > lastUpdateWithTime;
-        
+        const wasLastUpdateYesterday = now.getDate() - dailyRecapsLastUpdate.getDate() == 1;
+
+        const needsUpdate = isPast1805 && wasLastUpdateYesterday // If is past 6:05 and last update was yesterday
+
         // If there are dailyRecaps in localstorage and it's not past 6 PM the day after lastUpdate
-        if (dailyRecapsInLocalStorage && !isPast1805) {
+        if (dailyRecapsInLocalStorage && !needsUpdate) {
             console.log('Getting from local storage')
             dailyRecapButtons.value = dailyRecapsInLocalStorage.dailyRecapButtons;
             hasFetchedDailyRecapFinished.value = true;
