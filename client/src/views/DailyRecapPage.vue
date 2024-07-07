@@ -259,6 +259,7 @@ watch(() => route.params.drUri, (newDrUri, oldDrUri) => {
     flex-direction: row;
     justify-content: space-between;
     align-items: flex-start;
+    gap: 10px;
 }
 
 .right {
@@ -386,5 +387,13 @@ watch(() => route.params.drUri, (newDrUri, oldDrUri) => {
 
 .skeleton {
     background-color: #e5e6e6;
+}
+
+.left {
+    flex: 1;
+    white-space: nowrap;
+    overflow: overlay;
+    text-overflow: ellipsis;
+    width: 100%;
 }
 </style>

@@ -47,7 +47,7 @@ const routes = [
                 (isFromFilterPath && isLocalStorageEmpty) ||
                 (isFromHomePath && List.articles.length === 0) ||
                 (isFromAccountPath && List.articles.length === 0) ||
-                (isFromDailyRecapPath && List.articles.length === 0) ||
+                // (isFromDailyRecapPath && List.articles.length === 0) ||
                 (isFromErrorPage && List.articles.length === 0) ||
                 (isFromEventPage && List.articles.length === 0)
             ) {

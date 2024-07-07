@@ -103,12 +103,10 @@ async function setDailyRecapButtons() {
 
         // If there are dailyRecaps in localstorage and it's not past 6 PM the day after lastUpdate
         if (dailyRecapsInLocalStorage && !needsUpdate) {
-            console.log('Getting from local storage')
             dailyRecapButtons.value = dailyRecapsInLocalStorage.dailyRecapButtons;
             hasFetchedDailyRecapFinished.value = true;
         }
         else {
-            console.log('Getting from db')
             var response = await fetch(`${BACKEND_URL}db/getDailyRecapButtons`);
             var dailyRecaps = await response.json();
 
