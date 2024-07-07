@@ -126,7 +126,14 @@ async function cronDailyRecap() {
 }
 
 app.get('/createDailyRecapCron', async (req, res) => {
-    await cronDailyRecap();
+
+    const cachedSources = cache.get('sources');
+    response = cachedSources ? cachedSources : await getAllSources();
+
+    const sources = ['sumnews.net', ...response.map(source => source.source)];
+    for (const source of sources) {
+        await createDailyRecap(source);
+    }
 })
 
 async function cacheSourcesEvery24H() {

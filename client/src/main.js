@@ -44,7 +44,7 @@ else if (!allSourcesInLocalStorage || sourcesDiffInDays > 1) {
   fetch(`${BACKEND_URL}db/getAllSources`)
     .then(response => response.json())
     .then(response => {
-      localStorage.setItem('allSources', JSON.stringify({ sources: response, lastUpdate: now }));
+      localStorage.setItem('allSources', JSON.stringify({ lastUpdate: now, sources: response }));
       Sources.list = response
     })
     .catch(error => {
@@ -67,7 +67,7 @@ else if (!allSourcesInLocalStorage || genresDiffInDays > 1) {
   fetch(`${BACKEND_URL}db/getAllGenres`)
     .then(response => response.json())
     .then(response => {
-      localStorage.setItem('allGenres', JSON.stringify({ sources: response, lastUpdate: now }));
+      localStorage.setItem('allGenres', JSON.stringify({ lastUpdate: now, sources: response }));
       Genres.list = response
     })
     .catch(error => {
