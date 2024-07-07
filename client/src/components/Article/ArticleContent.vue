@@ -158,13 +158,14 @@ const handleTransitionEnd = () => {
 </script>
 
 <template>
+    <!-- FUTURE CHANGE: add animation into routes -->
     <div class="article-container" :style="{ transform: `translateY(${translateY}px)` }"
         @transitionend="handleTransitionEnd">
         <!-- IMAGE, SHADER AND ACTIONS -->
         <div class="image-container">
             <div class="close-bar" @click="goBack"></div>
             <div class="actions">
-                <ActionItem :action="shareAction" :article="articleRef"></ActionItem>
+                <ActionItem :action="shareAction" :article="articleRef.value"></ActionItem>
                 <ActionItem :action="fullCoverageAction" :article="articleRef" v-if="articleRef.eventUri"></ActionItem>
                 <ActionItem :action="backAction" :article="articleRef" class="backAction"></ActionItem>
             </div>
@@ -409,7 +410,7 @@ const handleTransitionEnd = () => {
 
 .squote {
     color: black;
-    background-color: rgb(152, 236, 255, 1);
+    background-color: rgb(152, 236, 255);
     padding: 0 5px;
     border-radius: 4px;
     padding: 0 2px;
@@ -436,11 +437,5 @@ const handleTransitionEnd = () => {
 
 .summarized-content {
     color: #828282;
-}
-
-.summarized-content ul {
-    padding: revert;
-    list-style-type: disc;
-    margin: 0;
 }
 </style>
