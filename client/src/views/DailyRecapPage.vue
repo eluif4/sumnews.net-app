@@ -1,14 +1,12 @@
 <script setup>
-// const props = defineProps({ dailyRecap: Object })
 import { ref, onMounted, computed, watch, onUnmounted } from 'vue';
 import { config } from '../constants';
+import { useRoute } from 'vue-router';
 import router from '../router';
 import DailyRecapItem from '../components/DailyRecap/DailyRecapItem.vue'
 import DailyRecapItemSkeleton from '../components/DailyRecap/DailyRecapItemSkeleton.vue';
-import { useRoute } from 'vue-router';
 
 const BACKEND_URL = config.url.BACKEND_URL;
-const SLIDE_THRESHOLD = 30;
 const route = useRoute();
 const currentEventIndex = ref(0);
 const currentArticleIndex = ref(0);
@@ -23,7 +21,6 @@ const dailyrecap = ref();
 const drUriRef = ref(props.drUri);
 const articleUUIDRef = ref(props.articleUUID);
 const currentArticle = ref(null) // Current article with relation to the uuid in the URL
-const tempDailyRecapSkeleton = ref([{}, {}, {}])
 
 const dynamicGap = computed(() => {
     const articleCount = dailyrecap.value?.drEvents[currentEventIndex.value].articles.length;
@@ -37,21 +34,7 @@ const dynamicGap = computed(() => {
 const startX = ref(0)
 const endX = ref(0);
 
-// COMPUTED PROPERTIES
-// const currentEventIndex = computed(() => {
-//     return dailyrecap.value?.drEvents.findIndex(event => event.drUri === drUriRef.value);
-// });
-
-// const currentArticleIndex = computed(() => {
-//     return dailyrecap.value?.drEvents[currentEventIndex.value].articles.findIndex(article => article.uuid === props.articleUUID);
-// })
-
-// watch(currentEventIndex, (newVal, oldVal) => {
-//     console.log(newVal)
-// })
-
 const carouselRef = ref(null);
-const currentIndex = ref(0);
 
 function getCurrentCarouselIndex() {
     if (!carouselRef.value) return 0;
@@ -64,7 +47,7 @@ function getCurrentCarouselIndex() {
     return Math.max(0, Math.min(index, dailyrecap.value?.drEvents.length));
 }
 
-// Fetching dailyRecap and event details
+// Fetch dailyrecap item
 const setDailyRecap = async (dailyrecapUUID) => {
     try {
         var response = await fetch(`${BACKEND_URL}db/getDailyRecaps`, {
@@ -92,7 +75,6 @@ const setDailyRecap = async (dailyrecapUUID) => {
 async function handleClick() {
     const screenWidth = window.innerWidth;
     const clickPosition = event.clientX
-    // var articleIndex = currentArticleIndex.value
     if (clickPosition < screenWidth / 2) { // if left
         if (currentArticleIndex.value != 0)
             currentArticleIndex.value--;
@@ -110,31 +92,9 @@ async function handleClick() {
     });
 }
 
-// const handleTouchStart = (event) => {
-//     startX.value = event.touches[0].clientX;
-// };
-
-// const handleTouchMove = (event) => {
-//     var moveX = event.touches[0].clientX - startX.value;
-//     const eventList = document.querySelector('.event-list');
-//     if (currentEventIndex.value == 0 && moveX > 0) {
-//         moveX = 0;
-//     } else if (currentEventIndex.value == dailyrecap.value?.drEvents.length - 1 && moveX < 0) {
-//         moveX = 0
-//     }
-//     // eventList.style.transform = `translateX(${moveX}px)`;
-// }
-
-// const handleTouchEnd = (event) => {
-//     endX.value = event.changedTouches[0].clientX;
-//     handleSlide();
-// };
-
 async function handleSlide() {
-    const deltaX = startX.value - endX.value;
     var eventIndex = getCurrentCarouselIndex();
     currentEventIndex.value = dailyrecap.value?.drEvents.findIndex(event => event.drUri === drUriRef.value);
-    console.log(`currentEventIndex: ${currentEventIndex.value}, eventIndex: ${eventIndex}, currentArticeIndex: ${currentArticleIndex.value}`);
 
     if (eventIndex != currentEventIndex.value) { // Reroute only if event switched
         drUriRef.value = dailyrecap.value.drEvents[eventIndex].drUri;
@@ -154,7 +114,6 @@ onMounted(async () => {
 
     // Calculate 'currentEventIndex'
     try {
-        // Change this to get index from link and move carousel 'currentEventIndex.value' amount
         currentEventIndex.value = dailyrecap.value?.drEvents.findIndex(event => event.drUri === drUriRef.value);
     } catch (err) {
         console.log(`FAILED to connect carousel position to event counter`, err);
@@ -177,7 +136,6 @@ onMounted(async () => {
         });
     }
 
-    // const response = await front_getArticlesFromDB({ uuid: props.articleUUID })
     var article = dailyrecap?.value.drEvents[currentEventIndex.value].articles[currentArticleIndex.value]
     currentArticle.value = article;
 });
@@ -309,8 +267,6 @@ watch(() => route.params.drUri, (newDrUri, oldDrUri) => {
     flex-direction: row;
     gap: 10px;
 }
-
-.second {}
 
 .bubble {
     width: 100%;
