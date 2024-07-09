@@ -39,6 +39,8 @@ app.use(express.json());
 
 app.use(cors({
     origin: function (origin, callback) {
+        console.log('Request origin:', origin); // Log the origin for debugging
+
         const allowedOrigins = [
             'https://www.sumnews.net'
         ];
@@ -60,6 +62,7 @@ app.use(cors({
     },
     credentials: true
 }));
+
 
 app.use(DBGETARTICLESROUTES)
 app.use(DBGETCOLLECTIONSROUTES)
