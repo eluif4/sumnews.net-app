@@ -46,7 +46,7 @@ const routes = [
                 (isFromArticlePath && List.articles.length === 0) ||
                 (isFromFilterPath && isLocalStorageEmpty) ||
                 (isFromHomePath && List.articles.length === 0) ||
-                (isFromAccountPath && List.articles.length === 0) ||
+                (isFromAccountPath) ||
                 // (isFromDailyRecapPath && List.articles.length === 0) ||
                 (isFromErrorPage && List.articles.length === 0) ||
                 (isFromEventPage && List.articles.length === 0)
@@ -276,5 +276,17 @@ const router = createRouter({
         return { top: 0 }
     }
 })
+
+// Create an array to store route history
+const routeHistory = [];
+
+// Navigation guard to track history
+router.beforeEach((to, from, next) => {
+  routeHistory.push(from.fullPath);
+  next();
+});
+
+export { routeHistory };
+
 
 export default router
