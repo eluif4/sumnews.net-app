@@ -27,7 +27,7 @@ const DBGETCOLLECTIONSROUTES = require('./server/1-routes/db/getArticles.js');
 
 //---FUNCTIONS---
 const { getArticlesUsingRecentActiviy } = require('./server/2-utils/api/getArticlesFromAPI.js');
-const { getAllSources, articlesSinceYesterday, saveDocument } = require('./server/2-utils/db/databaseAccess.js')
+const { getAllSources, articlesSinceYesterday, doesArticleExist } = require('./server/2-utils/db/databaseAccess.js')
 const { processQueue } = require('./server/2-utils/articleQueueHandler.js')
 const { createDailyRecap } = require('./server/2-utils/dailyRecaps.js')
 
@@ -54,7 +54,7 @@ const { articleQueue } = require('./server/2-utils/articleQueueHandler.js');
 //---RUN MAIN FUNCTION---
 async function cronTask() {
     cron.schedule('*/15 * * * *', async () => {
-        if (false) {
+        if (true) {
             try {
                 const date = new Date()
                 console.log(kleur.bgBlue(`Task started @ ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`))
@@ -78,7 +78,7 @@ async function cronTask() {
                 });
 
                 // Get all articles from yesterday and today // FUTURE CHANGE: save to caches as queue instead of calling db
-                const articlesInDB = await articlesSinceYesterday();
+                // const articlesInDB = await articlesSinceYesterday();
 
                 // Loop over all articles from API request
                 for (const article of articles) {
@@ -86,10 +86,11 @@ async function cronTask() {
                     const articleExistInQueue = articleQueue.exist(article);
 
                     // Loop over all articles in DB from yesterday and today and check if current article exists in DB
-                    for (const a of articlesInDB) {
-                        if (a.url == article.url)
-                            articleExistsInDB = true;
-                    }
+                    // for (const a of articlesInDB) {
+                    //     if (a.url == article.url)
+                    //         articleExistsInDB = true;
+                    // }
+                    articleExistsInDB = await doesArticleExist(article)
 
                     // If article isnt in DB or QUEUE
                     if (!articleExistInQueue && !articleExistsInDB) {
@@ -116,8 +117,9 @@ async function cronDailyRecap() {
         if (true) {
             const cachedSources = cache.get('sources');
             response = cachedSources ? cachedSources : await getAllSources();
-
-            const sources = ['sumnews.net', ...response.map(source => source.source)];
+            const responseSources = response.map(source => source.source);
+            const shuffledSources = shuffleArray(responseSources);
+            const sources = ['sumnews.net', ...shuffledSources];
             for (const source of sources) {
                 await createDailyRecap(source);
             }
@@ -125,12 +127,20 @@ async function cronDailyRecap() {
     })
 }
 
-app.get('/createDailyRecapCron', async (req, res) => {
+function shuffleArray(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
+}
 
+app.get('/createDailyRecapCron', async (req, res) => {
     const cachedSources = cache.get('sources');
     response = cachedSources ? cachedSources : await getAllSources();
-
-    const sources = ['sumnews.net', ...response.map(source => source.source)];
+    const responseSources = response.map(source => source.source);
+    const shuffledSources = shuffleArray(responseSources);
+    const sources = ['sumnews.net', ...shuffledSources];
     for (const source of sources) {
         await createDailyRecap(source);
     }
