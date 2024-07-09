@@ -4,13 +4,21 @@ const Article = require('../4-models/articles.js')
 const Queue = require('../4-models/queue.js')
 const Event = require('../4-models/events.js')
 const cache = require('memory-cache')
+const Bottleneck = require('bottleneck')
 
 const uuid = require('uuid');
-// const { articleQueue } = require('./ServerHelper')
-const { saveDocument, getEvents, getAllSources, getEventByEventUri } = require('./db/databaseAccess.js')
+const { saveDocument, getAllSources, getEventByEventUri } = require('./db/databaseAccess.js')
 const { assignAndSummarize } = require('../2-utils/api/geminiRequests')
 const { getArticlesFromEvent } = require('../2-utils/api/getArticlesFromAPI')
 const { getAllGenres } = require('../2-utils/db/getCollections')
+
+const limiter = new Bottleneck({
+    minTime: 4000, // 4000ms = 4 seconds between each request
+    maxConcurrent: 1 // Process only 1 request at a time
+})
+
+// Wrap your API call function with the limiter
+const rateLimitedAssignAndSummarize = limiter.wrap(assignAndSummarize);
 
 var isProcessing = false
 const articleQueue = new Queue()
@@ -54,7 +62,7 @@ async function processQueue() {
     }
 }
 
-// Goes over given eventUri, get articles, filters them by source and language and add the relevant articles to articlQueue
+// Goes over given eventUri, get articles, filters them by source and language and add the relevant articles to articleQueue
 async function processEvent(article) {
     var doesEventExist = await getEventByEventUri(article.eventUri) // Returns value of event ( is no event return null )
 
@@ -154,7 +162,8 @@ async function processArticle(article) { // Returns the updated article
 
         // FINDING GENRES USING GEMINI
         try {
-            var response = await assignAndSummarize(a)
+            // Replace the direct API call with the rate-limited version
+            var response = await rateLimitedAssignAndSummarize(a);
 
             var chosenGenres = response.genres.map(item => item.trim())
 
@@ -187,14 +196,6 @@ function articleContainsSource(article, sources) {
         if (sourceUri == articleSourceUri)
             return true;
     }
-    return false;
-}
-
-// Check if eventUri exists in eventUris array
-function eventUriExists(eventUri, events) {
-    for (const event of events)
-        if (event.eventUri == eventUri)
-            return true;
     return false;
 }
 
