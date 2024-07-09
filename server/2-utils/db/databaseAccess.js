@@ -237,37 +237,36 @@ async function getDailyRecap(id) {
                 'path': '$drEvents',
                 'preserveNullAndEmptyArrays': false
             }
-        }, {
+        },
+        {
             '$lookup': {
                 'from': 'articles',
                 'localField': 'drEvents',
                 'foreignField': 'drUri',
                 'as': 'eventArticles'
             }
-        }, {
+        },
+        {
             '$lookup': {
                 'from': 'sources',
                 'localField': 'source',
                 'foreignField': 'source',
                 'as': 'sourceDetails'
             }
-        }, {
+        },
+        {
             '$unwind': {
                 'path': '$sourceDetails',
                 'preserveNullAndEmptyArrays': true
             }
-        }, { // FUTURE CHANGE: No need to retrieve sourceLogo here too
+        },
+        {
             '$group': {
                 '_id': '$_id',
-                'source': {
-                    '$first': '$source'
-                },
-                'sourceLogo': {
-                    '$first': '$sourceDetails.logo'
-                },
-                'dateCreated': {
-                    '$first': '$dateCreated'
-                },
+                'id': { '$first': '$id' },
+                'source': { '$first': '$source' },
+                'sourceLogo': { '$first': '$sourceDetails.logo' },
+                'dateCreated': { '$first': '$dateCreated' },
                 'drEvents': {
                     '$push': {
                         'drUri': '$drEvents',
@@ -275,16 +274,18 @@ async function getDailyRecap(id) {
                     }
                 }
             }
-        }, {
+        },
+        {
             '$project': {
                 '_id': 1,
+                'id': 1,
                 'source': 1,
                 'dateCreated': 1,
                 'drEvents': 1,
                 'sourceLogo': 1
             }
         }
-    ]
+    ];    
 
     if (id) {
         pipeline.unshift(match);

@@ -1,15 +1,15 @@
 <script setup>
-// const props = defineProps({ dailyRecap: Object })
-import { ref, onMounted, computed, watch } from 'vue';
+import { ref, onMounted, computed, watch, onUnmounted } from 'vue';
 import { config } from '../constants';
+import { useRoute } from 'vue-router';
 import router from '../router';
 import DailyRecapItem from '../components/DailyRecap/DailyRecapItem.vue'
 import DailyRecapItemSkeleton from '../components/DailyRecap/DailyRecapItemSkeleton.vue';
-import { useRoute } from 'vue-router';
 
 const BACKEND_URL = config.url.BACKEND_URL;
-const SLIDE_THRESHOLD = 30;
 const route = useRoute();
+const currentEventIndex = ref(0);
+const currentArticleIndex = ref(0);
 
 const props = defineProps({
     dailyrecapUUID: String,
@@ -17,12 +17,10 @@ const props = defineProps({
     articleUUID: String,
 });
 
-// FUTURE CHANGE: GET THESE VALUES FROM THE URL
 const dailyrecap = ref();
 const drUriRef = ref(props.drUri);
 const articleUUIDRef = ref(props.articleUUID);
 const currentArticle = ref(null) // Current article with relation to the uuid in the URL
-const tempDailyRecapSkeleton = ref([{}, {}, {}])
 
 const dynamicGap = computed(() => {
     const articleCount = dailyrecap.value?.drEvents[currentEventIndex.value].articles.length;
@@ -36,16 +34,20 @@ const dynamicGap = computed(() => {
 const startX = ref(0)
 const endX = ref(0);
 
-// COMPUTED PROPERTIES
-const currentEventIndex = computed(() => {
-    return dailyrecap.value?.drEvents.findIndex(event => event.drUri === drUriRef.value);
-});
+const carouselRef = ref(null);
 
-const currentArticleIndex = computed(() => {
-    return dailyrecap.value?.drEvents[currentEventIndex.value].articles.findIndex(article => article.uuid === props.articleUUID);
-})
+function getCurrentCarouselIndex() {
+    if (!carouselRef.value) return 0;
 
-// Fetching dailyRecap and event details
+    const scrollPosition = carouselRef.value.scrollLeft;
+    const carouselWidth = carouselRef.value.offsetWidth;
+    const itemWidth = carouselWidth;
+
+    const index = Math.round(scrollPosition / itemWidth);
+    return Math.max(0, Math.min(index, dailyrecap.value?.drEvents.length));
+}
+
+// Fetch dailyrecap item
 const setDailyRecap = async (dailyrecapUUID) => {
     try {
         var response = await fetch(`${BACKEND_URL}db/getDailyRecaps`, {
@@ -70,61 +72,31 @@ const setDailyRecap = async (dailyrecapUUID) => {
     }
 };
 
-async function handleClick(event) {
+async function handleClick() {
     const screenWidth = window.innerWidth;
     const clickPosition = event.clientX
-    var articleIndex = currentArticleIndex.value
     if (clickPosition < screenWidth / 2) { // if left
-        if (articleIndex != 0)
-            articleIndex--;
+        if (currentArticleIndex.value != 0)
+            currentArticleIndex.value--;
     } else { // else right
-        if (articleIndex != dailyrecap.value.drEvents[currentEventIndex.value].articles.length - 1)
-            articleIndex++
+        if (currentArticleIndex.value != dailyrecap.value.drEvents[currentEventIndex.value].articles.length - 1)
+            currentArticleIndex.value++
     }
 
     router.push({
         name: 'dailyrecap', params: {
             dailyrecapUUID: props.dailyrecapUUID,
             drUri: dailyrecap.value.drEvents[currentEventIndex.value].drUri,
-            articleUUID: dailyrecap.value.drEvents[currentEventIndex.value].articles[articleIndex].uuid,
+            articleUUID: dailyrecap.value.drEvents[currentEventIndex.value].articles[currentArticleIndex.value].uuid,
         }
     });
 }
 
-const handleTouchStart = (event) => {
-    startX.value = event.touches[0].clientX;
-};
-
-const handleTouchMove = (event) => {
-    var moveX = event.touches[0].clientX - startX.value;
-    const eventList = document.querySelector('.event-list');
-    if (currentEventIndex.value == 0 && moveX > 0) {
-        moveX = 0;
-    } else if (currentEventIndex.value == dailyrecap.value?.drEvents.length - 1 && moveX < 0) {
-        moveX = 0
-    }
-    // eventList.style.transform = `translateX(${moveX}px)`;
-}
-
-const handleTouchEnd = (event) => {
-    endX.value = event.changedTouches[0].clientX;
-    handleSlide();
-};
-
 async function handleSlide() {
-    const deltaX = startX.value - endX.value;
-    var eventIndex = currentEventIndex.value;
-    const eventList = document.querySelector('.event-list');
-    if (Math.abs(deltaX) > SLIDE_THRESHOLD) {
-        if (deltaX > 0 && eventIndex < dailyrecap.value.drEvents.length - 1) {
-            eventIndex++
-        } else if (deltaX < 0 && eventIndex > 0) {
-            eventIndex--
-        }
+    var eventIndex = getCurrentCarouselIndex();
+    currentEventIndex.value = dailyrecap.value?.drEvents.findIndex(event => event.drUri === drUriRef.value);
 
-        const newTranslateX = -currentEventIndex.value * 100;
-        // eventList.style.transform = `translateX(${newTranslateX}%)`;
-
+    if (eventIndex != currentEventIndex.value) { // Reroute only if event switched
         drUriRef.value = dailyrecap.value.drEvents[eventIndex].drUri;
         articleUUIDRef.value = dailyrecap.value.drEvents[eventIndex].articles[0].uuid;
         router.push({
@@ -137,11 +109,41 @@ async function handleSlide() {
     }
 }
 
-onMounted(async () => { // and on route change
+onMounted(async () => {
     await setDailyRecap(props.dailyrecapUUID);
-    // const response = await front_getArticlesFromDB({ uuid: props.articleUUID })
+
+    // Calculate 'currentEventIndex'
+    try {
+        currentEventIndex.value = dailyrecap.value?.drEvents.findIndex(event => event.drUri === drUriRef.value);
+    } catch (err) {
+        console.log(`FAILED to connect carousel position to event counter`, err);
+    }
+
+    // Calculate 'currentArticleIndex'
+    try {
+        currentArticleIndex.value = dailyrecap.value?.drEvents[currentEventIndex.value].articles.findIndex(article => article.uuid === props.articleUUID);
+    } catch (err) {
+        console.log(`FAILED to connect article to uuid in link`, err);
+    }
+
+    // Sync 'carouselRef' and scroll position to event in dailyrecap
+    const scrollPercentage = (currentEventIndex.value) / dailyrecap.value?.drEvents.length
+    if (carouselRef.value) {
+        carouselRef.value.addEventListener('scroll', handleSlide);
+        carouselRef.value.scrollTo({
+            left: scrollPercentage * carouselRef.value.scrollWidth,
+            behavior: 'instant'
+        });
+    }
+
     var article = dailyrecap?.value.drEvents[currentEventIndex.value].articles[currentArticleIndex.value]
     currentArticle.value = article;
+});
+
+onUnmounted(() => {
+    if (carouselRef.value) {
+        carouselRef.value.removeEventListener('scroll', handleSlide);
+    }
 });
 
 watch(
@@ -159,25 +161,28 @@ watch(
             }
         }
     })
+
+watch(() => route.params.drUri, (newDrUri, oldDrUri) => {
+    currentArticleIndex.value = 0;
+})
 </script>
 
 <template>
-    <div class="dailyrecap-container" @click="handleClick" @touchstart="handleTouchStart" @touchmove="handleTouchMove"
-        @touchend="handleTouchEnd">
+    <div class="dailyrecap-container">
         <!-- HEADER SECTION WITH ALL THE INFORMATION AND BACK BUTTON -->
         <div class="info-header">
             <div class="first">
                 <div class="left">
                     <p class="title" v-if="dailyrecap">{{ dailyrecap.source == 'sumnews.net' ? 'Your Daily Recap' :
-        `${dailyrecap.source}'s Daily Recap` }}</p>
+                        `${dailyrecap.source}'s Daily Recap` }}</p>
                     <p class="title skeleton h-4 w-48" v-else></p>
                 </div>
                 <div class="right">
                     <p class="article-count" v-if="dailyrecap">{{ currentArticleIndex + 1 }} / {{
-        dailyrecap.drEvents[currentEventIndex].articles.length }} Articles
+                        dailyrecap.drEvents[currentEventIndex].articles.length }} Articles
                     </p>
                     <p class="article-count skeleton h-4 w-16" v-else></p>
-                    <router-link to="/" @click.stop>
+                    <router-link to="/">
                         <svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 19 19" fill="none">
                             <path
                                 d="M15.2638 14.4237C15.319 14.4788 15.3627 14.5443 15.3926 14.6164C15.4224 14.6885 15.4378 14.7657 15.4378 14.8437C15.4378 14.9218 15.4224 14.999 15.3926 15.0711C15.3627 15.1432 15.319 15.2087 15.2638 15.2638C15.2086 15.319 15.1431 15.3627 15.0711 15.3926C14.999 15.4225 14.9217 15.4378 14.8437 15.4378C14.7657 15.4378 14.6884 15.4225 14.6164 15.3926C14.5443 15.3627 14.4788 15.319 14.4236 15.2638L9.49996 10.3394L4.57629 15.2638C4.46488 15.3752 4.31377 15.4378 4.15621 15.4378C3.99865 15.4378 3.84755 15.3752 3.73614 15.2638C3.62472 15.1524 3.56213 15.0013 3.56213 14.8437C3.56213 14.6862 3.62472 14.5351 3.73614 14.4237L8.66055 9.49999L3.73614 4.57632C3.62472 4.46491 3.56213 4.3138 3.56213 4.15624C3.56213 3.99868 3.62472 3.84758 3.73614 3.73617C3.84755 3.62475 3.99865 3.56216 4.15621 3.56216C4.31377 3.56216 4.46488 3.62475 4.57629 3.73617L9.49996 8.66058L14.4236 3.73617C14.535 3.62475 14.6862 3.56216 14.8437 3.56216C15.0013 3.56216 15.1524 3.62475 15.2638 3.73617C15.3752 3.84758 15.4378 3.99868 15.4378 4.15624C15.4378 4.3138 15.3752 4.46491 15.2638 4.57632L10.3394 9.49999L15.2638 14.4237Z"
@@ -194,19 +199,10 @@ watch(
         </div>
 
         <!-- EVENTS AND ARTICLES -->
-        <div class="event-list">
-            <div class="event" v-for="(event, index) in dailyrecap.drEvents" :key="event.drUri" v-if="dailyrecap">
-                <!-- {{ event.articles.length }} -->
-                <div class="article-list">
-                    <div class="article" v-for="eventArticle in dailyrecap.drEvents[currentEventIndex].articles"
-                        :key="eventArticle.id" v-if="currentArticle">
-                        <!-- FUTURE CHANGE: WHILE THE REQUESTS LOAD PLACE SKELETONS -->
-                        <DailyRecapItem :article="currentArticle" v-if="currentArticle.uuid == articleUUIDRef">
-                        </DailyRecapItem>
-                        <!-- <DailyRecapItem :article="eventArticle" v-else></DailyRecapItem> -->
-                    </div>
-                </div>
-                <!-- <DailyRecapItem v-else :article="event.articles[0]"></DailyRecapItem> -->
+        <div ref="carouselRef" class="event-list carousel carousel-center rounded-box w-full snap-x snap-mandatory">
+            <div class="event carousel-item w-full snap-center" v-for="(drEvent, index) in dailyrecap.drEvents"
+                :key="drEvent.drUri" v-if="dailyrecap" @click="handleClick()">
+                <DailyRecapItem :article="drEvent.articles[currentArticleIndex]" :dailyrecap="dailyrecap" />
             </div>
             <div class="event" v-else>
                 <div class="article-list">
@@ -263,6 +259,7 @@ watch(
     flex-direction: row;
     justify-content: space-between;
     align-items: flex-start;
+    gap: 10px;
 }
 
 .right {
@@ -272,8 +269,6 @@ watch(
     gap: 10px;
 }
 
-.second {}
-
 .bubble {
     width: 100%;
     background-color: white;
@@ -282,31 +277,27 @@ watch(
 }
 
 .event-list {
-    width: 100%;
     height: 100%;
+    scroll-snap-type: x mandatory;
+    overflow-x: auto;
     overflow-y: hidden;
-    overflow-x: hidden;
-    display: flex;
-    flex-direction: row;
-    flex-wrap: wrap;
-    transition: transform 0.3s ease;
+    scroll-behavior: smooth;
+    background-color: black;
+    gap: 20px;
 }
 
 .event {
     height: 100%;
+    width: 100%;
+    scroll-snap-align: center;
+    flex: 0 0 100%;
     display: flex;
     flex-direction: column;
-    width: 100%;
-    overflow-x: auto;
     overflow-y: hidden;
     margin-bottom: 20px;
     background: #404040;
     border-radius: 25px 25px 0 0;
     box-shadow: 0 4px 20px 0 #000000;
-    flex: 0 0 100%;
-    /* Each event takes up full width of the container */
-    transition: transform 0.3s ease;
-    /* Smooth transition */
 }
 
 .active {
@@ -315,6 +306,7 @@ watch(
 
 .article-list {
     height: 100%;
+    width: 100%;
     overflow-y: hidden;
     overflow-x: auto;
     display: flex;
@@ -324,7 +316,7 @@ watch(
 
 .article {
     height: 100%;
-    width: 100vh;
+    width: 100%;
 }
 
 .myfooter {
@@ -395,5 +387,13 @@ watch(
 
 .skeleton {
     background-color: #e5e6e6;
+}
+
+.left {
+    flex: 1;
+    white-space: nowrap;
+    overflow: overlay;
+    text-overflow: ellipsis;
+    width: 100%;
 }
 </style>

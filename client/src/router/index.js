@@ -33,6 +33,8 @@ const routes = [
             const isFromHomePath = (from.fullPath == '/');
             const isFromDailyRecapPath = (from.fullPath.includes('/dailyrecap'))
             const isFromAccountPath = (from.fullPath.includes('/account'))
+            const isFromErrorPage = (from.fullPath.includes('/404')) || (from.fullPath.includes('/error'));
+            const isFromEventPage = (from.fullPath.includes('/event'));
             const sourcesInLocalStorage = localStorage.getItem('sources');
             const genresInLocalStorage = localStorage.getItem('genres');
 
@@ -44,7 +46,10 @@ const routes = [
                 (isFromArticlePath && List.articles.length === 0) ||
                 (isFromFilterPath && isLocalStorageEmpty) ||
                 (isFromHomePath && List.articles.length === 0) ||
-                (isFromAccountPath)
+                (isFromAccountPath) ||
+                // (isFromDailyRecapPath && List.articles.length === 0) ||
+                (isFromErrorPage && List.articles.length === 0) ||
+                (isFromEventPage && List.articles.length === 0)
             ) {
                 List.articles = []
                 front_getArticlesFromDB()
@@ -257,7 +262,6 @@ const routes = [
     //     path: '/:catchAll(.*)', component: NotFound
     // },
     {
-        // FUTURE CHANGE: create a view for an article not found
         path: '/404', component: NotFound
     },
     {
@@ -272,5 +276,17 @@ const router = createRouter({
         return { top: 0 }
     }
 })
+
+// Create an array to store route history
+const routeHistory = [];
+
+// Navigation guard to track history
+router.beforeEach((to, from, next) => {
+  routeHistory.push(from.fullPath);
+  next();
+});
+
+export { routeHistory };
+
 
 export default router

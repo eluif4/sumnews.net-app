@@ -15,15 +15,15 @@
 
 
 <style scoped>
+.slideupdown-enter-from,
 .slideupdown-enter-active,
-.slideupdown-leave-active,
-.slideupdown-in-bottom {
+.slideupdown-enter-to {
     animation: slide-in-bottom 0.5s cubic-bezier(0.250, 0.460, 0.450, 0.940) both;
 }
 
-.slideupdown-enter,
-.slideupdown-leave-to,
-.slideupdown-out-bottom {
+.slideupdown-leave-from,
+.slideupdown-leave-active,
+.slideupdown-leave-to {
     animation: slide-out-bottom 0.5s cubic-bezier(0.250, 0.460, 0.450, 0.940) both;
 }
 

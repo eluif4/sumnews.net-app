@@ -154,7 +154,6 @@ const handleTouchEnd = (e) => {
         :class="{ 'animate': swipeStarted }" @touchstart="handleTouchStart" @touchmove="handleTouchMove"
         @touchend="handleTouchEnd">
 
-        <!-- FUTURE CHANGE: FIX THIS SO THAT ITS BEHIND THE ARTICLE INSTANCE -->
         <ArticleSwipe :action="swipeAction" v-if="showSwipeAction" :style="{ width: `${Math.abs(translateX) + 10}px` }" :opacity="Math.abs(translateX) / 100 - 0.05">
         </ArticleSwipe>
 
