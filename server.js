@@ -36,17 +36,23 @@ const app = express();
 const port = process.env.PORT || 3000;
 
 app.use(express.json());
-app.use(
-    cors({
-        origin: [
-            // 'https://www.sumnews.net',
-            // 'file://*',
-            // 'capacitor://*',
-            // 'ionic://*'
-            '*'
-        ]
-    })
-)
+// app.use(
+//     cors({
+//         origin: [
+//             // 'https://www.sumnews.net',
+//             // 'file://*',
+//             // 'capacitor://*',
+//             // 'ionic://*'
+//             '*'
+//         ]
+//     })
+// )
+
+app.use(cors({
+    origin: true, // Allow all origins
+    credentials: true // Allow credentials
+}));
+
 app.use(DBGETARTICLESROUTES)
 app.use(DBGETCOLLECTIONSROUTES)
 
