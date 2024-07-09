@@ -145,6 +145,8 @@ const handleTouchEnd = (e) => {
 
 const handleTransitionEnd = () => {
     if (translateY.value === SCREENHEIGHT) {
+        const articleContainerElem = document.getElementById('article-container');
+        articleContainerElem.style.opacity = 0;
         // if (!route.path.includes('index')) {
         //     router.push({ name: 'fullCoverage', params: { eventUri: articleRef.value.eventUri } })
         // }
@@ -159,7 +161,7 @@ const handleTransitionEnd = () => {
 
 <template>
     <!-- FUTURE CHANGE: add animation into routes -->
-    <div class="article-container" :style="{ transform: `translateY(${translateY}px)` }"
+    <div class="article-container" id="article-container" :style="{ transform: `translateY(${translateY}px)` }"
         @transitionend="handleTransitionEnd">
         <!-- IMAGE, SHADER AND ACTIONS -->
         <div class="image-container">
@@ -437,5 +439,12 @@ const handleTransitionEnd = () => {
 
 .summarized-content {
     color: #828282;
+}
+
+ul,
+.list {
+    list-style: auto;
+    margin: auto;
+    padding: 0 0 0 20px;
 }
 </style>
