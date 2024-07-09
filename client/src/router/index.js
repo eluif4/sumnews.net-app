@@ -258,9 +258,9 @@ const routes = [
             articleUUID: route.params.articleUUID,
         })
     },
-    // {
-    //     path: '/:catchAll(.*)', component: NotFound
-    // },
+    {
+        path: '/:catchAll(.*)', component: NotFound
+    },
     {
         path: '/404', component: NotFound
     },
@@ -282,8 +282,8 @@ const routeHistory = [];
 
 // Navigation guard to track history
 router.beforeEach((to, from, next) => {
-  routeHistory.push(from.fullPath);
-  next();
+    routeHistory.push(from.fullPath);
+    next();
 });
 
 export { routeHistory };

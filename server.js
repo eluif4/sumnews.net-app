@@ -136,7 +136,7 @@ async function cronTask() {
 
 async function cronDailyRecap() {
     // CRON task runs at 18:00
-    cron.schedule('0 18 * * *', async () => {
+    cron.schedule('0 20 * * *', async () => {
         if (true) {
             const cachedSources = cache.get('sources');
             response = cachedSources ? cachedSources : await getAllSources();
