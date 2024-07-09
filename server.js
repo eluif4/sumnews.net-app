@@ -35,22 +35,29 @@ const { createDailyRecap } = require('./server/2-utils/dailyRecaps.js')
 const app = express();
 const port = process.env.PORT || 3000;
 
-app.use(express.json());
-// app.use(
-//     cors({
-//         origin: [
-//             // 'https://www.sumnews.net',
-//             // 'file://*',
-//             // 'capacitor://*',
-//             // 'ionic://*'
-//             '*'
-//         ]
-//     })
-// )
 
 app.use(cors({
-    origin: true, // Allow all origins
-    credentials: true // Allow credentials
+    origin: function (origin, callback) {
+        const allowedOrigins = [
+            'https://www.sumnews.net'
+        ];
+
+        // Deny requests with no origin (Postman, curl) by checking if origin is null
+        if (!origin) {
+            return callback(new Error('Not allowed by CORS'));
+        }
+
+        // Allow requests from allowed origins and ionic mobile apps
+        if (allowedOrigins.indexOf(origin) !== -1 ||
+            origin.startsWith('file://') ||
+            origin.startsWith('capacitor://') ||
+            origin.startsWith('ionic://')) {
+            callback(null, true);
+        } else {
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
+    credentials: true
 }));
 
 app.use(DBGETARTICLESROUTES)
