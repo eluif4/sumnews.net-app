@@ -39,7 +39,7 @@ app.use(express.json());
 app.use(
     cors({
         origin: [
-            'https://sumnews.net',
+            'https://www.sumnews.net',
             'file://*',
             'capacitor://*',
             'ionic://*'
