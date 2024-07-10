@@ -16,11 +16,18 @@ const OPENARTICLE_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="24" heig
 
 // Functions
 export async function actionShareFunction(article) {
-    if (navigator.share) {
+    const response = await fetch(article.imageUrl) // https://imageio.forbes.com/specials-images/imageserve/668d48bd8b03f6dcf073c709/0x0.jpg?format=jpg&height=900&width=1600&fit=bounds
+    const responseBlob = await response.blob();
+
+    var file = new File([responseBlob], "picture.jpg", { type: 'image/jpeg' });
+    var filesArray = [file];
+
+    if (navigator.canShare && navigator.canShare({ files: filesArray })) {
         try {
             await navigator.share({
-                title: `Check out this article on sumnews\n${article.title}`,
-                text: `I found an interesting article on sumnews from ${article.source}.`,
+                title: `Check out this article on Sumnews`,
+                files: filesArray,
+                text: `${article.title}`,
                 url: `${FRONTEND_URL}article/${article.uuid}`,
             });
         } catch (error) {
@@ -29,7 +36,7 @@ export async function actionShareFunction(article) {
         }
     } else {
         if (window.isSecureContext) {
-            navigator.clipboard.writeText(`Checkout this article on sumnews\n${FRONTEND_URL}article/${article.uuid}`)
+            navigator.clipboard.writeText(`${article.title}\n${FRONTEND_URL}article/${article.uuid}`)
             showPopup(1, "Link copied to clipboard succesfully")
         } else {
             showPopup(2, "Oops, something went wrong...")
