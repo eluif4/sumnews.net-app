@@ -15,7 +15,7 @@ const PLACEHOLDER_TXT = 'Search for articles here';
 const route = useRoute();
 const genresLocalStorage = ref([]);
 const sourcesLocalStorage = ref([]);
-const searchQuery = ref(route.query.searchQuery);
+const searchQuery = ref('');
 const isFiltering = ref(false);
 const isEventsRoute = ref(route.path.includes('/event'));
 const isSearchRoute = ref(route.path.includes('/search'));
@@ -63,6 +63,9 @@ async function resetHeader() {
     localStorage.setItem('sources', JSON.stringify([]))
     sourcesLocalStorage.value = []
 
+    localStorage.setItem('searchQuery', JSON.stringify(''))
+    searchQuery.value = ''
+
     isFiltering.value = false;
     searchQuery.value = '';
     placeholder.value = "Search for articles here"
@@ -86,7 +89,7 @@ watch(() => route.path, (newPath, oldPath) => {
         isEventsRoute.value = true;
         isSearchRoute.value = false;
         placeholder.value = 'Full coverage'
-    } else if (newPath.includes('/search')) {
+    } else if (newPath.includes('/search') || JSON.parse(localStorage.getItem('searchQuery'))) {
         isEventsRoute.value = false;
         isSearchRoute.value = true;
     } else if (oldPath.includes('/filter')) {
