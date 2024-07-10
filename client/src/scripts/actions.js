@@ -17,57 +17,58 @@ const OPENARTICLE_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="24" heig
 // Functions
 export async function actionShareFunction(article) {
     try {
-        const response = await fetch(article.imageUrl);
+        // const response = await fetch(article.imageUrl);
         // If i was able to fetch the imageUrl
-        if (response.ok) {
-            const responseBlob = await response.blob();
+        // if (response.ok) {
+        // const responseBlob = await response.blob();
 
-            var file = new File([responseBlob], "picture.jpg", { type: 'image/jpeg' });
-            var filesArray = [file];
+        // var file = new File([responseBlob], "picture.jpg", { type: 'image/jpeg' });
+        // var filesArray = [file];
 
-            if (navigator.canShare && navigator.canShare({ files: filesArray })) {
-                try {
-                    await navigator.share({
-                        title: `Check out this article on Sumnews`,
-                        files: filesArray,
-                        text: `${article.title} - ${FRONTEND_URL}article/${article.uuid}`,
-                        url: `${FRONTEND_URL}article/${article.uuid}`,
-                    });
-                } catch (error) {
-                    console.error('Error sharing:', error.message);
-                    // showPopup(2)
-                }
-            } else {
-                if (window.isSecureContext) {
-                    navigator.clipboard.writeText(`${article.title}\n${FRONTEND_URL}article/${article.uuid}`)
-                    showPopup(1, "Link copied to clipboard succesfully")
-                } else {
-                    showPopup(2, "Oops, something went wrong...")
-                }
+        // if (navigator.canShare && navigator.canShare({ files: filesArray })) {
+        if (navigator.canShare) {
+            try {
+                await navigator.share({
+                    title: `Check out this summarized article on Sumnews`,
+                    // files: filesArray,
+                    text: `${article.title}`,
+                    url: `${FRONTEND_URL}article/${article.uuid}`,
+                });
+            } catch (error) {
+                console.error('Error sharing:', error.message);
+                showPopup(2, "Oops, something went wrong...")
             }
         } else {
-            console.log(`Failed to fetch image: ${response.status}`);
-            if (navigator.canShare) {
-                try {
-                    await navigator.share({
-                        title: `Check out this article on Sumnews`,
-                        text: `${article.title} - ${FRONTEND_URL}article/${article.uuid}`,
-                        url: `${FRONTEND_URL}article/${article.uuid}`,
-                    });
-                } catch (error) {
-                    console.error('Error sharing:', error.message);
-                    // showPopup(2)
-                }
+            if (window.isSecureContext) {
+                navigator.clipboard.writeText(`${article.title} - ${FRONTEND_URL}article/${article.uuid}`)
+                showPopup(1, "Link copied to clipboard succesfully")
             } else {
-                if (window.isSecureContext) {
-                    navigator.clipboard.writeText(`${article.title}\n${FRONTEND_URL}article/${article.uuid}`)
-                    showPopup(1, "Link copied to clipboard succesfully")
-                } else {
-                    showPopup(2, "Oops, something went wrong...")
-                }
+                showPopup(2, "Oops, something went wrong...")
             }
-            // throw new Error(`Failed to fetch image: ${response.status}`);
         }
+        // } else {
+        // console.log(`Failed to fetch image: ${response.status}`);
+        // if (navigator.canShare) {
+        //     try {
+        //         await navigator.share({
+        //             title: `Check out this article on Sumnews`,
+        //             text: `${article.title} - ${FRONTEND_URL}article/${article.uuid}`,
+        //             url: `${FRONTEND_URL}article/${article.uuid}`,
+        //         });
+        //     } catch (error) {
+        //         console.error('Error sharing:', error.message);
+        //         // showPopup(2)
+        //     }
+        // } else {
+        //     if (window.isSecureContext) {
+        //         navigator.clipboard.writeText(`${article.title}\n${FRONTEND_URL}article/${article.uuid}`)
+        //         showPopup(1, "Link copied to clipboard succesfully")
+        //     } else {
+        //         showPopup(2, "Oops, something went wrong...")
+        //     }
+        // }
+        // throw new Error(`Failed to fetch image: ${response.status}`);
+        // }
     } catch (error) {
         console.error('Error fetching image:', error.message);
         // showPopup(2)
