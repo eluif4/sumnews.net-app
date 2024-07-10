@@ -47,7 +47,7 @@ const routes = [
                 (isFromFilterPath && isLocalStorageEmpty) ||
                 (isFromHomePath && List.articles.length === 0) ||
                 (isFromAccountPath) ||
-                // (isFromDailyRecapPath && List.articles.length === 0) ||
+                (isFromDailyRecapPath) ||
                 (isFromErrorPage && List.articles.length === 0) ||
                 (isFromEventPage && List.articles.length === 0)
             ) {
@@ -282,8 +282,8 @@ const routeHistory = [];
 
 // Navigation guard to track history
 router.beforeEach((to, from, next) => {
-  routeHistory.push(from.fullPath);
-  next();
+    routeHistory.push(from.fullPath);
+    next();
 });
 
 export { routeHistory };
