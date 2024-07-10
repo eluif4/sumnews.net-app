@@ -147,7 +147,8 @@ const handleTransitionEnd = () => {
     if (translateY.value === SCREENHEIGHT) {
         const articleContainerElem = document.getElementById('article-container');
         articleContainerElem.style.opacity = 0;
-        articleContainerElem.style.backgroundColor = 'red';
+        // articleContainerElem.style.backgroundColor = 'red';
+        articleContainerElem.style.height = 0;
         // if (!route.path.includes('index')) {
         //     router.push({ name: 'fullCoverage', params: { eventUri: articleRef.value.eventUri } })
         // }

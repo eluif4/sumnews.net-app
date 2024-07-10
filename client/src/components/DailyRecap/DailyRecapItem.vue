@@ -4,12 +4,12 @@ import { backAction, fullCoverageAction, shareAction } from '../../scripts/actio
 import ActionItem from '../Action/ActionItem.vue';
 // import sumnewsbanner from '../../assets/icons/sumnews.net_banner.png';
 const props = defineProps({ article: Object, dailyrecap: Object });
-
+const articleRef = ref(props.article || {});
 const { sourceLogo } = props.dailyrecap;
 
 // FUTURE CHANGE: IMPORT THE FOLLOWING VALUES FROM ARTICLECONTENT.VUE
 const formattedSummarizedContent = computed(() => {
-    return props.article.summarizedContent
+    return articleRef.value.summarizedContent
         // .replace(/<vocab>/g, '<span class="vocab">')
         .replace(/<squote>/g, '<span class="squote">')
         .replace(/<quote>/g, '<span class="quote">')
@@ -27,7 +27,7 @@ const getMonthOfYear = (date) => {
 }
 
 const formattedDate = computed(() => {
-    const datePublished = props.article.datePublished;
+    const datePublished = articleRef.value.datePublished;
 
     if (datePublished) {
         const inputDate = new Date(datePublished)
@@ -81,20 +81,20 @@ const formattedDate = computed(() => {
 </script>
 
 <template>
-    <div class="item-container" v-if="article">
+    <div class="item-container" v-if="articleRef">
 
         <div class="image-container">
             <!-- FUTURE CHANGE: if image isnt able to load because of network error -->
-            <img v-if="article.imageUrl" :src="article.imageUrl"
+            <img v-if="articleRef.imageUrl" :src="articleRef.imageUrl"
                 alt="Sorry :( It seems like the article image was unable to load" class="article-image">
             <!-- <img v-else src="sumnewsbanner"> -->
             <div class="meta-data"
                 :style="{ justifyContent: dailyrecap.source === 'sumnews.net' ? 'end' : 'space-between' }">
-                <img v-if="dailyrecap.source != 'sumnews.net'" class="logo" :alt="article.source"
+                <img v-if="dailyrecap.source != 'sumnews.net'" class="logo" :alt="articleRef.source"
                     :src="'data:image/jpeg;base64,' + sourceLogo">
                 <div class="actions">
                     <ActionItem :action="shareAction" :article="article"></ActionItem>
-                    <ActionItem :action="fullCoverageAction" :article="article" v-if="article.eventUri">
+                    <ActionItem :action="fullCoverageAction" :article="article" v-if="articleRef.eventUri">
                     </ActionItem>
                 </div>
             </div>
@@ -103,26 +103,26 @@ const formattedDate = computed(() => {
         <div class="content-container" id="content-container">
             <!-- ARTICLE GENRES -->
             <div class="genre-list">
-                <div class="genre" v-for="genre in article.genre">{{ genre }}</div>
+                <div class="genre" v-for="genre in articleRef.genre">{{ genre }}</div>
             </div>
 
             <!-- ARTICLE TITLE -->
             <div class="article-title">
-                {{ article.title }}
+                {{ articleRef.title }}
             </div>
 
             <!-- AUTHORS, DATE AND SOURCE -->
             <div class="authorsAndDate">
                 <div class="authors">
-                    {{ article.author.length === 0 ? "" : "By: " + article.author.join(', ') }}
+                    {{ articleRef.author.length === 0 ? "" : "By: " + articleRef.author.join(', ') }}
                 </div>
-                <div class="source-date">{{ article.source }}, {{ formattedDate }}</div>
+                <div class="source-date">{{ articleRef.source }}, {{ formattedDate }}</div>
             </div>
             <!-- SUMMARIZED CONTENT -->
             <div class="summarized-content" v-html="formattedSummarizedContent"></div>
 
             <!-- READ ORIGINAL ARTICLE -->
-            <a :href="article.url" target="_blank" rel="noopener noreferrer" class="original-article-link">
+            <a :href="articleRef.url" target="_blank" rel="noopener noreferrer" class="original-article-link">
                 <div class="original-article-container">
                     Read original article
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 12 12" fill="none">
