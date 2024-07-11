@@ -4,7 +4,7 @@ const Article = require('../4-models/articles.js')
 const Queue = require('../4-models/queue.js')
 const Event = require('../4-models/events.js')
 const cache = require('memory-cache')
-const Bottleneck = require('bottleneck')
+// const Bottleneck = require('bottleneck')
 
 const uuid = require('uuid');
 const { saveDocument, getAllSources, getEventByEventUri } = require('./db/databaseAccess.js')
@@ -12,53 +12,111 @@ const { assignAndSummarize } = require('../2-utils/api/geminiRequests')
 const { getArticlesFromEvent } = require('../2-utils/api/getArticlesFromAPI')
 const { getAllGenres } = require('../2-utils/db/getCollections')
 
-const limiter = new Bottleneck({
-    minTime: 4000, // 4000ms = 4 seconds between each request
-    maxConcurrent: 1 // Process only 1 request at a time
-})
-
-// Wrap your API call function with the limiter
-const rateLimitedAssignAndSummarize = limiter.wrap(assignAndSummarize);
-
 var isProcessing = false
-const articleQueue = new Queue()
+const articleQueue = new Queue();
+var bulkSendArticlesToGeminiQueue = new Queue();
+const BULK_SEND_ARTICLE_QUEUE_SIZE = 15;
 // Process ARTICLE QUEUE
 async function processQueue() {
     if (!isProcessing) {
         isProcessing = true
         while (!articleQueue.isEmpty()) {
             var now = new Date();
-            const article = articleQueue.dequeue()
-            if (article.url) {
-                console.log(`${now.getHours()}h:${now.getMinutes()}m:${now.getSeconds()}s (${articleQueue.size() + 1}) `
-                    + kleur.magenta(`${article.url}`))
-                var a = await processArticle(article)
-                // If a.summarizedContent isnt empty and hasnt failed in summarization in Gemini
-                if (a.summarizedContent && a.summarizedContent != "Error" || a.summarizedContent && a.summarizedContent != "Error.") {
-                    try {
-                        var hasFullCoverage = false;
-
-                        // If article has eventUri and eventUri includes "eng"
-                        if (a.eventUri && a.eventUri.includes("eng")) {
-                            hasFullCoverage = await processEvent(a)
-                        }
-
-                        // If article doesnt have full coverage give article (a).eventUri value of null
-                        if (!hasFullCoverage) {
-                            a.eventUri = null
-                        }
-
-                        // Save article with the final values
-                        await saveDocument(a);
-                    } catch (error) {
-                        console.error(error, `Couldnt save ${a.collection.modelName} into '${a.collection.name}' collection`)
-                    }
-                } else {
-                    console.log(kleur.bgRed(`Saving failed`))
+            // Add 10 articles ( without counting events into 'bulkSendArticlesToGeminiQueue' )
+            while (bulkSendArticlesToGeminiQueue.size() < BULK_SEND_ARTICLE_QUEUE_SIZE) {
+                const article = articleQueue.dequeue();
+                if (article.url) { // If is a real article
+                    bulkSendArticlesToGeminiQueue.enqueue(article)
+                }
+                console.log(`(${articleQueue.size() + 1}) (${bulkSendArticlesToGeminiQueue.size()}/10) -> ${article.url}`)
+                // Check for an event, adds all articles in found event to queue and save event to DB
+                if (article.eventUri) {
+                    await processEvent(article)
                 }
             }
+            
+            await processBulkSendArticlesToGeminiQueue();
+            // if (article.url) {
+
+            // var a = await processArticle(article)
+            // // If a.summarizedContent isnt empty and hasnt failed in summarization in Gemini
+            // if (a.summarizedContent && a.summarizedContent != "Error" || a.summarizedContent && a.summarizedContent != "Error.") {
+            //     try {
+            //         var hasFullCoverage = false;
+
+            //         // If article has eventUri and eventUri includes "eng"
+            //         if (a.eventUri && a.eventUri.includes("eng")) {
+            //             hasFullCoverage = await processEvent(a)
+            //         }
+
+            //         // If article doesnt have full coverage give article (a).eventUri value of null
+            //         if (!hasFullCoverage) {
+            //             a.eventUri = null
+            //         }
+
+            //         // Save article with the final values
+            //         await saveDocument(a);
+            //     } catch (error) {
+            //         console.error(error, `Couldnt save ${a.collection.modelName} into '${a.collection.name}' collection`)
+            //     }
+            // } else {
+            //     console.log(kleur.bgRed(`Saving failed`))
+            // }
+            // }
         }
         isProcessing = false
+    }
+}
+
+async function processBulkSendArticlesToGeminiQueue() {
+    /* 
+    Goes over all articles in 'bulkSendArticlesToGeminiQueue', 
+    adds any events articles to the queue, 
+    sends them to Gemini for summarizing and assigning genres and lastly saves each one to DB
+    */
+    console.log("Processing 'bulkSendArticlesToGeminiQueue'...")
+    // Get all articles in event ( should always be 10 )
+    const articles = bulkSendArticlesToGeminiQueue.toArray()
+
+    const cachedGenres = cache.get('genres');
+    var allGenres = cachedGenres ? cachedGenres : await getAllGenres();
+    var possibleGenres = allGenres.map(genre => genre.genre)
+
+    try {
+        const gemini_response = await assignAndSummarize(articles);
+        for (const gemini_response_article of gemini_response) {
+            const articleFromBulkQueue = bulkSendArticlesToGeminiQueue.dequeue();
+            // If there is an article in the bulk queue and the response article from Gemini has the same url apply the changes
+            if (articleFromBulkQueue && articleFromBulkQueue.url == gemini_response_article.url) {
+
+                // Save the assigned genres to article
+                var chosenGenres = gemini_response_article.genres.map(item => item.trim())
+
+                var validGenres = [];
+                for (const genre of chosenGenres) {
+                    if (genreExistsInPossibleGenres(genre, possibleGenres))
+                        validGenres.push(genre)
+                }
+                articleFromBulkQueue.genre = validGenres;
+
+                // Save the summarized content to article
+                const summary = gemini_response_article.summary
+                if (summary && summary != "undefined" && summary != undefined) { // Successful summarizing
+                    articleFromBulkQueue.summarizedContent = summary
+                }
+
+                // Save article with the final values
+                try {
+                    await saveArticle(articleFromBulkQueue);
+                } catch (error) {
+                    console.error(`Saving failed for article -> ${articleFromBulkQueue.url}`, error)
+                }
+            } else {
+                console.log(`${articleFromBulkQueue.url} doesnt match its original url`)
+            }
+        }
+    } catch (err) {
+        console.error('FAILED to assign and summarize articles', err)
     }
 }
 
@@ -93,8 +151,9 @@ async function processEvent(article) {
                 // If articleEvent is from source in DB add the articleEvent to articleQueue
                 // If isnt the current url and is an article from the sources
                 if (articleContainsSource(articleEvent, sources)) {
-                    articleQueue.moveToFront(articleEvent);
+                    bulkSendArticlesToGeminiQueue.enqueue(articleEvent);
                     articleEventsAddedToQueueCount++;
+                    console.log(`Event Article ${article.url} has been added to 'bulkSendArticlesToGeminiQueue' (${bulkSendArticlesToGeminiQueue.size()}/10)`)
                 }
             }
             console.log(kleur.green(`${articleEventsAddedToQueueCount}/${eventArticles.length} articles added to queue from event ${eventUri}`))
@@ -103,7 +162,6 @@ async function processEvent(article) {
         }
 
         const e = new Event({
-            // autoNum: events[0] != undefined ? events[0].autoNum + 1 : 0, // Add 1 to the latest eventUri, else set to 0
             eventUri: eventUri,
             articlesCount: response[eventUri].articles.totalResults,
             // FUTURE CHANGE: THE NUMBER BELOW ISNT CORRECT. SAME ARTICLES ARENT SAVE TO DB
@@ -126,7 +184,7 @@ async function processEvent(article) {
 }
 
 //---HELPER FUNCTION---
-async function processArticle(article) { // Returns the updated article
+async function saveArticle(article) { // Returns the updated article
     // CREATING UUID
     const uuidValue = uuid.v4();
 
@@ -135,13 +193,13 @@ async function processArticle(article) { // Returns the updated article
         title: article.title,
         url: article.url,
         source: article.source.uri,
-        author: [], //authors,
+        author: article.authors.map(elem => elem.name), //authors,
         datePublished: new Date(article.dateTimePub),
-        genre: [], //categoriesArray,
-        eventUri: article.eventUri,
+        genre: article.genre, //categoriesArray,
+        eventUri: article.eventUri ? article.eventUri : null,
         drUri: null,
         content: article.body,
-        summarizedContent: '',
+        summarizedContent: article.summarizedContent,
         imageUrl: article.image,
         sentiment: article.sentiment,
         concepts: article.concepts,
@@ -150,43 +208,38 @@ async function processArticle(article) { // Returns the updated article
         uuid: uuidValue
     })
 
-    if (article.body) { // Successful content fetching
-        // FIND AUTHORS
-        const authorsList = article.authors;
-        var authors = [];
-        for (const elem of authorsList) {
-            authors.push(elem.name)
-        }
+    await saveDocument(a);
 
-        a.author = authors;
+    // if (article.body) { // Successful content fetching
+    // FIND AUTHORS
 
-        // FINDING GENRES USING GEMINI
-        try {
-            // Replace the direct API call with the rate-limited version
-            var response = await rateLimitedAssignAndSummarize(a);
+    // FINDING GENRES USING GEMINI
+    // try {
+    //     // Replace the direct API call with the rate-limited version
+    //     var response = await assignAndSummarize(a);
 
-            var chosenGenres = response.genres.map(item => item.trim())
+    //     var chosenGenres = response.genres.map(item => item.trim())
 
-            const cachedGenres = cache.get('genres');
-            var allGenres = cachedGenres ? cachedGenres : await getAllGenres();
-            var possibleGenres = allGenres.map(genre => genre.genre)
+    //     const cachedGenres = cache.get('genres');
+    //     var allGenres = cachedGenres ? cachedGenres : await getAllGenres();
+    //     var possibleGenres = allGenres.map(genre => genre.genre)
 
-            var validGenres = [];
-            for (const genre of chosenGenres) {
-                if (genreExistsInPossibleGenres(genre, possibleGenres))
-                    validGenres.push(genre)
-            }
-            a.genre = validGenres;
+    //     var validGenres = [];
+    //     for (const genre of chosenGenres) {
+    //         if (genreExistsInPossibleGenres(genre, possibleGenres))
+    //             validGenres.push(genre)
+    //     }
+    //     a.genre = validGenres;
 
-            const summary = response.summary
-            if (summary) { // Successful summarizing
-                a.summarizedContent = summary
-            }
-        } catch (error) {
-            console.error('Couldnt assign / summarize article', error);
-        }
-    }
-    return a;
+    //     const summary = response.summary
+    //     if (summary) { // Successful summarizing
+    //         a.summarizedContent = summary
+    //     }
+    // } catch (error) {
+    //     console.error('Couldnt assign / summarize article', error);
+    // }
+    // }
+    // return a;
 }
 
 // Check if an article is from a source in my db
