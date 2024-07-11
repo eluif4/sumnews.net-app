@@ -28,8 +28,8 @@ async function processQueue() {
                 if (article.url) { // If is a real article
                     // Check for an event, adds all articles in found event to queue and save event to DB
                     if (article.eventUri) {
-                        const eventArticlesCount = await processEvent(article)
-                        if (eventArticlesCount <= 1)
+                        const eventIsMoreThan1Article = await processEvent(article)
+                        if (!eventIsMoreThan1Article)
                             article.eventUri = null;
                     }
                     bulkSendArticlesToGeminiQueue.enqueue(article)
