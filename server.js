@@ -42,7 +42,7 @@ app.use(cors({
         console.log('Request origin:', origin); // Log the origin for debugging
 
         const allowedOrigins = [
-            'https://www.sumnews.net'
+            'https://www.sumnews.net', 'https://localhost'
         ];
 
         // Deny requests with no origin (Postman, curl) by checking if origin is null
