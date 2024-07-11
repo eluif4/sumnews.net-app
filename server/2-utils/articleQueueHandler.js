@@ -15,7 +15,7 @@ const { getAllGenres } = require('../2-utils/db/getCollections')
 var isProcessing = false
 const articleQueue = new Queue();
 var bulkSendArticlesToGeminiQueue = new Queue();
-const BULK_SEND_ARTICLE_QUEUE_SIZE = 15;
+const BULK_SEND_ARTICLE_QUEUE_SIZE = 10;
 // Process ARTICLE QUEUE
 async function processQueue() {
     if (!isProcessing) {
@@ -28,13 +28,13 @@ async function processQueue() {
                 if (article.url) { // If is a real article
                     bulkSendArticlesToGeminiQueue.enqueue(article)
                 }
-                console.log(`(${articleQueue.size() + 1}) (${bulkSendArticlesToGeminiQueue.size()}/10) -> ${article.url}`)
+                console.log(`(${articleQueue.size() + 1}) (${bulkSendArticlesToGeminiQueue.size()}/${BULK_SEND_ARTICLE_QUEUE_SIZE}) -> ${article.url}`)
                 // Check for an event, adds all articles in found event to queue and save event to DB
                 if (article.eventUri) {
                     await processEvent(article)
                 }
             }
-            
+
             await processBulkSendArticlesToGeminiQueue();
             // if (article.url) {
 

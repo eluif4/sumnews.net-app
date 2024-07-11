@@ -17,61 +17,46 @@ const OPENARTICLE_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="24" heig
 // Functions
 export async function actionShareFunction(article) {
     try {
-        // const response = await fetch(article.imageUrl);
-        // If i was able to fetch the imageUrl
-        // if (response.ok) {
-        // const responseBlob = await response.blob();
+        let shareData = {
+            title: `Check out this summarized article on Sumnews`,
+            text: `${article.title}`,
+            url: `${FRONTEND_URL}article/${article.uuid}`,
+        };
 
-        // var file = new File([responseBlob], "picture.jpg", { type: 'image/jpeg' });
-        // var filesArray = [file];
-
-        // if (navigator.canShare && navigator.canShare({ files: filesArray })) {
-        if (navigator.canShare) {
+        // Try to fetch the image
+        if (article.imageUrl) {
             try {
-                await navigator.share({
-                    title: `Check out this summarized article on Sumnews`,
-                    // files: filesArray,
-                    text: `${article.title}`,
-                    url: `${FRONTEND_URL}article/${article.uuid}`,
-                });
+                const response = await fetch(article.imageUrl);
+                if (response.ok) {
+                    const blob = await response.blob();
+                    const file = new File([blob], "article_image.jpg", { type: 'image/jpeg' });
+                    shareData.files = [file];
+                }
             } catch (error) {
-                console.error('Error sharing:', error.message);
-                showPopup(2, "Oops, something went wrong...")
-            }
-        } else {
-            if (window.isSecureContext) {
-                navigator.clipboard.writeText(`${article.title} - ${FRONTEND_URL}article/${article.uuid}`)
-                showPopup(1, "Link copied to clipboard succesfully")
-            } else {
-                showPopup(2, "Oops, something went wrong...")
+                console.error('Error fetching image:', error.message);
+                // If there's an error fetching the image, we'll proceed without it
             }
         }
-        // } else {
-        // console.log(`Failed to fetch image: ${response.status}`);
-        // if (navigator.canShare) {
-        //     try {
-        //         await navigator.share({
-        //             title: `Check out this article on Sumnews`,
-        //             text: `${article.title} - ${FRONTEND_URL}article/${article.uuid}`,
-        //             url: `${FRONTEND_URL}article/${article.uuid}`,
-        //         });
-        //     } catch (error) {
-        //         console.error('Error sharing:', error.message);
-        //         // showPopup(2)
-        //     }
-        // } else {
-        //     if (window.isSecureContext) {
-        //         navigator.clipboard.writeText(`${article.title}\n${FRONTEND_URL}article/${article.uuid}`)
-        //         showPopup(1, "Link copied to clipboard succesfully")
-        //     } else {
-        //         showPopup(2, "Oops, something went wrong...")
-        //     }
-        // }
-        // throw new Error(`Failed to fetch image: ${response.status}`);
-        // }
+
+        if (navigator.canShare && navigator.canShare(shareData)) {
+            try {
+                await navigator.share(shareData);
+            } catch (error) {
+                console.error('Error sharing:', error.message);
+                showPopup(2, "Oops, something went wrong...");
+            }
+        } else {
+            // Fallback if Web Share API is not supported
+            if (window.isSecureContext) {
+                navigator.clipboard.writeText(`${article.title} - ${FRONTEND_URL}article/${article.uuid}`);
+                showPopup(1, "Link copied to clipboard successfully");
+            } else {
+                showPopup(2, "Oops, something went wrong...");
+            }
+        }
     } catch (error) {
-        console.error('Error fetching image:', error.message);
-        // showPopup(2)
+        console.error('Error in actionShareFunction:', error.message);
+        showPopup(2, "Oops, something went wrong...");
     }
 }
 
