@@ -77,20 +77,20 @@ const { articleQueue } = require('./server/2-utils/articleQueueHandler.js');
 //---RUN MAIN FUNCTION---
 async function cronTask() {
     cron.schedule('*/15 * * * *', async () => {
-        if (false) {
+        if (true) {
             try {
                 const date = new Date()
                 console.log(kleur.bgBlue(`Task started @ ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`))
 
-                var allSources;
                 const cachedSources = cache.get('sources');
-                allSources = cachedSources ? cachedSources : await getAllSources();
+                var allSources = cachedSources ? cachedSources : await getAllSources();
 
                 var sources = allSources.map(source => source.source)
 
                 // FUTURE CHANGE: LOOK THROUGH ALL PAGES (IF THE API CALL IS QUICK AND I DONT HAVE TOO MANY SOURCES THEN I SHOULDNT WORRY ABOUT THIS)
 
-                const apiresponse = await getArticlesUsingRecentActiviy(sources); // Get articles from newsapi.ai
+                // Get most recent articles from 'sources' from Newsapi.ai
+                const apiresponse = await getArticlesUsingRecentActiviy(sources);
                 const articles = apiresponse.recentActivityArticles.activity;
 
                 // Sort articles from oldest to newest
@@ -100,32 +100,25 @@ async function cronTask() {
                     return dateA - dateB;
                 });
 
-                // Get all articles from yesterday and today // FUTURE CHANGE: save to caches as queue instead of calling db
-                // const articlesInDB = await articlesSinceYesterday();
-
-                // Loop over all articles from API request
+                // Loop over all articles from API response
                 for (const article of articles) {
                     var articleExistsInDB = false;
                     const articleExistInQueue = articleQueue.exist(article);
 
-                    // Loop over all articles in DB from yesterday and today and check if current article exists in DB
-                    // for (const a of articlesInDB) {
-                    //     if (a.url == article.url)
-                    //         articleExistsInDB = true;
-                    // }
-                    articleExistsInDB = await doesArticleExist(article)
+                    // FUTURE CHANGE: For further proof, check article too
+                    articleExistsInDB = await doesArticleExist(article);
 
-                    // If article isnt in DB or QUEUE
+                    // If article isn't in DB or QUEUE
                     if (!articleExistInQueue && !articleExistsInDB) {
                         articleQueue.enqueue(article) // Adds article to queue
                     }
                 }
                 console.log(kleur.blue(`Queue size (${articleQueue.size()})`))
 
-                if (!articleQueue.isEmpty()) { // and processqueue isnt 
+                // Process 'articleQueue' if it isnt empty
+                if (!articleQueue.isEmpty()) {
                     processQueue()
                 }
-
             }
             catch (error) {
                 console.error(kleur.red('Problem with cron ->'), error)
@@ -136,7 +129,7 @@ async function cronTask() {
 
 async function cronDailyRecap() {
     // CRON task runs at 18:00
-    cron.schedule('0 12 * * *', async () => {
+    cron.schedule('0 18 * * *', async () => {
         if (true) {
             const cachedSources = cache.get('sources');
             response = cachedSources ? cachedSources : await getAllSources();

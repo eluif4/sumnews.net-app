@@ -1,6 +1,6 @@
 class Queue {
-    constructor() {
-        this.items = [];
+    constructor(array = []) {
+        this.items = array;
     }
 
     enqueue(item) {
@@ -35,6 +35,11 @@ class Queue {
         }
         // Add the item to the front of the array
         this.items.unshift(item);
+    }
+
+    toArray() {
+        // Return a new array containing all items in the queue
+        return [...this.items];
     }
 }
 
