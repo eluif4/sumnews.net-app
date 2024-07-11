@@ -11,68 +11,77 @@ const MODEL_NAME = "gemini-1.5-flash";
 const API_KEY = process.env.GEMINI_KEY;
 const genAI = new GoogleGenerativeAI(API_KEY);
 
-const SYSTEM_INSTRUCTIONS = `You are a professional AI agent specialized in processing articles. Your are best at creating short, bites sized, informative and fun summaries, assigning genres, and providing accurate and relevant information based on the article provided. You work for a website that delivers 100 words or less summarized articles to its users. Adhere strictly to the RULES / REQUIREMENTS specified in each task. You are to return your responses in JSON format.`;
+const SYSTEM_INSTRUCTIONS = `You are a highly skilled AI agent specialized in summarizing articles. Your expertise lies in creating concise, informative, and engaging summaries that are 100 words or less in length. Additionally, you are proficient in categorizing each article by assigning appropriate genres. You work for a website dedicated to delivering succinct and accurate summarized articles to its users. Follow the specific RULES / REQUIREMENTS given for each task meticulously. Your responses must be formatted in JSON.`;
 
-const PREREQUISITE = `You will receive a JSON list containing multiple articles, each with the properties url, uuid, and content. 
-EXAMPLE: 
+const DATA_FORMAT = `**Data Format and Examples**
+INPUT:
+You will receive an array of articles, each article is represented by a JSON object. 
+Each article will contain the properties: 
+title (string)
+url (string)
+content (string)
+
+OUTPUT:
+You shall output an array of articles in the same order as the input with the properties: 
+title (string) 
+url (string) 
+summary (string - output of JOB1)
+genres (array - output of JOB2)
+
+YOU MUST OUTPUT AND ARRAY OF JSON OBJECTS. MAKE SURE TO PROPERLY CLOSE EACH JSON OBJECT ( ARTICLE ) AND THE ARRAY.
+
+Article Example:
+{
+        "title": "Sample Article 1",
+        "url": "https://example.com/article1",
+        "content": "This is the content of the first article."
+}
+
+Input Example ( Array of articles ):
 [
     {
-        "title": "Article1 Title Here",
-        "url": "Article1 Url Here",
-        "content": "Article1 Content Here",
+        "title": "Sample Article 1",
+        "url": "https://example.com/article1",
+        "content": "This is the content of the first article."
     },
     {
-        "title": "Article2 Title Here",
-        "url": "Article2 Url Here",
-        "content": "Article2 Content Here",
+        "title": "Sample Article 2",
+        "url": "https://example.com/article2",
+        "content": "This is the content of the second article."
     },
     ...
 ]
 
-For each article in this list, perform the tasks mentioned below (TASK1, TASK2).
-Your final response should be a JSON object that includes the original article properties (url, uuid), along with the generated summary and genre array for each article.
-EXAMPLE: 
+Expected Output ( An updated array of articles with summary and genres field ):
 [
     {
-        "title": "Article1 Title Here",
-        "url": "Article1 Url Here",
-        "summary": "Article1 Summary Here",
-        "genres": ["Article1 Genre1", "Article1 Genre2", ...],
+        "title": "Sample Article 1",
+        "url": "https://example.com/article1",
+        "summary": "This is a concise summary of the first article, providing the key points in 100 words or less.",
+        "genres": ["Genre1", "Genre2"]
     },
     {
-        "title": "Article2 Title Here",
-        "url": "Article2 Url Here",
-        "summary": "Article2 Summary Here",
-        "genres": ["Article2 Genre1", "Article2 Genre2", ...],
+        "title": "Sample Article 2",
+        "url": "https://example.com/article2",
+        "summary": "This is a concise summary of the second article, providing the key points in 100 words or less.",
+        "genres": ["Genre1", "Genre2", "Genre3"]
     },
     ...
-]
-`
+]`;
 
-const SUMMARIZING_TASK = `**TASK1:** Given an article TITLE and ARTICLE CONTENT, summarize the article in 100 WORDS OR LESS, providing a valuable summary and emphasizing the most important information found in the article content. Summarize in your own words.
+const TASK = `**TASK**
+For each article in the array, you must apply the requirements of JOB1 and JOB2. Both JOB1 and JOB2 are mandatory and cannot be skipped. Each job is a specific task that should be performed on every article in the array. Refer to the detailed instructions and requirements for each job provided in the following messages`;
+
+const SUMMARIZING_TASK = `**JOB1:** Summarize each article in the array in 100 WORDS OR LESS, providing a valuable summary and emphasizing the most important information found in each articles content. Do not Summarize in your own words.
 FOLLOW AND IMPLEMENT ALL OF THE REQUIREMENTS BELOW!
 **REQUIREMENTS**:
 1. **SUMMARIZING**: Create a short, bite sized, fun and quick to read yet informative summary of the articles content. Omit redundancy and irrelevant details ensuring the summary is precise, to the point and UNDER 100 WORDS in length. The summary should be relevant and informative based solely on the article's content. Summarize the article in your own words.
-2. **SAFETY**: Some articles may be flagged as unsafe by the Gemini API, resulting in an error during summarization. If you suspect an article may trigger this, use safer language in your summary to prevent errors.
+2. **USAGE OF OPTIONAL AND CONDITIONAL FEATURES**: Apply optional and conditional features to summaries when appropriate. Try to incorporate quotes in most articles. Create lists in articles that mention multiple items.
+3. **SAFETY**: Some articles may be flagged as unsafe by the Gemini API, resulting in an error during summarization. If you suspect an article may trigger this, use safer language in your summary to prevent errors.
 
 **OPTIONAL FEATURES**
-Apply these optional features to summaries when appropriate. Not every article will require all these features. Implement them as needed.
-1. **SPEAKER QUOTES**:
-    a. Definition: Quotes from individuals mentioned in the article (e.g., speakers, guests, outside reporters).
-    b. Feature Requirements:
-        b1. Always mention who said the quote.
-        b2. Keep the quotes short and unaltered.
-        b3. Do not alter the original speaker's quote.
-    c. Note: If you cannot identify the speaker, it is likely a regular quote, not a SPEAKER QUOTE.
-    EXAMPLE: <squote>We should be able to eat together as a family</squote> said John Adam
-2. **QUOTING FROM ARTICLE**:
-    a. Definition: Important quotes solely attributed to the author of the article.
-    b. Feature Requirements:
-        b1. Quotes should enrich the summary by providing key insights from the original content.
-        b2.Keep the quotes short (2-3 lines).
-        b3.Do not alter the original quote.
-    c. Note: If the quote is from someone other than the author, it falls under SPEAKER QUOTES and should be encased in <squote> tags.
-    EXAMPLE: <quote>This deceptive and generous deal is clearly not in the public interest</quote>
+1. **SPEAKER QUOTES**: Include quotes attributed to individuals mentioned in the article. Always mention who said the quote. If you are unable to locate who said the quote, is probably a regular quote isn't part of the SPEAKER QUOTES optional feature. Unlike the QUOTING FROM ARTICLE section these quotes are NOT attributed to the author of the article but instead to individuals like speakers, guests, and outsider reporters that appear in the original article. Keep the quotes short and unaltered. UNDER NO CIRCUMSTANCE are you to alter the original speakers quote from the article. 
+2. **QUOTING FROM ARTICLE**: Include important quotes attributed SOLELY to the author of the article. If the quote is said by someone, the quote falls under SPEAKER QUOTES and should be encased in <squote> tags. Quotes should enrich the user's reading experience by providing key insights from the original content alongside the summarized version written in your own words. UNDER NO CIRCUMSTANCE are you to alter the original quote from the article. Quotes should be short, no more than 2-3 lines in length. Quote should be enough to capture an important statement from the original article but not enough to flood your summary with someone else words
 3. **BOLDING**: Bold names of important places and people that are mentioned in the article.
 4. **VOCABULARY ENHANCEMENT**: Highlight meaningful vocabulary words. Do not enclose names, places, or things.
 
@@ -94,15 +103,15 @@ When writing the summary make sure to adhere to the FORMATTING FOUNDATIONS liste
     EXAMPLE: It is <vocab>paramount</vocab> to drink water on a sunny day.
 
 **RULES YOU MUST ABIDE BY. ANY DEVIATION FROM THESE RULES RESULTS IN A FAULTY SUMMARIZATION AND ISN'T ACCEPTABLE**
-1. UNDER NO CIRCUMSTANCE ARE YOU TO CREATE A SUMMARY MORE THAN 100 WORDS IN LENGTH. Reduce your summary's quality to achieve this RULE.
+1. UNDER NO CIRCUMSTANCE ARE YOU TO CREATE A SUMMARY MORE THAN 100 WORDS IN LENGTH.
 2. UNDER NO CIRCUMSTANCE ARE YOU TO PRODUCE INFORMATION THAT ISN'T PROVIDED, FOUND OR MENTIONED IN THE ARTICLE. 
 3. UNDER NO CIRCUMSTANCE ARE YOU TO INCLUDE AN EMPTY QUOTE / SPEAKER QUOTE. USE ONLY THE FORMATTED FOUNDATION LISTED ABOVE.
-4. UNDER NO CIRCUMSTANCE ARE YOU TO RETURN A FULLY QUOTES RESPONSE. THE SUMMARY MUST BE WRITTEN IN YOUR WORDS,
+4. UNDER NO CIRCUMSTANCE ARE YOU TO RETURN A FULLY QUOTED RESPONSE. THE SUMMARY MUST BE WRITTEN IN YOUR WORDS,
 5. UNDER NO CIRCUMSTANCE ARE YOU TO INCLUDE PROMOTIONAL OR SUBSCRIPTION RELATED INFORMATION AS REGULAR TEXT NOR AS A QUOTE
 
 **FALLBACK:** If you are unable to return an acceptable summary, return undefined`;
 
-const ASSIGN_GENRE_TASK = `**TASK2**: Given an article title (TITLE), its content (ARTICLE CONTENT), and a list of genres (GENRES LIST),
+const ASSIGN_GENRE_TASK = `**JOB2**: For each article given its title (TITLE), content (ARTICLE CONTENT), and a list of genres (GENRES LIST),
 your task is to identify and return the most relevant genre(s) that match the provided article information. 
 Relevancy in this context refers to genre(s) that closely match the content or theme of the article.
 
@@ -113,15 +122,6 @@ Relevancy in this context refers to genre(s) that closely match the content or t
 4. Return genres based on their RELEVANCE. The most relevant genres first and the least relevant last.
 
 **FALLBACK:** If by any chance you aren't able to return a relevant genre return [World].`
-
-const RESPONSE_FORMAT = `Return the output of TASK1 and TASK2 of each article as the following:
-{
-    title: "orignal_article_title" (output type String),
-    url: "original_article_url" (output type String),
-    summary: "output_of_task1" (output type String),
-    genres: "output_of_task2" (output type String)
-}
-`
 
 var GENRE_LIST = `GENRE LIST: `
 
@@ -163,13 +163,14 @@ async function assignAndSummarize(articlesArray) {
     const genres = allGenres.map(genreObj => genreObj.genre);
 
     GENRE_LIST = `GENRE LIST: [${genres}]`;
-    var MESSAGE = articlesArray.map(article => ({
+    var MESSAGE = `INPUT ( Array of articles, each article represented as a JSON object ):
+    [
+        ${JSON.stringify(articlesArray.map(article => ({
         title: article.title,
         url: article.url,
         content: article.body
-    }));
-
-    MESSAGE = JSON.stringify(MESSAGE);
+    })), null, 4)}
+    ]`
 
     try {
         const chatSession = model.startChat({
@@ -179,11 +180,11 @@ async function assignAndSummarize(articlesArray) {
                 {
                     role: "user",
                     parts: [
-                        { text: PREREQUISITE },
+                        { text: DATA_FORMAT },
+                        { text: TASK },
                         { text: SUMMARIZING_TASK },
                         { text: ASSIGN_GENRE_TASK },
                         { text: GENRE_LIST },
-                        { text: RESPONSE_FORMAT }
                     ]
                 }
             ]
