@@ -28,7 +28,7 @@ url (string)
 summary (string - output of JOB1)
 genres (array - output of JOB2)
 
-YOU MUST OUTPUT AND ARRAY OF JSON OBJECTS. MAKE SURE TO PROPERLY CLOSE EACH JSON OBJECT ( ARTICLE ) AND THE ARRAY.
+YOU MUST OUTPUT AN ARRAY OF JSON OBJECTS. MAKE SURE TO PROPERLY CLOSE EACH JSON OBJECT ( ARTICLE ) AND THE ARRAY.
 
 Article Example:
 {
@@ -57,50 +57,75 @@ Expected Output ( An updated array of articles with summary and genres field ):
     {
         "title": "Sample Article 1",
         "url": "https://example.com/article1",
-        "summary": "This is a concise summary of the first article, providing the key points in 100 words or less.",
+        "summary": "This is a concise summary of the first article, providing the key points in 100 words or less. This summary uses features like <squotes>SPEAKER QUOTEES</squote>, <quote>AUTHOR QUOTES</quote>, lists, bolding and vocab words",
         "genres": ["Genre1", "Genre2"]
     },
     {
         "title": "Sample Article 2",
         "url": "https://example.com/article2",
-        "summary": "This is a concise summary of the second article, providing the key points in 100 words or less.",
+        "summary": "This is a concise summary of the second article, providing the key points in 100 words or less. This summary uses features like <squotes>SPEAKER QUOTEES</squote>, <quote>AUTHOR QUOTES</quote>, lists, bolding and vocab words",
         "genres": ["Genre1", "Genre2", "Genre3"]
     },
     ...
 ]`;
 
 const TASK = `**TASK**
-For each article in the array, you must apply the requirements of JOB1 and JOB2. Both JOB1 and JOB2 are mandatory and cannot be skipped. Each job is a specific task that should be performed on every article in the array. Refer to the detailed instructions and requirements for each job provided in the following messages`;
+FOR ALL ARTICLES ( JSON object ) IN THE ARRAY RUN BOTH JOB1 AND JOB2. Both JOB1 and JOB2 are mandatory for all articles ( JSON object ) in the array and cannot be skipped. Run JOB1 and JOB2 seperately on each article. Each job is a specific task that MUST be performed on every article in the array. Refer to the detailed instructions and requirements for each job provided in the following messages`;
 
-const SUMMARIZING_TASK = `**JOB1:** Summarize each article in the array in 100 WORDS OR LESS, providing a valuable summary and emphasizing the most important information found in each articles content. Do not Summarize in your own words.
+const SUMMARIZING_TASK = `**JOB1:** Summarize each article ( each JSON object ) in the array in 100 WORDS OR LESS, providing a valuable summary and emphasizing the most important information found in each articles content. Summarize in your own words.
 FOLLOW AND IMPLEMENT ALL OF THE REQUIREMENTS BELOW!
 **REQUIREMENTS**:
-1. **SUMMARIZING**: Create a short, bite sized, fun and quick to read yet informative summary of the articles content. Omit redundancy and irrelevant details ensuring the summary is precise, to the point and UNDER 100 WORDS in length. The summary should be relevant and informative based solely on the article's content. Summarize the article in your own words.
-2. **USAGE OF OPTIONAL AND CONDITIONAL FEATURES**: Apply optional and conditional features to summaries when appropriate. Try to incorporate quotes in most articles. Create lists in articles that mention multiple items.
-3. **SAFETY**: Some articles may be flagged as unsafe by the Gemini API, resulting in an error during summarization. If you suspect an article may trigger this, use safer language in your summary to prevent errors.
+1. **SUMMARIZING**: Create a short, bite sized, fun and quick to read yet informative summary of the articles content. Omit redundancy and irrelevant details ensuring the summary is precise, to the point and UNDER 100 WORDS in length. The summary should be relevant and informative based solely on the article's content. Summarize the article in your own words. Use the features listed in the FEATURES section below in each of your articles summaries.
+2. **SAFETY**: Some articles may be flagged as unsafe by the Gemini API, resulting in an error during summarization. If you suspect an article may trigger this, use safer language in your summary to prevent errors.
 
-**OPTIONAL FEATURES**
-1. **SPEAKER QUOTES**: Include quotes attributed to individuals mentioned in the article. Always mention who said the quote. If you are unable to locate who said the quote, is probably a regular quote isn't part of the SPEAKER QUOTES optional feature. Unlike the QUOTING FROM ARTICLE section these quotes are NOT attributed to the author of the article but instead to individuals like speakers, guests, and outsider reporters that appear in the original article. Keep the quotes short and unaltered. UNDER NO CIRCUMSTANCE are you to alter the original speakers quote from the article. 
-2. **QUOTING FROM ARTICLE**: Include important quotes attributed SOLELY to the author of the article. If the quote is said by someone, the quote falls under SPEAKER QUOTES and should be encased in <squote> tags. Quotes should enrich the user's reading experience by providing key insights from the original content alongside the summarized version written in your own words. UNDER NO CIRCUMSTANCE are you to alter the original quote from the article. Quotes should be short, no more than 2-3 lines in length. Quote should be enough to capture an important statement from the original article but not enough to flood your summary with someone else words
-3. **BOLDING**: Bold names of important places and people that are mentioned in the article.
-4. **VOCABULARY ENHANCEMENT**: Highlight meaningful vocabulary words. Do not enclose names, places, or things.
+**FEATURES**
+This is a list of feature to use in each article ( JSON object in the array ) summary. Each feature will be explained thoroughly on its identification, definition, usage and how to format it. Make sure you follow these guidelines and implement these features accordingly and appropiately in the summaries you provide. 
+When writing the summary make sure to adhere to the Format section in each feature you use throughout the whole summary.
+1. **SPEAKER QUOTES**: 
+    a. Definition: These are quotes attributed to individuals mentioned in the article, such as speakers, guests, and outsider reporters.
+    b. Identification: Always specify who said the quote. If you cannot identify who said the quote, it is likely an AUTHOR QUOTE and not part of the SPEAKER QUOTES feature.
+    c. Usage: Heavy usage. Use SPEAKER QUOTES in most summaries you write.
+    d. Content: Keep SPEAKER QUOTES short and unaltered. UNDER NO CIRCUMSTANCE should you alter the original speaker's quote from the article
+    e. Format: Enclose speakers quotes in <squote> tags.
+    f. Example:
+        Correct: <squote>"Let's make America great again," said Donald Trump.</squote>
+        Incorrect: <squote>"Let's make America great again,"</squote> from the article text without specifying the speaker.
 
-**CONDITIONAL FEATURES**
-Implement each feature  in the summary if their corresponding condition is met in the article.
-1. **CREATING LISTS**: If the article title or content mentions, refers to, discusses, or compares multiple items (e.g., movies, shopping items, music, budget options, etc.), you MUST create a list in the summary. Lists are crucial for enhancing clarity and structure. Failure to include a list in such cases will be considered incorrect.
-    EXAMPLE: "It's summer and sunscreen is a must but are you using it correctly? Here are seven important tips to keep in mind: <ol class="list"><li>Apply sunscreen to your face daily, even in winter.</li><li>SPF in moisturizer isn't enough. </li><li>Factor 50 is best for maximum protection.</li><li>Use more sunscreen than you think you need. </li><li>Reapply it after sweating or wiping your skin.</li><li>Choose a broad-spectrum sunscreen like <quote>Anthelios UVMune 400</quote> which protects against the most penetrative UV rays.</li><li>Everyone, regardless of skin tone, needs sunscreen.</li></ol> <quote>Make every day a sunscreen day</quote> says tennis star **Jannik Sinner**."
+2. **AUTHOR QUOTES**: 
+    a. Definition: These are important quotes attributed solely to the author of the article. They are not spoken by any individual but are written by the author as part of the article's content.
+    b. Identification: If the quote is attributed to someone other than the author (e.g., a speaker or guest), it should fall under SPEAKER QUOTES. AUTHOR QUOTES should never be followed up by a speaker, for example: "said John Doe" or "declared Jill Smith". If they do they are SPEAKER QUOTES and should be placed in <squote> tags.
+    c. Usage: Heavey usage. Use AUTHOR QUOTES in most summaries you write. These quotes should enrich the user's reading experience by providing key insights from the original content. AUTHOR QUOTES should be short, no more than 2-3 lines in length, and capture an important statement without flooding your summary with the author's words.
+    d. Content: UNDER NO CIRCUMSTANCE should you alter the original quote from the article
+    e. Format: Enclose any information that falls under the AUTHOR QUOTES in <quote> tags. 
+    f. Example: 
+        Correct: <quote>"Sunscreens should be applied every 3 hours"</quote>
+        Incorrect: <quote>"Sunscreens should be applied every 3 hours" said a dermatologist.</quote>
 
-When writing the summary make sure to adhere to the FORMATTING FOUNDATIONS listed below throughout the whole summary.
-**FORMATTING FOUNDATIONS**: 
-1. **SPEAKER QUOTES**: Enclose speakers quotes that fall under the SPEAKER QUOTES REQUIREMENT in <squote> tags.
-    EXAMPLE: <squote>"Lets make america great again!"</squote>said Donald Trump
-2. **QUOTING FROM ARTICLE**: Enclose any information that falls under the QUOTING FROM ARTICLE REQUIREMENT in <quote> tags. QUOTES are NEVER to be empty.
-    EXAMPLE: A new study finds that <quote>the more a pacifier was used, the lower the child's vocabulary score.</quote>
-3. **CREATING LISTS**: Format list using ONLY html lists. The list MUST HAVE class of 'list'. Each part of the list should be placed in a different list item tag.  Articles like 'Top 10 Movies to watch this summer', '7 Ways to stay protected in the sun' and '5 most important features in this years car' are example of summaries that must contain a list to cover the multiple items covered.
-4. **BOLDING**:  Place two astericks ** at the beginning and two astericks at the end of the bolded name. NEVER USE A SINGLE ASTERICKS TO BOLD NAMES.
-    EXAMPLES: President **Joe Biden** responded that he would be visiting **Paris** tomorrow to meet with **Emmanuel Macron**.
-5. **VOCABULARY ENHANCEMENT**: Enclose significant words in <vocab> tags.
-    EXAMPLE: It is <vocab>paramount</vocab> to drink water on a sunny day.
+3. **LISTS**: 
+    a. Definition: Create structured lists in the summary whenever the article discusses, mentions, or compares multiple items (e.g., movies, shopping items, music, budget options, etc.). Lists enhance clarity and organization.
+    b. Identification: Identify sections of the article where multiple items are discussed, mentioned, or compared. Look for enumerations, comparisons, or lists of items within the content or title of the article.
+    c. Usage: Use lists to break down complex information into easily digestible parts. Lists should be used to present key points, comparisons, or enumerations in a clear and structured manner. Lists can be used in junction with other features and free text as part of the summary. 
+    d. Content: Ensure the items in the list are relevant and directly related to the main points of the article. Each list item should provide valuable information that contributes to the overall understanding of the topic.
+    e. Format: Format using only html lists. The list you create in the summary MUST HAVE class of 'list'. Each part of the list should be placed in a different list item tag.
+    f. EXAMPLE: 
+        Corrent: <ol class="list"><li>Apply sunscreen to your face daily, even in winter.</li><li>SPF in moisturizer isn't enough. </li><li>Factor 50 is best for maximum protection.</li><li>Use more sunscreen than you think you need. </li><li>Reapply it after sweating or wiping your skin.</li><li>Choose a broad-spectrum sunscreen like <quote>Anthelios UVMune 400</quote> which protects against the most penetrative UV rays.</li><li>Everyone, regardless of skin tone, needs sunscreen.</li></ol>
+
+4. **BOLDING**: 
+    a. Definition: These are important places and people that are mentioned in the article.
+    b. Identification: If these places or people are important and or relevant to the article.
+    c. Usage: Use bolding in most of your summaries wherever relevant. If there are important people or places in the summary, bold them
+    d. Format: Place two astericks ** at the beginning and two astericks ** at the end of the bolded name. NEVER USE A SINGLE ASTERICKS TO BOLD NAMES.
+    e. Example:
+        Correct: Today **Joe Biden** visited **Paris**, **France** to chat with **Emanuel Macron**.
+
+5. **VOCABULARY ENHANCEMENT**: 
+    a. Definition: Highlight meaningful vocabulary words in your summary. These words should add value to the summary by providing significant or complex terminology that enriches the reader's understanding.
+    b. Identify important, descriptive, or complex words within the summary that are essential for conveying the core message. NEVER highlight proper nouns such as names, places, or things.
+    c. Usage: Moderate usage. Highlight these vocabulary words to emphasize their significance in the context of the summary. This helps readers grasp the essential terminology and enhances the readability and engagement of the summary.
+    d. Content: Ensure the highlighted words are relevant to the article's main points and contribute to a deeper understanding of the content. Avoid highlighting common words or proper nouns.
+    e. Format: Enclose significant words in <vocab> tags.
+    f. Example: 
+        Correct: It is <vocab>paramount</vocab> to drink water on a sunny day.
 
 **RULES YOU MUST ABIDE BY. ANY DEVIATION FROM THESE RULES RESULTS IN A FAULTY SUMMARIZATION AND ISN'T ACCEPTABLE**
 1. UNDER NO CIRCUMSTANCE ARE YOU TO CREATE A SUMMARY MORE THAN 100 WORDS IN LENGTH.
