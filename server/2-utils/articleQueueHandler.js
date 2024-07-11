@@ -26,12 +26,14 @@ async function processQueue() {
             while (bulkSendArticlesToGeminiQueue.size() < BULK_SEND_ARTICLE_QUEUE_SIZE) {
                 const article = articleQueue.dequeue();
                 if (article.url) { // If is a real article
+                    // Check for an event, adds all articles in found event to queue and save event to DB
+                    if (article.eventUri) {
+                        const eventArticlesCount = await processEvent(article)
+                        if (eventArticlesCount <= 1)
+                            article.eventUri = null;
+                    }
                     bulkSendArticlesToGeminiQueue.enqueue(article)
-                }
-                console.log(`(${articleQueue.size() + 1}) (${bulkSendArticlesToGeminiQueue.size()}/${BULK_SEND_ARTICLE_QUEUE_SIZE}) -> ${article.url}`)
-                // Check for an event, adds all articles in found event to queue and save event to DB
-                if (article.eventUri) {
-                    await processEvent(article)
+                    console.log(`(${articleQueue.size() + 1}) (${bulkSendArticlesToGeminiQueue.size()}/${BULK_SEND_ARTICLE_QUEUE_SIZE}) -> ${article.url}`)
                 }
             }
 
