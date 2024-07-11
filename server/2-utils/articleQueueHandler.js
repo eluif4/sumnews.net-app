@@ -15,7 +15,7 @@ const { getAllGenres } = require('../2-utils/db/getCollections')
 var isProcessing = false
 const articleQueue = new Queue();
 var bulkSendArticlesToGeminiQueue = new Queue();
-const BULK_SEND_ARTICLE_QUEUE_SIZE = 10;
+const BULK_SEND_ARTICLE_QUEUE_SIZE = 20;
 // Process ARTICLE QUEUE
 async function processQueue() {
     if (!isProcessing) {
