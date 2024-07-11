@@ -159,6 +159,8 @@ async function getArticlesUsingRecentActiviy(
         body: JSON.stringify(body),
     })
 
+    console.log(response)
+
     var data = await response.json();
     return data;
 }
