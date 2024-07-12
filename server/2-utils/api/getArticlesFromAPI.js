@@ -187,7 +187,7 @@ async function getArticlesFromEvent(eventUri) {
         "includeArticleExtractedDates": true,
         "includeArticleDuplicateList": true,
         "includeArticleOriginalArticle": true,
-        "apiKey": "689a6b21-b4ae-4207-8788-50c364efeb40"
+        "apiKey": apiKey
     }
 
     var response = await fetch(endpoint, {
