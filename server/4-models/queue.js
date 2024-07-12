@@ -41,6 +41,11 @@ class Queue {
         // Return a new array containing all items in the queue
         return [...this.items];
     }
+
+    clear() {
+        // Empty the queue
+        this.items = [];
+    }
 }
 
 module.exports = Queue;

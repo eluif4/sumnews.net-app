@@ -78,16 +78,16 @@ async function processBulkSendArticlesToGeminiQueue() {
     */
     console.log("Processing 'bulkSendArticlesToGeminiQueue'...")
     // Get all articles in event ( should always be 10 )
-    const articles = bulkSendArticlesToGeminiQueue.toArray()
-
+    const articles = bulkSendArticlesToGeminiQueue.toArray();
+    bulkSendArticlesToGeminiQueue.clear();
     const cachedGenres = cache.get('genres');
     var allGenres = cachedGenres ? cachedGenres : await getAllGenres();
     var possibleGenres = allGenres.map(genre => genre.genre)
 
     try {
         const gemini_response = await assignAndSummarize(articles);
-        for (const gemini_response_article of gemini_response) {
-            const articleFromBulkQueue = bulkSendArticlesToGeminiQueue.dequeue();
+        for (const [index, gemini_response_article] of gemini_response.entries()) {
+            const articleFromBulkQueue = articles[index]
             // If there is an article in the bulk queue and the response article from Gemini has the same url apply the changes
             if (articleFromBulkQueue && articleFromBulkQueue.url == gemini_response_article.url) {
 
@@ -152,7 +152,7 @@ async function processEvent(article) {
             for (const articleEvent of eventArticles) {
                 // If articleEvent is from source in DB add the articleEvent to articleQueue
                 // If isnt the current url and is an article from the sources
-                if (articleContainsSource(articleEvent, sources)) {
+                if (articleContainsSource(articleEvent, sources) && !articleQueue.exist(articleEvent) && !bulkSendArticlesToGeminiQueue.exist(articleEvent)) {
                     bulkSendArticlesToGeminiQueue.enqueue(articleEvent);
                     articleEventsAddedToQueueCount++;
                     console.log(`Event Article ${article.url} has been added to 'bulkSendArticlesToGeminiQueue' (${bulkSendArticlesToGeminiQueue.size()}/10)`)
