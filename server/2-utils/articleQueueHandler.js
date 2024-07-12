@@ -23,7 +23,7 @@ async function processQueue() {
         while (!articleQueue.isEmpty()) {
             var now = new Date();
             // Add 10 articles ( without counting events into 'bulkSendArticlesToGeminiQueue' )
-            while (bulkSendArticlesToGeminiQueue.size() < BULK_SEND_ARTICLE_QUEUE_SIZE) {
+            while (bulkSendArticlesToGeminiQueue.size() < BULK_SEND_ARTICLE_QUEUE_SIZE && !articleQueue.isEmpty()) {
                 const article = articleQueue.dequeue();
                 if (article.url) { // If is a real article
                     // Check for an event, adds all articles in found event to queue and save event to DB
@@ -155,7 +155,7 @@ async function processEvent(article) {
                 if (articleContainsSource(articleEvent, sources) && !articleQueue.exist(articleEvent) && !bulkSendArticlesToGeminiQueue.exist(articleEvent)) {
                     bulkSendArticlesToGeminiQueue.enqueue(articleEvent);
                     articleEventsAddedToQueueCount++;
-                    console.log(`Event Article ${article.url} has been added to 'bulkSendArticlesToGeminiQueue' (${bulkSendArticlesToGeminiQueue.size()}/10)`)
+                    console.log(`Event Article ${articleEvent.url} has been added to 'bulkSendArticlesToGeminiQueue' (${bulkSendArticlesToGeminiQueue.size()}/10)`)
                 }
             }
             console.log(kleur.green(`${articleEventsAddedToQueueCount}/${eventArticles.length} articles added to queue from event ${eventUri}`))
