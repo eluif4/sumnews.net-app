@@ -164,6 +164,8 @@ async function getArticlesUsingRecentActiviy(
 }
 
 async function getArticlesFromEvent(eventUri) {
+    var apiKey = process.env.NEWSAPIAI_KEY;
+
     const endpoint = 'https://newsapi.ai/api/v1/event/getEvent'
     const method = 'POST';
     const headers = {
