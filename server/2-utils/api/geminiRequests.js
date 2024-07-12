@@ -52,25 +52,25 @@ Input Example ( Array of articles ):
     ...
 ]
 
-Expected Output ( An updated array of articles with summary and genres field ):
+Expected Output ( An updated array of articles with summary ( output of JOB1 ) and genres ( output of JOB2 ) field ):
 [
     {
         "title": "Sample Article 1",
         "url": "https://example.com/article1",
-        "summary": "This is a concise summary of the first article, providing the key points in 100 words or less. This summary uses features like <squotes>SPEAKER QUOTEES</squote>, <quote>AUTHOR QUOTES</quote>, lists, bolding and vocab words",
+        "summary": "This is the output of JOB1 for the first article; A concise summary of the first article, providing the key points in 100 words or less. This summary has features like <squotes>SPEAKER QUOTEES</squote>, <quote>AUTHOR QUOTES</quote>, lists, bolding and vocab words",
         "genres": ["Genre1", "Genre2"]
     },
     {
         "title": "Sample Article 2",
         "url": "https://example.com/article2",
-        "summary": "This is a concise summary of the second article, providing the key points in 100 words or less. This summary uses features like <squotes>SPEAKER QUOTEES</squote>, <quote>AUTHOR QUOTES</quote>, lists, bolding and vocab words",
+        "summary": "This is the output of JOB1 for the second article; A concise summary of the first article, providing the key points in 100 words or less. This summary has features like <squotes>SPEAKER QUOTEES</squote>, <quote>AUTHOR QUOTES</quote>, lists, bolding and vocab words",
         "genres": ["Genre1", "Genre2", "Genre3"]
     },
     ...
 ]`;
 
 const TASK = `**TASK**
-FOR ALL ARTICLES ( JSON object ) IN THE ARRAY RUN BOTH JOB1 AND JOB2. Both JOB1 and JOB2 are mandatory for all articles ( JSON object ) in the array and cannot be skipped. Run JOB1 and JOB2 seperately on each article. Each job is a specific task that MUST be performed on every article in the array. Refer to the detailed instructions and requirements for each job provided in the following messages`;
+RUN BOTH JOB1 AND JOB2 ALL EVERY ITEM IN THE ARRAY INPUT. Both JOB1 and JOB2 are mandatory for all articles ( JSON object ) in the array and cannot be skipped. Each job is a task that MUST be performed on every article in the array. Refer to the detailed instructions and requirements for each job provided in the following messages`;
 
 const SUMMARIZING_TASK = `**JOB1:** Summarize each article ( each JSON object ) in the array in 100 WORDS OR LESS, providing a valuable summary and emphasizing the most important information found in each articles content. Summarize in your own words.
 FOLLOW AND IMPLEMENT ALL OF THE REQUIREMENTS BELOW!
@@ -104,7 +104,7 @@ When writing the summary make sure to adhere to the Format section in each featu
 3. **LISTS**: 
     a. Definition: Create structured lists in the summary whenever the article discusses, mentions, or compares multiple items (e.g., movies, shopping items, music, budget options, etc.). Lists enhance clarity and organization.
     b. Identification: Identify sections of the article where multiple items are discussed, mentioned, or compared. Look for enumerations, comparisons, or lists of items within the content or title of the article.
-    c. Usage: Use lists to break down complex information into easily digestible parts. Lists should be used to present key points, comparisons, or enumerations in a clear and structured manner. Lists can be used in junction with other features and free text as part of the summary. 
+    c. Usage: High usage only when the article discusses, mentions, or compares multiple items. Use lists to break down complex information into easily digestible parts. Lists should be used to present key points, comparisons, or enumerations in a clear and structured manner. Lists can be used in junction with other features and free text as part of the summary. 
     d. Content: Ensure the items in the list are relevant and directly related to the main points of the article. Each list item should provide valuable information that contributes to the overall understanding of the topic.
     e. Format: Format using only html lists. The list you create in the summary MUST HAVE class of 'list'. Each part of the list should be placed in a different list item tag.
     f. EXAMPLE: 
@@ -113,7 +113,7 @@ When writing the summary make sure to adhere to the Format section in each featu
 4. **BOLDING**: 
     a. Definition: These are important places and people that are mentioned in the article.
     b. Identification: If these places or people are important and or relevant to the article.
-    c. Usage: Use bolding in most of your summaries wherever relevant. If there are important people or places in the summary, bold them
+    c. Usage: Highest usage. Use bolding in most of your summaries wherever relevant. If there are important people or places in the summary, bold them
     d. Format: Place two astericks ** at the beginning and two astericks ** at the end of the bolded name. NEVER USE A SINGLE ASTERICKS TO BOLD NAMES.
     e. Example:
         Correct: Today **Joe Biden** visited **Paris**, **France** to chat with **Emanuel Macron**.
@@ -121,7 +121,7 @@ When writing the summary make sure to adhere to the Format section in each featu
 5. **VOCABULARY ENHANCEMENT**: 
     a. Definition: Highlight meaningful vocabulary words in your summary. These words should add value to the summary by providing significant or complex terminology that enriches the reader's understanding.
     b. Identify important, descriptive, or complex words within the summary that are essential for conveying the core message. NEVER highlight proper nouns such as names, places, or things.
-    c. Usage: Moderate usage. Highlight these vocabulary words to emphasize their significance in the context of the summary. This helps readers grasp the essential terminology and enhances the readability and engagement of the summary.
+    c. Usage: High usage. Highlight these vocabulary words to emphasize their significance in the context of the summary. This helps readers grasp the essential terminology and enhances the readability and engagement of the summary.
     d. Content: Ensure the highlighted words are relevant to the article's main points and contribute to a deeper understanding of the content. Avoid highlighting common words or proper nouns.
     e. Format: Enclose significant words in <vocab> tags.
     f. Example: 
@@ -189,13 +189,11 @@ async function assignAndSummarize(articlesArray) {
 
     GENRE_LIST = `GENRE LIST: [${genres}]`;
     var MESSAGE = `INPUT ( Array of articles, each article represented as a JSON object ):
-    [
         ${JSON.stringify(articlesArray.map(article => ({
         title: article.title,
         url: article.url,
         content: article.body
-    })), null, 4)}
-    ]`
+    })), null, 4)}`
 
     try {
         const chatSession = model.startChat({
