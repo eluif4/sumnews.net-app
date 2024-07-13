@@ -103,15 +103,16 @@ async function processBulkSendArticlesToGeminiQueue() {
 
                 // Save the summarized content to article
                 const summary = gemini_response_article.summary
-                if (summary && summary != "undefined" && summary != undefined) { // Successful summarizing
+                if (summary && summary != "undefined" && summary != undefined && summary != "") { // Successful summarizing
                     articleFromBulkQueue.summarizedContent = summary
-                }
-
-                // Save article with the final values
-                try {
-                    await saveArticle(articleFromBulkQueue);
-                } catch (error) {
-                    console.error(`Saving failed for article -> ${articleFromBulkQueue.url}`, error)
+                    // Save article with the final values
+                    try {
+                        await saveArticle(articleFromBulkQueue);
+                    } catch (error) {
+                        console.error(`Saving failed for article -> ${articleFromBulkQueue.url}`, error)
+                    }
+                } else {
+                    console.log("FAILED: summary came back undefined")
                 }
             } else {
                 console.log(`${articleFromBulkQueue.url} doesnt match its original url`)

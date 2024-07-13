@@ -97,7 +97,7 @@ async function setDailyRecapButtons() {
         lastUpdateWithTime.setHours(18, 5, 0, 0); // Set time to 6:05 PM
 
         const isPast1805 = now > lastUpdateWithTime;
-        const wasLastUpdateYesterday = now.getDate() - dailyRecapsLastUpdate.getDate() == 1;
+        const wasLastUpdateYesterday = now.getDate() - dailyRecapsLastUpdate.getDate() >= 1;
 
         const needsUpdate = isPast1805 && wasLastUpdateYesterday // If is past 6:05 and last update was yesterday
 
