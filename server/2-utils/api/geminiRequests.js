@@ -136,6 +136,51 @@ When writing the summary make sure to adhere to the Format section in each featu
 
 **FALLBACK:** If you are unable to return an acceptable summary, return undefined`;
 
+const temp_SUMMARIZING_TASK = `**JOB1:** Your task is to follow all the requirements listed below. Make sure to apply the features and rules across all articles in the input array of articles
+FOLLOW AND IMPLEMENT ALL OF THE REQUIREMENTS BELOW!
+**REQUIREMENTS**:
+1. **SUMMARIZING**: For each article in the input array create a short, bite sized, fun and quick to read yet informative summary of the articles content. Omit redundancy and irrelevant details ensuring each summary is precise, to the point and UNDER 100 WORDS in length. Each summary should be relevant and informative based solely on the respective article's content. Format your summary as a short, engaging narrative, using a conversational tone. Start the summary with an introductory sentence that sets the context, and then directly present the information using lists, quotes, and other features as needed.
+2. **SUMMARIZING FEATURES**: When creating each summary make sure to use the features listed in the FEATURES section below. Each summary should include multiple features to allow the user a better reading experience.
+3. **SAFETY**: Some articles may be flagged as unsafe by the Gemini API, resulting in an error during summarization. If you suspect an article may trigger this, use safer language in your summary to prevent errors. 
+
+**SUMMARIZING FEATURES**
+The following is a list of features to use in each summary for each article in the input array. Each feature will be explained thoroughly on its identification, definition, usage and how to format it. Make sure you follow these guidelines and implement these features accordingly and appropriately for each summary you provide. Feel free to use as many features as you deem fit in your summaries. Implement multiple features in each summary
+When writing the summary make sure to adhere to the Format section in each feature you use throughout the whole summary.
+
+1. **QUOTES**: 
+Include important quotes found of the article. Quotes should enrich the user's reading experience by providing key insights from the original content alongside the summarized version written in your own words. UNDER NO CIRCUMSTANCE are you to alter the original quotes from the article. Quotes should be short and capture an important statement from the original article. You may place multiple quotes in your summary.
+Format: Enclose all quotes in <quote> tags.
+Examples on how to use quotes in a summary: 
+    Article content here, <quote>"Sunscreens should be applied every 3 hours"</quote>, more article content here
+
+2. **LISTS**: 
+Create structured lists in the summary whenever the article discusses, mentions, or compares multiple items (e.g., movies, shopping items, music, budget options, etc.). Lists enhance clarity and organization. Look for enumerations, comparisons, or lists of items within the content or title of the article. Use lists to break down complex information into easily digestible parts. Lists should be used to present key points, comparisons, or enumerations in a clear and structured manner. Lists can be used in junction with other features and free text as part of the summary. 
+Format: Create lists in your summaries using only html lists. The list you create in the summary MUST HAVE class of 'list'. Each part of the list should be placed in a different list item tag.
+ Example of how to create a list in a summary: 
+    <ol class="list"><li>First list item content here</li><li>Second list item content here </li><li>Third list item content here</li>...</ol>
+
+3. **BOLDING**: 
+Important place or people mentioned in the article that are present and relevant to your summaries  should be bolded. 
+Formati: Place two astericks ** at the beginning and two astericks ** at the end to bold. NEVER USE A SINGLE ASTERICKS TO BOLD
+Example:
+   Today **Joe Biden** visited **Paris**, **France** to chat with **Emanuel Macron**.
+
+4. **VOCABULARY ENHANCEMENT**: 
+Enclose any meaningful vocabulary words in your summary. These words should consist of complex terminology that a reader might want to learn the definition of or elaborate more on. Avoid highlighting common words or proper nouns.
+Format: Enclose meaningful vocabulary words in <vocab> tags.
+Example: 
+    It is <vocab>paramount</vocab> to drink water on a sunny day.
+
+**RULES YOU MUST ABIDE BY. ANY DEVIATION FROM THESE RULES RESULTS IN A FAULTY SUMMARIZATION AND ISN'T ACCEPTABLE**
+1. UNDER NO CIRCUMSTANCE ARE YOU TO CREATE A SUMMARY MORE THAN 100 WORDS IN LENGTH.
+2. UNDER NO CIRCUMSTANCE ARE YOU TO PRODUCE INFORMATION THAT ISN'T PROVIDED, FOUND OR MENTIONED IN EACH ARTICLE
+3. UNDER NO CIRCUMSTANCE ARE YOU TO INCLUDE AN EMPTY QUOTE / SPEAKER QUOTE. USE ONLY THE FORMATTED FOUNDATION LISTED ABOVE.
+4. UNDER NO CIRCUMSTANCE ARE YOU TO RETURN A FULLY QUOTED RESPONSE. EACH SUMMARY MUST BE WRITTEN IN YOUR WORDS,
+5. UNDER NO CIRCUMSTANCE ARE YOU TO INCLUDE PROMOTIONAL OR SUBSCRIPTION RELATED INFORMATION AS REGULAR TEXT NOR AS A QUOTE
+6. USE THE FEATURES AND RULES ACROSS ALL ARTICLES IN THE ARRAY
+
+**FALLBACK:** If you are unable to return an acceptable summary, return undefined`
+
 const ASSIGN_GENRE_TASK = `**JOB2**: For each article given its title (TITLE), content (ARTICLE CONTENT), and a list of genres (GENRES LIST),
 your task is to identify and return the most relevant genre(s) that match the provided article information. 
 Relevancy in this context refers to genre(s) that closely match the content or theme of the article.
