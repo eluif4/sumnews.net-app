@@ -99,20 +99,27 @@ async function processBulkSendArticlesToGeminiQueue() {
                     if (genreExistsInPossibleGenres(genre, possibleGenres))
                         validGenres.push(genre)
                 }
-                articleFromBulkQueue.genre = validGenres;
 
-                // Save the summarized content to article
-                const summary = gemini_response_article.summary
-                if (summary && summary != "undefined" && summary != undefined && summary != "") { // Successful summarizing
+                var canSaveArticle = false;
+                const summary = gemini_response_article.summary;
+
+                // If genres is more than 1 and summary is correct ( not undefined or empty)
+                canSaveArticle = (validGenres?.length) > 0 && (summary && summary != "undefined" && summary != undefined && summary != "");
+
+                if (canSaveArticle) {
+                    // Save the summarized content to article
                     articleFromBulkQueue.summarizedContent = summary
-                    // Save article with the final values
+                    articleFromBulkQueue.genre = validGenres;
+
+                    // Save article to DB
                     try {
                         await saveArticle(articleFromBulkQueue);
                     } catch (error) {
                         console.error(`Saving failed for article -> ${articleFromBulkQueue.url}`, error)
                     }
-                } else {
-                    console.log("FAILED: summary came back undefined")
+                }
+                else {
+                    console.log('FAILED to assign and summarize articles')
                 }
             } else {
                 console.log(`${articleFromBulkQueue.url} doesnt match its original url`)
