@@ -76,7 +76,7 @@ const { articleQueue } = require('./server/2-utils/articleQueueHandler.js');
 
 //---RUN MAIN FUNCTION---
 async function cronTask() {
-    cron.schedule('*/15 * * * *', async () => {
+    cron.schedule('*/20 * * * *', async () => {
         if (true) {
             try {
                 const date = new Date()
