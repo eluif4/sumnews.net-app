@@ -93,11 +93,18 @@ async function setDailyRecapButtons() {
 
         const dailyRecapsLastUpdate = dailyRecapsInLocalStorage?.lastUpdate ? new Date(dailyRecapsInLocalStorage.lastUpdate) : new Date("01/01/2000");
         // Set the time of lastUpdate to 6:05 PM
-        const lastUpdateWithTime = new Date(dailyRecapsLastUpdate);
-        lastUpdateWithTime.setHours(18, 5, 0, 0); // Set time to 6:05 PM
+        // const lastUpdateWithTime = new Date(dailyRecapsLastUpdate);
+        // lastUpdateWithTime.setHours(18, 5, 0, 0); // Set time to 6:05 PM
 
-        const isPast1805 = now > lastUpdateWithTime;
-        const wasLastUpdateYesterday = now.getDate() - dailyRecapsLastUpdate.getDate() >= 1;
+        const isPast1805 = now.getHours() > 18 || (now.getHours() === 18 && now.getMinutes() >= 5);
+
+        // Reset times to midnight for comparison
+        dailyRecapsLastUpdate.setHours(0, 0, 0, 0);
+        now.setHours(0, 0, 0, 0);
+
+        const oneDay = 24 * 60 * 60 * 1000; // milliseconds in one day
+        const diffDays = Math.floor((now - dailyRecapsLastUpdate) / oneDay);
+        const wasLastUpdateYesterday = diffDays >= 1;
 
         const needsUpdate = isPast1805 && wasLastUpdateYesterday // If is past 6:05 and last update was yesterday
 
