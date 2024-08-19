@@ -12,7 +12,7 @@ const articleSchema = new mongoose.Schema({
     genre: Array,
     eventUri: String,
     drUri: String,
-    content: String,
+    // content: String,
     summarizedContent: String,
     imageUrl: String,
     sentiment: Number,

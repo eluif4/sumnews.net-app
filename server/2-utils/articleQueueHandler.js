@@ -4,7 +4,6 @@ const Article = require('../4-models/articles.js')
 const Queue = require('../4-models/queue.js')
 const Event = require('../4-models/events.js')
 const cache = require('memory-cache')
-// const Bottleneck = require('bottleneck')
 
 const uuid = require('uuid');
 const { saveDocument, getAllSources, getEventByEventUri } = require('./db/databaseAccess.js')
@@ -38,33 +37,6 @@ async function processQueue() {
             }
 
             await processBulkSendArticlesToGeminiQueue();
-            // if (article.url) {
-
-            // var a = await processArticle(article)
-            // // If a.summarizedContent isnt empty and hasnt failed in summarization in Gemini
-            // if (a.summarizedContent && a.summarizedContent != "Error" || a.summarizedContent && a.summarizedContent != "Error.") {
-            //     try {
-            //         var hasFullCoverage = false;
-
-            //         // If article has eventUri and eventUri includes "eng"
-            //         if (a.eventUri && a.eventUri.includes("eng")) {
-            //             hasFullCoverage = await processEvent(a)
-            //         }
-
-            //         // If article doesnt have full coverage give article (a).eventUri value of null
-            //         if (!hasFullCoverage) {
-            //             a.eventUri = null
-            //         }
-
-            //         // Save article with the final values
-            //         await saveDocument(a);
-            //     } catch (error) {
-            //         console.error(error, `Couldnt save ${a.collection.modelName} into '${a.collection.name}' collection`)
-            //     }
-            // } else {
-            //     console.log(kleur.bgRed(`Saving failed`))
-            // }
-            // }
         }
         isProcessing = false
     }
@@ -208,7 +180,7 @@ async function saveArticle(article) { // Returns the updated article
         genre: article.genre, //categoriesArray,
         eventUri: article.eventUri ? article.eventUri : null,
         drUri: null,
-        content: article.body,
+        // content: article.body,
         summarizedContent: article.summarizedContent,
         imageUrl: article.image,
         sentiment: article.sentiment,
@@ -219,37 +191,6 @@ async function saveArticle(article) { // Returns the updated article
     })
 
     await saveDocument(a);
-
-    // if (article.body) { // Successful content fetching
-    // FIND AUTHORS
-
-    // FINDING GENRES USING GEMINI
-    // try {
-    //     // Replace the direct API call with the rate-limited version
-    //     var response = await assignAndSummarize(a);
-
-    //     var chosenGenres = response.genres.map(item => item.trim())
-
-    //     const cachedGenres = cache.get('genres');
-    //     var allGenres = cachedGenres ? cachedGenres : await getAllGenres();
-    //     var possibleGenres = allGenres.map(genre => genre.genre)
-
-    //     var validGenres = [];
-    //     for (const genre of chosenGenres) {
-    //         if (genreExistsInPossibleGenres(genre, possibleGenres))
-    //             validGenres.push(genre)
-    //     }
-    //     a.genre = validGenres;
-
-    //     const summary = response.summary
-    //     if (summary) { // Successful summarizing
-    //         a.summarizedContent = summary
-    //     }
-    // } catch (error) {
-    //     console.error('Couldnt assign / summarize article', error);
-    // }
-    // }
-    // return a;
 }
 
 // Check if an article is from a source in my db
