@@ -89,24 +89,11 @@ async function setDailyRecapButtons() {
     try {
         // Gets most recent daily recaps
         const dailyRecapsInLocalStorage = JSON.parse(localStorage.getItem('dailyRecaps'));
-        const now = new Date();
 
         const dailyRecapsLastUpdate = dailyRecapsInLocalStorage?.lastUpdate ? new Date(dailyRecapsInLocalStorage.lastUpdate) : new Date("01/01/2000");
-        // Set the time of lastUpdate to 6:05 PM
-        // const lastUpdateWithTime = new Date(dailyRecapsLastUpdate);
-        // lastUpdateWithTime.setHours(18, 5, 0, 0); // Set time to 6:05 PM
 
-        const isPast1805 = now.getHours() > 18 || (now.getHours() === 18 && now.getMinutes() >= 5);
-
-        // Reset times to midnight for comparison
-        dailyRecapsLastUpdate.setHours(0, 0, 0, 0);
-        now.setHours(0, 0, 0, 0);
-
-        const oneDay = 24 * 60 * 60 * 1000; // milliseconds in one day
-        const diffDays = Math.floor((now - dailyRecapsLastUpdate) / oneDay);
-        const wasLastUpdateYesterday = diffDays >= 1;
-
-        const needsUpdate = isPast1805 && wasLastUpdateYesterday // If is past 6:05 and last update was yesterday
+        // If lastUpdate happened more than 24 hours ago -> Fetch the new dailyRecaps and set the lastUpdate to 18:05 utc
+        const needsUpdate = wasUpdatedMoreThan24HoursAgo(dailyRecapsLastUpdate);
 
         // If there are dailyRecaps in localstorage and it's not past 6 PM the day after lastUpdate
         if (dailyRecapsInLocalStorage && !needsUpdate) {
@@ -117,7 +104,36 @@ async function setDailyRecapButtons() {
             var response = await fetch(`${BACKEND_URL}db/getDailyRecapButtons`);
             var dailyRecaps = await response.json();
 
-            localStorage.setItem('dailyRecaps', JSON.stringify({ "lastUpdate": now, "dailyRecapButtons": dailyRecaps }));
+            // If now is before 1805 UTCC, set lastUpdate to yesterday at 1805 UTC
+            // Step 1: Get the current time in UTC
+            const now = new Date();
+
+            // Step 2: Create a target time for 18:05 UTC
+            const targetTime = new Date();
+            targetTime.setUTCHours(18, 5, 0, 0); // Set time to 18:05:00.000 UTC
+
+            // Compare the current time with the target time
+            const isBefore1805UTC = now < targetTime;
+
+            var lastUpdate = new Date();
+
+            if (isBefore1805UTC) {
+                const yesterday1805UTC = new Date();
+                yesterday1805UTC.setUTCDate(now.getUTCDate() - 1); // Move the date back by one day
+                yesterday1805UTC.setUTCHours(18, 5, 0, 0); // Set the time to 18:05:00.000 UTC
+                lastUpdate = yesterday1805UTC;
+            } else {
+                var UTC1805 = new Date(Date.UTC(
+                    new Date().getUTCFullYear(),  // Current year
+                    new Date().getUTCMonth(),     // Current month
+                    new Date().getUTCDate(),      // Current date
+                    18,                           // Hours in UTC (18:05 UTC)
+                    5                             // Minutes in UTC
+                ));
+                lastUpdate = UTC1805
+            }
+
+            localStorage.setItem('dailyRecaps', JSON.stringify({ "lastUpdate": lastUpdate, "dailyRecapButtons": dailyRecaps }));
             dailyRecapButtons.value = dailyRecaps;
             hasFetchedDailyRecapFinished.value = true;
         }
@@ -125,6 +141,45 @@ async function setDailyRecapButtons() {
         console.error(`Failed to fetch Daily Recaps`, error)
     }
 }
+
+const wasUpdatedMoreThan24HoursAgo = (lastUpdated) => {
+    // Returns a boolean value regarding if lastUpdate happened more then 24 hours ago
+    if (!lastUpdated) return true; // If no last updated time is found, consider it as outdated
+
+    const lastUpdatedDate = new Date(lastUpdated);
+    const now = new Date();
+
+    // Convert both dates to UTC
+    const lastUpdatedUTC = new Date(Date.UTC(
+        lastUpdatedDate.getUTCFullYear(),
+        lastUpdatedDate.getUTCMonth(),
+        lastUpdatedDate.getUTCDate(),
+        lastUpdatedDate.getUTCHours(),
+        lastUpdatedDate.getUTCMinutes(),
+        lastUpdatedDate.getUTCSeconds()
+    ));
+
+    const nowUTC = new Date(Date.UTC(
+        now.getUTCFullYear(),
+        now.getUTCMonth(),
+        now.getUTCDate(),
+        now.getUTCHours(),
+        now.getUTCMinutes(),
+        now.getUTCSeconds()
+    ));
+
+
+    // Calculate the time difference in milliseconds
+    const timeDifference = nowUTC - lastUpdatedUTC;
+
+    // Convert time difference from milliseconds to hours
+    const hoursDifference = timeDifference / (1000 * 60 * 60);
+
+    console.log(`Times: lastUpdate - ${lastUpdatedUTC} | now - ${nowUTC} | timedif - ${hoursDifference}`)
+
+    // Check if the difference is 24 hours or more
+    return hoursDifference >= 24;
+};
 
 const isPremium = ref(true)
 
