@@ -35,6 +35,7 @@ async function renderDailyRecap(id, drUri, articleuuid) {
     // Get the current 'dailyrecapbutton' that was clicked on
     var dailyRecapButtonsArray = dailyRecapInLocalStorage.dailyRecapButtons;
     var dailyRecapButton = dailyRecapInLocalStorage.dailyRecapButtons.filter(button => button.drUri == drUri)[0];
+    var lastUpdate = dailyRecapInLocalStorage.lastUpdate;
     // Update the object value
     dailyRecapButton.wasVisited = true;
 
@@ -45,7 +46,7 @@ async function renderDailyRecap(id, drUri, articleuuid) {
 
     // Save the updated array into local storage
     // const now = new Date();
-    // localStorage.setItem('dailyRecaps', JSON.stringify({ "lastUpdate": now, "dailyRecapButtons": dailyRecapButtonsArray }));
+    localStorage.setItem('dailyRecaps', JSON.stringify({ "lastUpdate": lastUpdate, "dailyRecapButtons": dailyRecapButtonsArray }));
 
     router.push({
         name: 'dailyrecap', params: {
