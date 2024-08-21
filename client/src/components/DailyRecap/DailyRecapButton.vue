@@ -45,7 +45,7 @@ async function renderDailyRecap(id, drUri, articleuuid) {
 
     // Save the updated array into local storage
     // const now = new Date();
-    // localStorage.setItem('dailyRecaps', JSON.stringify({ "lastUpdate": now, "dailyRecapButtons": dailyRecapButtonsArray }));
+    localStorage.setItem('dailyRecaps', JSON.stringify({ "dailyRecapButtons": dailyRecapButtonsArray }));
 
     router.push({
         name: 'dailyrecap', params: {
