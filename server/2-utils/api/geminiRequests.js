@@ -11,7 +11,7 @@ const MODEL_NAME = "gemini-1.5-flash";
 const API_KEY = process.env.GEMINI_KEY;
 const genAI = new GoogleGenerativeAI(API_KEY);
 
-const SYSTEM_INSTRUCTIONS = `You are a highly skilled AI agent specialized in summarizing articles. Your expertise lies in creating concise, informative, and engaging summaries that are 100 words or less in length. Additionally, you are proficient in categorizing each article by assigning appropriate genres. You work for a website dedicated to delivering succinct and accurate summarized articles to its users. Follow the specific RULES / REQUIREMENTS given for each task meticulously. Your responses must be formatted in JSON.`;
+const SYSTEM_INSTRUCTIONS = `You are a highly skilled AI agent specialized in processing an array of articles and providing a summary for each article. Your expertise lies in creating concise, informative, and engaging summaries that are 100 words or less in length. Additionally, you are proficient in categorizing each article by assigning appropriate genres. You work for a website dedicated to delivering succinct and accurate summarized articles to its users. Follow the specific RULES / REQUIREMENTS given for each task meticulously. Your responses must be formatted in JSON. `;
 
 const DATA_FORMAT = `**Data Format and Examples**
 INPUT:
@@ -52,86 +52,74 @@ Input Example ( Array of articles ):
     ...
 ]
 
-Expected Output ( An updated array of articles with summary ( output of JOB1 ) and genres ( output of JOB2 ) field ):
+Expected Output ( An updated array of articles, each article containing a summary ( output of JOB1 ) your create and genres ( output of JOB2 ) you assign ):
 [
     {
         "title": "Sample Article 1",
         "url": "https://example.com/article1",
-        "summary": "This is the output of JOB1 for the first article; A concise summary of the first article, providing the key points in 100 words or less. This summary has features like <squotes>SPEAKER QUOTEES</squote>, <quote>AUTHOR QUOTES</quote>, lists, bolding and vocab words",
+        "summary": "This is the output of JOB1 for the first article; A concise summary of the first article, providing the key points in 100 words or less. This summary has features like quotes, lists, bolding and vocab words",
         "genres": ["Genre1", "Genre2"]
     },
     {
         "title": "Sample Article 2",
         "url": "https://example.com/article2",
-        "summary": "This is the output of JOB1 for the second article; A concise summary of the first article, providing the key points in 100 words or less. This summary has features like <squotes>SPEAKER QUOTEES</squote>, <quote>AUTHOR QUOTES</quote>, lists, bolding and vocab words",
+        "summary": "This is the output of JOB1 for the first article; A concise summary of the first article, providing the key points in 100 words or less. This summary has features like quotes, lists, bolding and vocab words",
         "genres": ["Genre1", "Genre2", "Genre3"]
     },
     ...
 ]`;
 
 const TASK = `**TASK**
-RUN BOTH JOB1 AND JOB2 ALL EVERY ITEM IN THE ARRAY INPUT. Both JOB1 and JOB2 are mandatory for all articles ( JSON object ) in the array and cannot be skipped. Each job is a task that MUST be performed on every article in the array. Refer to the detailed instructions and requirements for each job provided in the following messages`;
+FOR EACH ARTICLE IN THE INPUT ARRAY PERFORM BOTH THE SUMMARIZING TASK OF JOB1 AND THE ASSIGNING GENRES TASK OF JOB2. Both JOB1 and JOB2 are mandatory tasks for each article in the array and cannot be skipped. Refer to the detailed instructions and requirements for each job provided in the following messages`;
 
-const SUMMARIZING_TASK = `**JOB1:** Summarize each article ( each JSON object ) in the array in 100 WORDS OR LESS, providing a valuable summary and emphasizing the most important information found in each articles content. Summarize in your own words.
+const SUMMARIZING_TASK = `**JOB1:** Your task is to follow all the requirements listed below. Make sure to apply the features and rules across all articles in the input array of articles
 FOLLOW AND IMPLEMENT ALL OF THE REQUIREMENTS BELOW!
 **REQUIREMENTS**:
-1. **SUMMARIZING**: Create a short, bite sized, fun and quick to read yet informative summary of the articles content. Omit redundancy and irrelevant details ensuring the summary is precise, to the point and UNDER 100 WORDS in length. The summary should be relevant and informative based solely on the article's content. Summarize the article in your own words. Use the features listed in the FEATURES section below in each of your articles summaries.
-2. **SAFETY**: Some articles may be flagged as unsafe by the Gemini API, resulting in an error during summarization. If you suspect an article may trigger this, use safer language in your summary to prevent errors.
+1. **SUMMARIZING**: For each article in the input array create a short, bite sized, fun and quick to read yet informative summary of the articles content. Omit redundancy and irrelevant details ensuring each summary is precise, to the point and UNDER 100 WORDS in length. Each summary should be relevant and informative based solely on the respective article's content. Format your summary as a short, engaging narrative, using a conversational tone. Present the information using the features explained below.
+2. **SUMMARIZING FEATURES**: When crafting each summary, integrate the features listed in the "FEATURES" section below. Exercise your best judgment to determine the appropriate use of each feature. Aim for a balanced approach—neither overusing nor underusing the features—to enhance the summary's clarity and impact.
+3. **SUMMARY STRUCTURE**: 
+3.a Opening: Start the summary with the most crucial information from the article. Directly address the main question posed in the title or provide the key information that a reader would be seeking when clicking on the article.
+3b. Body: Expand on the opening by providing additional insights. Use lists when summarizing multiple items (e.g., steps, options, examples) to improve clarity. Integrate quotes from the article to highlight important statements or opinions. Ensure that the body covers the main points succinctly but comprehensively.
+3c. Conclusion: End the summary with a brief conclusion that wraps up the main idea or key takeaway of the article, aligning with the original content's tone and message.
+4. **SAFETY**: Some articles may be flagged as unsafe by the Gemini API, resulting in an error during summarization. If you suspect an article may trigger this, use safer language in your summary to prevent errors. 
 
-**FEATURES**
-This is a list of feature to use in each article ( JSON object in the array ) summary. Each feature will be explained thoroughly on its identification, definition, usage and how to format it. Make sure you follow these guidelines and implement these features accordingly and appropiately in the summaries you provide. 
+**SUMMARIZING FEATURES**
+The following is a list of features to use in each summary you provide. Each feature will be explained thoroughly on its identification, definition, usage and how to format it. Make sure you follow these guidelines and implement these features accordingly and appropiately for each summary you provide. Feel free to use as many features as you deem fit in your summaries. Each summary should include at least one of the features below
 When writing the summary make sure to adhere to the Format section in each feature you use throughout the whole summary.
-1. **SPEAKER QUOTES**: 
-    a. Definition: These are quotes attributed to individuals mentioned in the article, such as speakers, guests, and outsider reporters.
-    b. Identification: Always specify who said the quote. If you cannot identify who said the quote, it is likely an AUTHOR QUOTE and not part of the SPEAKER QUOTES feature.
-    c. Usage: Heavy usage. Use SPEAKER QUOTES in most summaries you write.
-    d. Content: Keep SPEAKER QUOTES short and unaltered. UNDER NO CIRCUMSTANCE should you alter the original speaker's quote from the article
-    e. Format: Enclose speakers quotes in <squote> tags.
-    f. Example:
-        Correct: <squote>"Let's make America great again," said Donald Trump.</squote>
-        Incorrect: <squote>"Let's make America great again,"</squote> from the article text without specifying the speaker.
 
-2. **AUTHOR QUOTES**: 
-    a. Definition: These are important quotes attributed solely to the author of the article. They are not spoken by any individual but are written by the author as part of the article's content.
-    b. Identification: If the quote is attributed to someone other than the author (e.g., a speaker or guest), it should fall under SPEAKER QUOTES. AUTHOR QUOTES should never be followed up by a speaker, for example: "said John Doe" or "declared Jill Smith". If they do they are SPEAKER QUOTES and should be placed in <squote> tags.
-    c. Usage: Heavey usage. Use AUTHOR QUOTES in most summaries you write. These quotes should enrich the user's reading experience by providing key insights from the original content. AUTHOR QUOTES should be short, no more than 2-3 lines in length, and capture an important statement without flooding your summary with the author's words.
-    d. Content: UNDER NO CIRCUMSTANCE should you alter the original quote from the article
-    e. Format: Enclose any information that falls under the AUTHOR QUOTES in <quote> tags. 
-    f. Example: 
-        Correct: <quote>"Sunscreens should be applied every 3 hours"</quote>
-        Incorrect: <quote>"Sunscreens should be applied every 3 hours" said a dermatologist.</quote>
+1. **QUOTES:**
+1a. Incorporation: Include key quotes from the article that provide significant insights or support the main points of the summary. These quotes should complement your summary by offering direct, unaltered statements from the original content.
+1b. Guidelines:
+1b.1. Accuracy: DO NOT modify the quotes in any way. They should be presented exactly as they appear in the article.
+1b.2. Length: Keep quotes concise, focusing on capturing the essence of an important idea or viewpoint from the article.
+1b.3 Placement: Distribute quotes throughout the summary where they naturally fit, enhancing the narrative and providing a stronger connection to the original content.
+1c. Frequency: You can include multiple quotes in your summary if they help to clarify or emphasize the key points
+Format: Enclose all quotes in <quote> tags.
+Examples on how to use quotes in a summary: 
+    Article content here, <quote>"Sunscreens should be applied every 3 hours"</quote>, more article content here
 
-3. **LISTS**: 
-    a. Definition: Create structured lists in the summary whenever the article discusses, mentions, or compares multiple items (e.g., movies, shopping items, music, budget options, etc.). Lists enhance clarity and organization.
-    b. Identification: Identify sections of the article where multiple items are discussed, mentioned, or compared. Look for enumerations, comparisons, or lists of items within the content or title of the article.
-    c. Usage: High usage only when the article discusses, mentions, or compares multiple items. Use lists to break down complex information into easily digestible parts. Lists should be used to present key points, comparisons, or enumerations in a clear and structured manner. Lists can be used in junction with other features and free text as part of the summary. 
-    d. Content: Ensure the items in the list are relevant and directly related to the main points of the article. Each list item should provide valuable information that contributes to the overall understanding of the topic.
-    e. Format: Format using only html lists. The list you create in the summary MUST HAVE class of 'list'. Each part of the list should be placed in a different list item tag.
-    f. EXAMPLE: 
-        Corrent: <ol class="list"><li>Apply sunscreen to your face daily, even in winter.</li><li>SPF in moisturizer isn't enough. </li><li>Factor 50 is best for maximum protection.</li><li>Use more sunscreen than you think you need. </li><li>Reapply it after sweating or wiping your skin.</li><li>Choose a broad-spectrum sunscreen like <quote>Anthelios UVMune 400</quote> which protects against the most penetrative UV rays.</li><li>Everyone, regardless of skin tone, needs sunscreen.</li></ol>
-
-4. **BOLDING**: 
-    a. Definition: These are important places and people that are mentioned in the article.
-    b. Identification: If these places or people are important and or relevant to the article.
-    c. Usage: Highest usage. Use bolding in most of your summaries wherever relevant. If there are important people or places in the summary, bold them
-    d. Format: Place two astericks ** at the beginning and two astericks ** at the end of the bolded name. NEVER USE A SINGLE ASTERICKS TO BOLD NAMES.
-    e. Example:
-        Correct: Today **Joe Biden** visited **Paris**, **France** to chat with **Emanuel Macron**.
-
-5. **VOCABULARY ENHANCEMENT**: 
-    a. Definition: Highlight meaningful vocabulary words in your summary. These words should add value to the summary by providing significant or complex terminology that enriches the reader's understanding.
-    b. Identify important, descriptive, or complex words within the summary that are essential for conveying the core message. NEVER highlight proper nouns such as names, places, or things.
-    c. Usage: High usage. Highlight these vocabulary words to emphasize their significance in the context of the summary. This helps readers grasp the essential terminology and enhances the readability and engagement of the summary.
-    d. Content: Ensure the highlighted words are relevant to the article's main points and contribute to a deeper understanding of the content. Avoid highlighting common words or proper nouns.
-    e. Format: Enclose significant words in <vocab> tags.
-    f. Example: 
-        Correct: It is <vocab>paramount</vocab> to drink water on a sunny day.
+2. **LISTS**:
+2a. Usage:
+2a.1. Identification: Create structured lists in the summary whenever the article discusses, mentions, or compares multiple items (e.g., movies, shopping items, music, budget options, etc.).
+2a.2. Purpose: Lists enhance clarity and organization by breaking down complex information into easily digestible parts. Use lists to present key points, comparisons, or enumerations clearly and effectively.
+2b. Guidelines:
+2b.1. Detection: Look for enumerations, comparisons, or lists of items within the content or title of the article.
+2b.2. Integration: Lists can be used in conjunction with other features and free text within the summary, seamlessly integrating into the overall narrative.
+2c. Format:
+2c.1. HTML Structure: Create lists in your summaries using HTML <ol> or <ul> tags. Ensure the list has a class attribute set to "list."
+2c.2. List Items: Each part of the list should be placed within a <li> tag. Ensure each list item conveys a clear and specific point.
+Example: <ol class="list">
+    <li>First list item content here</li>
+    <li>Second list item content here</li>
+    <li>Third list item content here</li>
+    ...
+</ol>
 
 **RULES YOU MUST ABIDE BY. ANY DEVIATION FROM THESE RULES RESULTS IN A FAULTY SUMMARIZATION AND ISN'T ACCEPTABLE**
 1. UNDER NO CIRCUMSTANCE ARE YOU TO CREATE A SUMMARY MORE THAN 100 WORDS IN LENGTH.
-2. UNDER NO CIRCUMSTANCE ARE YOU TO PRODUCE INFORMATION THAT ISN'T PROVIDED, FOUND OR MENTIONED IN THE ARTICLE. 
-3. UNDER NO CIRCUMSTANCE ARE YOU TO INCLUDE AN EMPTY QUOTE / SPEAKER QUOTE. USE ONLY THE FORMATTED FOUNDATION LISTED ABOVE.
-4. UNDER NO CIRCUMSTANCE ARE YOU TO RETURN A FULLY QUOTED RESPONSE. THE SUMMARY MUST BE WRITTEN IN YOUR WORDS,
+2. UNDER NO CIRCUMSTANCE ARE YOU TO PRODUCE INFORMATION THAT ISN'T PROVIDED, FOUND OR MENTIONED IN EACH ARTICLE
+3. UNDER NO CIRCUMSTANCE ARE YOU TO INCLUDE AN EMPTY QUOTE. USE ONLY THE FORMATTED FOUNDATION LISTED ABOVE.
+4. UNDER NO CIRCUMSTANCE ARE YOU TO RETURN A FULLY QUOTED RESPONSE. EACH SUMMARY MUST BE WRITTEN IN YOUR WORDS,
 5. UNDER NO CIRCUMSTANCE ARE YOU TO INCLUDE PROMOTIONAL OR SUBSCRIPTION RELATED INFORMATION AS REGULAR TEXT NOR AS A QUOTE
 
 **FALLBACK:** If you are unable to return an acceptable summary, return undefined`;
@@ -181,7 +169,7 @@ Example:
 
 **FALLBACK:** If you are unable to return an acceptable summary, return undefined`
 
-const ASSIGN_GENRE_TASK = `**JOB2**: For each article given its title (TITLE), content (ARTICLE CONTENT), and a list of genres (GENRES LIST),
+const ASSIGN_GENRE_TASK = `**JOB2**: For each article in the input array given its title, content, and a list of genres (GENRES LIST),
 your task is to identify and return the most relevant genre(s) that match the provided article information. 
 Relevancy in this context refers to genre(s) that closely match the content or theme of the article.
 
