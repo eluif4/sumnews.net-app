@@ -150,17 +150,23 @@ const handleTouchEnd = (e) => {
 </script>
 
 <template>
-    <div id="article-instance" class="article-instance" :style="{ transform: `translateX(${translateX}px)` }"
+    <div id="article-instance" class="article-instance">
+    <!--<div id="article-instance" class="article-instance" :style="{ transform: `translateX(${translateX}px)` }"
         :class="{ 'animate': swipeStarted }" @touchstart="handleTouchStart" @touchmove="handleTouchMove"
         @touchend="handleTouchEnd">
+        -->
 
-        <ArticleSwipe :action="swipeAction" v-if="showSwipeAction" :style="{ width: `${Math.abs(translateX) + 10}px` }" :opacity="Math.abs(translateX) / 100 - 0.05">
-        </ArticleSwipe>
+        <!-- <ArticleSwipe :action="swipeAction" v-if="showSwipeAction" :style="{ width: `${Math.abs(translateX) + 10}px` }" :opacity="Math.abs(translateX) / 100 - 0.05">
+        </ArticleSwipe> -->
 
-        <img class="article-image" v-if="articleRef.imageUrl" :src="articleRef.imageUrl" alt="Article Image"
+        <!--<img class="article-image" v-if="articleRef.imageUrl" :src="articleRef.imageUrl" alt="Article Image"
             :class="{ 'animate': swipeStarted }" @error="handleImageError">
-        <div class="shader" :class="{ 'animate': swipeStarted }">
-            
+            -->
+        <img class="article-image" v-if="articleRef.imageUrl" :src="articleRef.imageUrl" alt="Article Image"
+        @error="handleImageError">
+        <!--<div class="shader" :class="{ 'animate': swipeStarted }">-->
+        <div class="shader">
+
             <div class="textual-content">
                 <div class="article-title text-shader">
                     {{ articleRef.title }}
