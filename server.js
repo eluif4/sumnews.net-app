@@ -38,29 +38,8 @@ const port = process.env.PORT || 3000;
 app.use(express.json());
 
 app.use(cors({
-    origin: function (origin, callback) {
-        console.log('Request origin:', origin); // Log the origin for debugging
-
-        const allowedOrigins = [
-            'https://www.sumnews.net', 'https://localhost'
-        ];
-
-        // Deny requests with no origin (Postman, curl) by checking if origin is null
-        if (!origin) {
-            return callback(new Error('Not allowed by CORS'));
-        }
-
-        // Allow requests from allowed origins and ionic mobile apps
-        if (allowedOrigins.indexOf(origin) !== -1 ||
-            origin.startsWith('file://') ||
-            origin.startsWith('capacitor://') ||
-            origin.startsWith('ionic://')) {
-            callback(null, true);
-        } else {
-            callback(new Error('Not allowed by CORS'));
-        }
-    },
-    credentials: true
+    origin: '*', // Allow requests from any origin
+    credentials: true // Include credentials like cookies in requests
 }));
 
 
