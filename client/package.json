@@ -10,7 +10,9 @@
   "dependencies": {
     "dompurify": "^3.1.2",
     "vue": "^3.4.21",
-    "vue-router": "^4.3.2"
+    "vue-google-oauth2": "^1.5.10",
+    "vue-router": "^4.3.2",
+    "vue3-google-login": "^2.0.33"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^5.0.4",

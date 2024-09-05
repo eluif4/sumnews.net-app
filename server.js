@@ -24,6 +24,7 @@ const CONTROLLER = path.join(__dirname, 'server/6-controllers');
 //---ROUTE FILES---
 const DBGETARTICLESROUTES = require('./server/1-routes/db/getCollections.js');
 const DBGETCOLLECTIONSROUTES = require('./server/1-routes/db/getArticles.js');
+const AUTH = require('./server/1-routes/api/auth.js');
 
 //---FUNCTIONS---
 const { getArticlesUsingRecentActiviy } = require('./server/2-utils/api/getArticlesFromAPI.js');
@@ -43,6 +44,7 @@ app.use(
 )
 app.use(DBGETARTICLESROUTES)
 app.use(DBGETCOLLECTIONSROUTES)
+app.use(AUTH)
 
 app.listen(port, function () {
     console.log(`Server is running on port ${port} in DEVELOPMENT mode`)
@@ -54,7 +56,7 @@ const { articleQueue } = require('./server/2-utils/articleQueueHandler.js');
 //---RUN MAIN FUNCTION---
 async function cronTask() {
     // cron.schedule('*/15 * * * *', async () => {
-        if (true) {
+        if (false) {
             try {
                 const date = new Date()
                 console.log(kleur.bgBlue(`Task started @ ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`))
