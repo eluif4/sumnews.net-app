@@ -7,7 +7,7 @@ import { googleSdkLoaded } from "vue3-google-login"
 import { config } from '../constants';
 import router from '../router';
 
-const userDetails = ref(null);
+const user = ref(null);
 
 const FRONTEND_URL = config.url.FRONTEND_URL;
 const BACKEND_URL = config.url.BACKEND_URL;
@@ -23,7 +23,7 @@ function signInWithGoogle() {
         google.accounts.oauth2.initCodeClient({
             client_id: "460348077182-hfarubd5kv9mhq03e4g1ugfcjeopeo4m.apps.googleusercontent.com",
             scope: "email profile openid",
-            redirect_uri: `${FRONTEND_URL}`, // Use your actual frontend URL
+            redirect_uri: `postmessage`, // Use your actual frontend URL
             callback: response => {
                 if (response.code) {
                     // Call sendCodeToBackend directly
@@ -54,10 +54,9 @@ async function sendCodeToBackend(code) {
         }
 
         const userDetails = await response.json(); // Parse the response as JSON
-        console.log("User Details: ", userDetails);
 
         // If you're using a reactive variable in Vue
-        userDetails.value = userDetails; 
+        user.value = userDetails.user;
     } catch (error) {
         console.error('Failed to send authorization code: ', error);
     }
@@ -185,34 +184,10 @@ const disclaimerPage = {
     title: 'Disclaimer',
     path: 'disclaimer',
 }
-
-// const google = {
-//     text: "Sign in using Google",
-//     svg: `<svg xmlns="http://www.w3.org/2000/svg" width="2em" height="2em" viewBox="0 0 48 48"><path fill="#ffc107" d="M43.611 20.083H42V20H24v8h11.303c-1.649 4.657-6.08 8-11.303 8c-6.627 0-12-5.373-12-12s5.373-12 12-12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4C12.955 4 4 12.955 4 24s8.955 20 20 20s20-8.955 20-20c0-1.341-.138-2.65-.389-3.917"/><path fill="#ff3d00" d="m6.306 14.691l6.571 4.819C14.655 15.108 18.961 12 24 12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4C16.318 4 9.656 8.337 6.306 14.691"/><path fill="#4caf50" d="M24 44c5.166 0 9.86-1.977 13.409-5.192l-6.19-5.238A11.91 11.91 0 0 1 24 36c-5.202 0-9.619-3.317-11.283-7.946l-6.522 5.025C9.505 39.556 16.227 44 24 44"/><path fill="#1976d2" d="M43.611 20.083H42V20H24v8h11.303a12.04 12.04 0 0 1-4.087 5.571l.003-.002l6.19 5.238C36.971 39.205 44 34 44 24c0-1.341-.138-2.65-.389-3.917"/></svg>`,
-//     signInFunction: initiateOAuth2
-// }
-
-// async function initiateOAuth2() {
-//     console.log(`Initiating -> ${google.text}`);
-//     const response = await fetch(`${BACKEND_URL}auth/google`);
-//     console.log(await response.json());
-// }
-
-// function advancedGoBack() {
-//     // When in account page 'goBack()' will cause me to go back to /account/${path}
-//     // This function checks what the last path that doesnt contain 'account' in it
-//     // Find the last non-account route
-//     const lastNonAccountRoute = [...routeHistory]
-//         .reverse()
-//         .find(route => !route.includes('/account'));
-//     console.log(lastNonAccountRoute)
-//     router.push(lastNonAccountRoute)
-// }
 </script>
 
 <template>
     <div id="container">
-        <!-- FUTURE CHANGE: change into backAction -->
         <div class="header">
             <div class="left">
                 <div @click="router.push({ name: 'home' })" class="back-arrow">
@@ -230,12 +205,13 @@ const disclaimerPage = {
         <div class="account-info">
             <PWA></PWA>
             <!-- <SignInUsingGoogle></SignInUsingGoogle> -->
-            <SignInUsing :platform="googlePlatform" v-if="!userDetails"></SignInUsing>
+            <SignInUsing :platform="googlePlatform" v-if="!user"></SignInUsing>
             <div class="userInfo" v-else>
-                <h2>User Details</h2>
-                <p>Name: {{ userDetails.name }}</p>
-                <p>Email: {{ userDetails.email }}</p>
-                <p>Profile Picture: <img :src="userDetails.picture" alt="Profile Picture"></p>
+                <img :src="user.picture" class="profileImage" alt="Profile Picture" height="20" width="20">
+                <div class="text">
+                    <p class="fullname">{{ user.given_name }} {{ user.family_name }}</p>
+                    <p class="email">{{ user.email }}</p>
+                </div>
             </div>
             <p class="headline">GENERAL</p>
             <AccountPageItem :page="aboutUsPage"></AccountPageItem>
@@ -333,5 +309,26 @@ const disclaimerPage = {
     display: flex;
     align-items: center;
     color: #828282;
+}
+
+.userInfo {
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    background-color: var(--main-color);
+    border-radius: var(--border-radius);
+    padding: 10px;
+    gap: 5%;
+}
+
+.text {
+    display: flex;
+    flex-direction: column;
+    justify-content: start;
+}
+
+.profileImage {
+    border: 3px solid black;
+    border-radius: var(--border-radius;)
 }
 </style>

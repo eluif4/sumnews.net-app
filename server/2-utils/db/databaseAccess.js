@@ -1,5 +1,5 @@
 const Article = require("../../4-models/articles")
-// const User = require("../../4-models/users")
+const User = require("../../4-models/users")
 const Source = require('../../4-models/sources')
 const Event = require('../../4-models/events')
 
@@ -61,19 +61,6 @@ async function articlesSinceYesterday() {
 
     var articles = [];
     try {
-        // var query = {
-        //     "datePublished": {
-        //         "$gte": yesterdayFormatted,
-        //         "$lt": todayFormatted
-        //     }
-        // };
-
-        // var options = {
-        //     sort: {"datePublished": -1},
-        //     projection: {_id: 1, url: 1}
-        // };
-
-        // articles = await Article.find(query, options);
         articles = await Article.find({
             "datePublished": {
                 "$gte": yesterdayFormatted,
@@ -151,6 +138,31 @@ async function saveUserToDB(user) {
         console.log(`User saved successfully`)
     } catch (error) {
         console.error(`Couldn't save user to db`)
+    }
+}
+
+async function processUser(userDetails) {
+    try {
+        const { email, name, given_name, family_name, sub, picture } = userDetails; // Extract essential user info
+        // Check if the user already exists in the database
+        var user = await User.findOne({ googleId: sub });
+        if (!user) {
+            user = new User({
+                email: email,
+                googleId: sub,
+                name: name,
+                given_name: given_name,
+                family_name: family_name,
+                picture: picture,
+                createdDate: new Date()
+            })
+
+            await saveDocument(user);
+        }
+        return user
+    } catch (error) {
+        console.error('Error handling Google authentication:', error);
+        res.status(500).json({ message: 'Internal server error' });
     }
 }
 
@@ -285,7 +297,7 @@ async function getDailyRecap(id) {
                 'sourceLogo': 1
             }
         }
-    ];    
+    ];
 
     if (id) {
         pipeline.unshift(match);
@@ -356,6 +368,7 @@ module.exports = {
     BM25,
     getUser,
     saveUserToDB,
+    processUser,
     aggregate,
     getSourcesLogo,
     getAllSources,
