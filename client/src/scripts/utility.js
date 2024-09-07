@@ -90,3 +90,23 @@ export function showPopup(methodValue, msg, showTime = 3) {
         PopupAttributes.methodValue = -1
     }, 1000 * showTime)
 }
+
+async function fetchProtectedResource(path) {
+    // Path param: everything after www.sumnews.net/ ( example: account/bookmark )
+    const token = localStorage.getItem('authToken'); // Retrieve the token from localStorage
+
+    const response = await fetch(`${BACKEND_URL}${path}`, {
+        method: 'GET',
+        headers: {
+            'Authorization': `Bearer ${token}`, // Send the token as a Bearer token
+            'Content-Type': 'application/json'
+        }
+    });
+
+    if (!response.ok) {
+        throw new Error('Failed to fetch protected resource');
+    }
+
+    const data = await response.json();
+    return data;
+}

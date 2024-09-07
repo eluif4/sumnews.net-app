@@ -11,8 +11,8 @@ const dev = {
     url: {
         BACKEND_URL: 'http://localhost:3000/',
         FRONTEND_URL: 'http://localhost:5173/',
-        // BACKEND_URL: 'http://192.168.1.95:3000/',
-        // FRONTEND_URL: 'http://192.168.1.95:5173/',
+        // BACKEND_URL: 'http://192.168.1.108:3000/',
+        // FRONTEND_URL: 'http://192.168.1.108:5173/',
     },
 };
 

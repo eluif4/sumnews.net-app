@@ -3,6 +3,21 @@ const DBUTILS = path.join(__dirname, '../../2-utils/db')
 const DatabaseAccess = path.join(DBUTILS, "/databaseAccess.js")
 const { processUser } = require(DatabaseAccess)
 
+const jwt = require('jsonwebtoken');
+const process = require('process');
+
+function generateJWT(user) {
+    // does my payload need to be bigger to accomodate all the other user information
+    const payload = {
+        userId: user._id,
+        googleId: user.googleId,
+        email: user.email
+    };
+
+    // Sign the JWT token with a secret key and set expiration to 1 year (365 days)
+    return jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '365d' });
+}
+
 async function googleAuth(req, res) {
     const { code } = req.body;
     console.log('Authorization Code:', code);
@@ -20,6 +35,7 @@ async function googleAuth(req, res) {
         const response = await fetch(url, {
             method: 'POST',
             body: JSON.stringify(data), // Convert the data to JSON string format
+            headers: { 'Content-Type': 'application/json' } // WORKS WITHOUT THIS
         });
 
 
@@ -29,7 +45,6 @@ async function googleAuth(req, res) {
         }
 
         const result = await response.json(); // Convert the response to JSON
-
         const accessToken = result.access_token;
 
         const userResponse = await fetch(
@@ -43,14 +58,20 @@ async function googleAuth(req, res) {
         );
 
         const userDetails = await userResponse.json();
+        let user = await processUser(userDetails); // Process user info (save or retrieve from DB)
 
-        // process user information and perform necessary actions
-        let user = await processUser(userDetails);
-
-        if (user)
-            res.status(200).json({ message: 'Authentication successful', user: user })
-        else
+        if (user) {
+            const token = generateJWT(user);
+            // Send token and user info to the frontend
+            res.status(200).json({
+                message: 'Authentication successful',
+                user: user,
+                token: token // Send the JWT to the frontend
+            });
+        }
+        else {
             res.status(500).json({ message: 'Athentication failed', user: null });
+        }
     } catch (error) {
         console.error('Error saving code:', error);
         res.status(500).json({ message: 'Failed to save code' });

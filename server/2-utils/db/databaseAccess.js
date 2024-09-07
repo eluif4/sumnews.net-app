@@ -147,6 +147,7 @@ async function processUser(userDetails) {
         // Check if the user already exists in the database
         var user = await User.findOne({ googleId: sub });
         if (!user) {
+            // If the user doesn't exist, create a new one
             user = new User({
                 email: email,
                 googleId: sub,
@@ -154,15 +155,26 @@ async function processUser(userDetails) {
                 given_name: given_name,
                 family_name: family_name,
                 picture: picture,
-                createdDate: new Date()
+                createdDate: new Date(),
+                bookmarks: [],
             })
 
-            await saveDocument(user);
+            await saveDocument(user); // Save the user to the database
         }
-        return user
+        return user;
     } catch (error) {
         console.error('Error handling Google authentication:', error);
         res.status(500).json({ message: 'Internal server error' });
+    }
+}
+
+async function getUserBookmarks(googleId) {
+    try {
+        const userBookmarks = await User.findOne({ googleId: googleId }, { bookmarks: 1, _id: 0 });
+        return userBookmarks.bookmarks;
+    } catch (error) {
+        console.error('Error fetching bookmarks:', error)
+        throw error;
     }
 }
 
@@ -369,6 +381,7 @@ module.exports = {
     getUser,
     saveUserToDB,
     processUser,
+    getUserBookmarks,
     aggregate,
     getSourcesLogo,
     getAllSources,

@@ -8,6 +8,7 @@ const userSchema = new mongoose.Schema({
     family_name: String,
     picture: String,
     createdDate: Date,
+    bookmarks: Array,
 }, { collection: 'users' });
 
 const DailyRecap = mongoose.model('User', userSchema);

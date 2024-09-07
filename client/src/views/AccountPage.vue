@@ -37,7 +37,6 @@ function signInWithGoogle() {
 async function sendCodeToBackend(code) {
     try {
         const headers = {
-            // Authorization: `Bearer ${code}`, // Send the code as a Bearer token in the Authorization header
             'Content-Type': 'application/json' // Ensure the Content-Type is set
         };
         const url = `${BACKEND_URL}auth/google`; // Set your backend URL
@@ -53,10 +52,13 @@ async function sendCodeToBackend(code) {
             throw new Error('Network response was not ok');
         }
 
-        const userDetails = await response.json(); // Parse the response as JSON
+        const result = await response.json(); // Parse the response as JSON
+        const { token } = result; // Extract the JWT token and user details
 
-        // If you're using a reactive variable in Vue
-        user.value = userDetails.user;
+        localStorage.setItem('authToken', token);
+
+        // Set user to reactive value in vue
+        user.value = result.user;
     } catch (error) {
         console.error('Failed to send authorization code: ', error);
     }
@@ -184,6 +186,15 @@ const disclaimerPage = {
     title: 'Disclaimer',
     path: 'disclaimer',
 }
+
+const bookmarksPage = {
+    svg: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <path d="M3 11.098V16.091C3 19.187 3 20.736 3.734 21.412C4.084 21.735 4.526 21.938 4.997 21.992C5.984 22.105 7.137 21.085 9.442 19.046C10.462 18.145 10.971 17.694 11.56 17.576C11.85 17.516 12.15 17.516 12.44 17.576C13.03 17.694 13.539 18.145 14.558 19.046C16.863 21.085 18.016 22.105 19.003 21.991C19.473 21.938 19.916 21.735 20.266 21.412C21 20.736 21 19.188 21 16.091V11.097C21 6.809 21 4.665 19.682 3.332C18.364 2 16.242 2 12 2C7.757 2 5.636 2 4.318 3.332C3.511 4.148 3.198 5.27 3.077 7M15 6H9Z" fill="#62FEBD"/>
+            <path d="M3 11.098V16.091C3 19.187 3 20.736 3.734 21.412C4.084 21.735 4.526 21.938 4.997 21.992C5.984 22.105 7.137 21.085 9.442 19.046C10.462 18.145 10.971 17.694 11.56 17.576C11.85 17.516 12.15 17.516 12.44 17.576C13.03 17.694 13.539 18.145 14.558 19.046C16.863 21.085 18.016 22.105 19.003 21.991C19.473 21.938 19.916 21.735 20.266 21.412C21 20.736 21 19.188 21 16.091V11.097C21 6.809 21 4.665 19.682 3.332C18.364 2 16.242 2 12 2C7.757 2 5.636 2 4.318 3.332C3.511 4.148 3.198 5.27 3.077 7M15 6H9" stroke="black" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>`,
+    title: 'Bookmarks',
+    path: 'bookmarks',
+}
 </script>
 
 <template>
@@ -202,17 +213,22 @@ const disclaimerPage = {
                 <h1 class="title">Settings</h1>
             </div>
         </div>
-        <div class="account-info">
+        <div class="signincontainer">
             <PWA></PWA>
             <!-- <SignInUsingGoogle></SignInUsingGoogle> -->
             <SignInUsing :platform="googlePlatform" v-if="!user"></SignInUsing>
             <div class="userInfo" v-else>
-                <img :src="user.picture" class="profileImage" alt="Profile Picture" height="20" width="20">
+                <img :src="user.picture" class="profileImage" alt="Profile Picture" height="48" width="48">
                 <div class="text">
                     <p class="fullname">{{ user.given_name }} {{ user.family_name }}</p>
                     <p class="email">{{ user.email }}</p>
                 </div>
             </div>
+            <div class="user-actions" v-if="user">
+                <AccountPageItem :page="bookmarksPage"></AccountPageItem>
+            </div>
+        </div>
+        <div class="account-info">
             <p class="headline">GENERAL</p>
             <AccountPageItem :page="aboutUsPage"></AccountPageItem>
             <AccountPageItem :page="contactUsPage"></AccountPageItem>
@@ -329,6 +345,13 @@ const disclaimerPage = {
 
 .profileImage {
     border: 3px solid black;
-    border-radius: var(--border-radius;)
+    border-radius: var(--border-radius);
+}
+
+.signincontainer {
+    margin: 6% 0;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
 }
 </style>
