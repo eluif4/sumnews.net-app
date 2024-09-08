@@ -75,6 +75,18 @@ else if (!allSourcesInLocalStorage || genresDiffInDays > 1) {
     })
 }
 
+export const userProfile = reactive({ user: null }); // Empty user on setup. Save the connected user to the reactive variable upon login
+fetch(`${BACKEND_URL}user`, {
+  method: 'GET',
+  headers: {
+    "Authorization": `Bearer ${localStorage.getItem('authToken')}`
+  }
+}).then(response => response.json())
+  .then(response => userProfile.user = response.user)
+  .catch(error => {
+    console.error('Error fetching user', error)
+  })
+
 // ----- POPUP PROPERTIES -----
 export const PopupAttributes = reactive({
   show: false,

@@ -8,7 +8,6 @@ const DatabaseAccess = path.join(DBUTILS, "/databaseAccess.js")
 const { getUserBookmarks } = require(DatabaseAccess)
 
 async function getUserBookmarksController(req, res) {
-    console.log(req);
     const userBookmarks = await getUserBookmarks(req.body?.googleId);
 
     if (userBookmarks) {
@@ -18,6 +17,24 @@ async function getUserBookmarksController(req, res) {
     }
 }
 
+async function getUserController(req, res) {
+    try {
+        const googleId = req.user.googleId;
+        const user = await User.findOne({ googleId: googleId })
+
+        if (!user) {
+            return res.status(404).json({ user: null })
+        }
+
+        res.status(200).json({
+            user: user
+        })
+    } catch (error) {
+        res.status(500);
+    }
+}
+
 module.exports = {
     getUserBookmarksController,
+    getUserController,
 }

@@ -6,8 +6,7 @@ import SignInUsing from '../components/SignInUsing/SignInUsing.vue';
 import { googleSdkLoaded } from "vue3-google-login"
 import { config } from '../constants';
 import router from '../router';
-
-const user = ref(null);
+import { userProfile } from '../main';
 
 const FRONTEND_URL = config.url.FRONTEND_URL;
 const BACKEND_URL = config.url.BACKEND_URL;
@@ -58,10 +57,15 @@ async function sendCodeToBackend(code) {
         localStorage.setItem('authToken', token);
 
         // Set user to reactive value in vue
-        user.value = result.user;
+        userProfile.user = result.user;
     } catch (error) {
         console.error('Failed to send authorization code: ', error);
     }
+}
+
+async function logout() {
+    localStorage.removeItem('authToken');
+    userProfile.user = null;
 }
 
 const aboutUsPage = {
@@ -216,15 +220,16 @@ const bookmarksPage = {
         <div class="signincontainer">
             <PWA></PWA>
             <!-- <SignInUsingGoogle></SignInUsingGoogle> -->
-            <SignInUsing :platform="googlePlatform" v-if="!user"></SignInUsing>
+            <SignInUsing :platform="googlePlatform" v-if="!userProfile.user"></SignInUsing>
             <div class="userInfo" v-else>
-                <img :src="user.picture" class="profileImage" alt="Profile Picture" height="48" width="48">
+                <img :src="userProfile.user.picture" class="profileImage" alt="Profile Picture" height="48" width="48">
                 <div class="text">
-                    <p class="fullname">{{ user.given_name }} {{ user.family_name }}</p>
-                    <p class="email">{{ user.email }}</p>
+                    <p class="fullname">{{ userProfile.user.given_name }} {{ userProfile.user.family_name }}</p>
+                    <p class="email">{{ userProfile.user.email }}</p>
                 </div>
+                <div class="logout"><button @click="logout">Log Out</button></div>
             </div>
-            <div class="user-actions" v-if="user">
+            <div class="user-actions" v-if="userProfile.user">
                 <AccountPageItem :page="bookmarksPage"></AccountPageItem>
             </div>
         </div>
@@ -353,5 +358,14 @@ const bookmarksPage = {
     display: flex;
     flex-direction: column;
     gap: 20px;
+}
+
+.logout {
+    color: #ff0000;
+    text-align: center;
+    padding: 0 10px;
+    flex: 1;
+    display: flex;
+    flex-direction: row-reverse;
 }
 </style>
