@@ -9,6 +9,17 @@ const userSchema = new mongoose.Schema({
     picture: String,
     createdDate: Date,
     bookmarks: Array,
+
+    // User preferences
+    preferences: {
+        sources: {
+            type: Map, of: Number, default: {}
+        },
+        genres: {
+            type: Map, of: Number, default: {}
+        }
+    }
+
 }, { collection: 'users' });
 
 const DailyRecap = mongoose.model('User', userSchema);

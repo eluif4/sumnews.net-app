@@ -1,6 +1,7 @@
 const { Router } = require('express');
 const { 
     getUserBookmarksController,
+    getUserFeedController
 } = require('../../6-controllers/db/userController');
 
 const {
@@ -10,5 +11,6 @@ const {
 const app = Router();
 
 app.get('/user/bookmarks', authenticateToken, getUserBookmarksController)
+app.get('/user/feed', authenticateToken, getUserFeedController)
 
 module.exports = app;
