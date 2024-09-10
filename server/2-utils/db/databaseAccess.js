@@ -1,6 +1,7 @@
 const Article = require("../../4-models/articles")
 const User = require("../../4-models/users")
 const Source = require('../../4-models/sources')
+const Genre = require('../../4-models/genres')
 const Event = require('../../4-models/events')
 
 // const { MongoClient } = require('mongodb')
@@ -147,6 +148,24 @@ async function processUser(userDetails) {
         // Check if the user already exists in the database
         var user = await User.findOne({ googleId: sub });
         if (!user) {
+            var dbsources = await Source.find().select('source'); // Get all sources from db
+            var dbgenres = await Genre.find().select('genre'); // Get all genres from db
+
+            var usergenres = dbgenres.reduce((acc, curGenre) => {
+                const genreNameLower = curGenre.genre.toLowerCase(); // Convert source name to lowercase
+                acc[genreNameLower] = 0; // Initialize with 0
+                return acc;
+            }, {})
+
+            var usersources = dbsources.reduce((acc, curSource) => {
+                const sourceNameLower = curSource.source.toLowerCase(); // Convert source name to lowercase
+                acc[sourceNameLower] = 0; // Initialize with 0
+                return acc;
+            }, {})
+
+            console.log(usergenres, usersources);
+            console.log(typeof usergenres, typeof usersources)
+
             // If the user doesn't exist, create a new one
             user = new User({
                 email: email,
@@ -157,14 +176,20 @@ async function processUser(userDetails) {
                 picture: picture,
                 createdDate: new Date(),
                 bookmarks: [],
+                preferences: {
+                    sources: usersources,
+                    genres: usergenres,
+                }
             })
+
+            console.log(user);
 
             await saveDocument(user); // Save the user to the database
         }
         return user;
     } catch (error) {
         console.error('Error handling Google authentication:', error);
-        res.status(500).json({ message: 'Internal server error' });
+        return null;
     }
 }
 
@@ -175,6 +200,71 @@ async function getUserBookmarks(googleId) {
     } catch (error) {
         console.error('Error fetching bookmarks:', error)
         throw error;
+    }
+}
+
+async function getUserFeed(googleId) {
+    // WEIGHTS
+    const NORMAL_WEIGHT = 5;
+    const RANDOM_WEIGHT = 3;
+    const PUBLISHED_DATE_WEIGHT = 10;
+
+    const N = 100;
+    // Get N most recent articles
+    // FUTURE CHANGE: get the article from the past 24 hours and order them instead
+    // Find a way to not recalculate every article each scroll. This needs to be very efficient
+    try {
+        const user = await User.findOne({ googleId: googleId });
+        if (!user) {
+            console.log('User not found')
+            return [];
+        }
+
+        const articles = await Article.find().sort({ datePublished: -1 }).limit(N);
+
+        const USER_PREFERENCES = user.preferences;
+
+        if (!USER_PREFERENCES) {
+            console.log('User preferences not found')
+            return [];
+        }
+
+        // Assign relevancy scores to articles based on user preferences
+        const scoredArticles = articles.map(article => {
+            let articleScore = 0;
+
+            // Add score based on genres
+            if (article.genre) {
+                article.genre.forEach(genre => {
+                    const lowerGenre = genre.toLowerCase(); // Convert genre to lowercase
+                    if (USER_PREFERENCES.genres[lowerGenre]) {
+                        articleScore += USER_PREFERENCES.genres[lowerGenre] * NORMAL_WEIGHT;
+                    }
+                });
+            }
+
+            // Add score based on source
+            if (article.source) {
+                const lowerSource = article.source.toLowerCase(); // Convert source to lowercase
+                if (USER_PREFERENCES.sources[lowerSource]) {
+                    articleScore += USER_PREFERENCES.sources[lowerSource] * NORMAL_WEIGHT;
+                }
+            }
+
+            return {
+                ...article.toObject(),
+                relevancescore: articleScore
+            }
+        })
+
+        // Sort articles by their relevanceScore in descneding order
+        scoredArticles.sort((a, b) => b.relevancescore - a.relevancescore);
+
+        // Return the sorted articles to the frontend
+        return scoredArticles;
+    } catch (error) {
+        console.log('Failed to fetch personalized feed')
+        return [];
     }
 }
 
@@ -382,6 +472,7 @@ module.exports = {
     saveUserToDB,
     processUser,
     getUserBookmarks,
+    getUserFeed,
     aggregate,
     getSourcesLogo,
     getAllSources,
