@@ -12,14 +12,15 @@ const userSchema = new mongoose.Schema({
 
     // User preferences
     preferences: {
-        sources: {
-            type: Map, of: Number, default: {}
-        },
-        genres: {
-            type: Map, of: Number, default: {}
-        }
+        genres: [{
+            name: { type: String, required: true },   // Genre name (e.g., "technology")
+            clicks: { type: Number, default: 0 }     // Number of clicks initialized to 0
+        }],
+        sources: [{
+            name: { type: String, required: true },   // Source name (e.g., "nytimes.com")
+            clicks: { type: Number, default: 0 }     // Number of clicks initialized to 0
+        }]
     }
-
 }, { collection: 'users' });
 
 const DailyRecap = mongoose.model('User', userSchema);

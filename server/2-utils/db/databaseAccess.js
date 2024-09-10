@@ -151,20 +151,17 @@ async function processUser(userDetails) {
             var dbsources = await Source.find().select('source'); // Get all sources from db
             var dbgenres = await Genre.find().select('genre'); // Get all genres from db
 
-            var usergenres = dbgenres.reduce((acc, curGenre) => {
-                const genreNameLower = curGenre.genre.toLowerCase(); // Convert source name to lowercase
-                acc[genreNameLower] = 0; // Initialize with 0
-                return acc;
-            }, {})
+            // Create usergenres as an array of objects
+            var usergenres = dbgenres.map(curGenre => ({
+                name: curGenre.genre.toLowerCase(), // Convert genre name to lowercase
+                clicks: 0 // Initialize clicks with 0
+            }));
 
-            var usersources = dbsources.reduce((acc, curSource) => {
-                const sourceNameLower = curSource.source.toLowerCase(); // Convert source name to lowercase
-                acc[sourceNameLower] = 0; // Initialize with 0
-                return acc;
-            }, {})
-
-            console.log(usergenres, usersources);
-            console.log(typeof usergenres, typeof usersources)
+            // Create usersources as an array of objects
+            var usersources = dbsources.map(curSource => ({
+                name: curSource.source.toLowerCase(), // Convert source name to lowercase
+                clicks: 0 // Initialize clicks with 0
+            }));
 
             // If the user doesn't exist, create a new one
             user = new User({
@@ -181,8 +178,6 @@ async function processUser(userDetails) {
                     genres: usergenres,
                 }
             })
-
-            console.log(user);
 
             await saveDocument(user); // Save the user to the database
         }
@@ -206,7 +201,8 @@ async function getUserBookmarks(googleId) {
 async function getUserFeed(googleId) {
     // WEIGHTS
     const NORMAL_WEIGHT = 5;
-    const RANDOM_WEIGHT = 3;
+    const RANDOM_WEIGHT_MIN = 1;
+    const RANDOM_WEIGHT_MAX = 3;
     const PUBLISHED_DATE_WEIGHT = 10;
 
     const N = 100;
@@ -220,7 +216,8 @@ async function getUserFeed(googleId) {
             return [];
         }
 
-        const articles = await Article.find().sort({ datePublished: -1 }).limit(N);
+        const articles = await Article.find().sort({ datePublished: -1 }).limit(N)
+        // .select(['source', 'genre']);
 
         const USER_PREFERENCES = user.preferences;
 
@@ -231,14 +228,21 @@ async function getUserFeed(googleId) {
 
         // Assign relevancy scores to articles based on user preferences
         const scoredArticles = articles.map(article => {
-            let articleScore = 0;
+            // Function to generate a random weight within a specific range
+            function getRandomWeight(RANDOM_WEIGHT_MIN = 0.5, RANDOM_WEIGHT_MAX = 1.5) {
+                return Math.random() * (RANDOM_WEIGHT_MAX - RANDOM_WEIGHT_MIN) + RANDOM_WEIGHT_MIN;
+            }
+
+
+            var articleScore = 0;
 
             // Add score based on genres
             if (article.genre) {
                 article.genre.forEach(genre => {
                     const lowerGenre = genre.toLowerCase(); // Convert genre to lowercase
-                    if (USER_PREFERENCES.genres[lowerGenre]) {
-                        articleScore += USER_PREFERENCES.genres[lowerGenre] * NORMAL_WEIGHT;
+                    const matchedGenre = USER_PREFERENCES.genres.find(g => g.name.toLowerCase() === lowerGenre); // Find the matching genre
+                    if (matchedGenre) {
+                        articleScore += matchedGenre.clicks * NORMAL_WEIGHT; // Use 'clicks' from the matched genre
                     }
                 });
             }
@@ -246,15 +250,22 @@ async function getUserFeed(googleId) {
             // Add score based on source
             if (article.source) {
                 const lowerSource = article.source.toLowerCase(); // Convert source to lowercase
-                if (USER_PREFERENCES.sources[lowerSource]) {
-                    articleScore += USER_PREFERENCES.sources[lowerSource] * NORMAL_WEIGHT;
+                const matchedSource = USER_PREFERENCES.sources.find(s => s.name.toLowerCase() === lowerSource); // Find the matching source
+                if (matchedSource) {
+                    articleScore += matchedSource.clicks * NORMAL_WEIGHT; // Use 'clicks' from the matched source
                 }
+            }
+
+            // 20% chance to add a random weight
+            if (Math.random() <= 0.2) {
+                const randomWeight = getRandomWeight(); // Get a random weight between 0.5 and 1.5
+                articleScore += randomWeight; // Multiply the article score by the random weight
             }
 
             return {
                 ...article.toObject(),
                 relevancescore: articleScore
-            }
+            };
         })
 
         // Sort articles by their relevanceScore in descneding order
@@ -265,6 +276,38 @@ async function getUserFeed(googleId) {
     } catch (error) {
         console.log('Failed to fetch personalized feed')
         return [];
+    }
+}
+
+async function updateUserPreferences(googleId, updateBody) {
+    try {
+        const bulkUpdate = [];
+
+        // For each genre in the updateBody, create an update operation
+        updateBody.genres.forEach((genre) => {
+            bulkUpdate.push({
+                updateOne: {
+                    filter: { googleId: googleId, 'preferences.genres.name': genre.name.toLowerCase() },
+                    update: { $inc: { 'preferences.genres.$.clicks': genre.addClicks } }
+                }
+            });
+        });
+
+        // For the source, create an update operation
+        if (updateBody.source) {
+            bulkUpdate.push({
+                updateOne: {
+                    filter: { googleId: googleId, 'preferences.sources.name': updateBody.source.name.toLowerCase() },
+                    update: { $inc: { 'preferences.sources.$.clicks': updateBody.source.addClicks } }
+                }
+            });
+        }
+
+        // Perform the bulk update operation
+        const updatedUser = await User.bulkWrite(bulkUpdate);
+
+    } catch (error) {
+        console.error('Failed to update user', error)
     }
 }
 
@@ -473,6 +516,7 @@ module.exports = {
     processUser,
     getUserBookmarks,
     getUserFeed,
+    updateUserPreferences,
     aggregate,
     getSourcesLogo,
     getAllSources,

@@ -5,7 +5,7 @@ const UTILS = path.join(__dirname, '../../2-utils')
 const DBUTILS = path.join(__dirname, '../../2-utils/db')
 const DatabaseAccess = path.join(DBUTILS, "/databaseAccess.js")
 
-const { getUserBookmarks, getUserFeed } = require(DatabaseAccess)
+const { getUserBookmarks, getUserFeed, updateUserPreferences } = require(DatabaseAccess)
 
 async function getUserBookmarksController(req, res) {
     const userBookmarks = await getUserBookmarks(req.body?.googleId);
@@ -36,16 +36,46 @@ async function getUserController(req, res) {
 
 async function getUserFeedController(req, res) {
     try {
-        const googleId = req.body?.googleId;
+        const googleId = req.user?.googleId;
 
         if (!googleId) { // Check if user is connected in frontend. If for any reason there is an error, return an empty array
             res.status(500).json({ message: 'User isnt logged in', articles: [] })
         }
-
-        const userFeed = await getUserFeed(googleId);
-        res.status(200).json({ message: 'Successfully fetched users feed', articles: userFeed })
+        else {
+            const userFeed = await getUserFeed(googleId);
+            res.status(200).json({ message: 'Successfully fetched users feed', articles: userFeed })
+        }
     } catch (error) {
         console.error('Failed to fetch users feed', error);
+    }
+}
+
+async function updateUserPreferencesController(req, res) {
+    try {
+        const googleId = req.user?.googleId;
+        const updateBody = req.body;
+        // Example: 
+        /*
+        {
+            genres: [
+                { name: 'genrename', addClicks: 1 },
+                { name: 'genrename2', addClicks: 1 },
+                { name: 'genrename3', addClicks: 1 }
+                ...
+            ],
+            source: { name: 'sourcename': addClicks: 1 }
+        }
+        */
+
+        if (!googleId) {
+            res.status(500).json({ message: 'User isnt logged in', articles: [] })
+        }
+        else {
+            await updateUserPreferences(googleId, updateBody);
+            res.status(200).json({ message: 'Successfully updated users preferences' });
+        }
+    } catch (error) {
+        console.error('Failed to update user preferences', error);
     }
 }
 
@@ -53,4 +83,5 @@ module.exports = {
     getUserBookmarksController,
     getUserController,
     getUserFeedController,
+    updateUserPreferencesController
 }

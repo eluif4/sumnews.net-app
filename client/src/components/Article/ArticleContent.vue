@@ -12,6 +12,12 @@ const route = useRoute();
 const props = defineProps({ article: Object });
 const articleRef = ref(props.article || {});
 
+const FRONTEND_URL = config.url.FRONTEND_URL
+const BACKEND_URL = config.url.BACKEND_URL
+
+// Everytime the user enters an article
+updateUserPreferences();
+
 // Check if article image is valid
 function isValidImageUrl(url) {
     return new Promise((resolve) => {
@@ -29,6 +35,7 @@ async function checkAndReplaceImageUrl() {
     }
 }
 
+
 checkAndReplaceImageUrl(); // Call the function to check and replace the imageUrl
 
 const isFromFullCoverage = ref(false);
@@ -37,9 +44,6 @@ const translateY = ref(0);
 const startY = ref(0);
 const THRESHOLD = 100;
 const SCREENHEIGHT = window.innerHeight;
-
-const FRONTEND_URL = config.url.FRONTEND_URL
-const BACKEND_URL = config.url.BACKEND_URL
 
 // FUNCTIONS
 const getMonthOfYear = (date) => {
@@ -157,6 +161,40 @@ const handleTransitionEnd = () => {
             goBack();
         }
     }
+}
+
+async function updateUserPreferences() {
+    console.log('updating user preferences');
+    var data = {
+        genres: [],
+        source: {}
+    }
+
+    if (articleRef.value.genre) {
+        articleRef.value.genre.forEach(genre => {
+            data.genres.push({
+                name: genre.toLowerCase(),  // Convert genre to lowercase
+                addClicks: 1  // Set the addClicks value (could be dynamic if needed)
+            });
+        });
+    }
+
+    // Add source to the updateObject
+    if (articleRef.value.source) {
+        data.source = {
+            name: articleRef.value.source.toLowerCase(),  // Convert source to lowercase
+            addClicks: 1  // Set the addClicks value (could be dynamic if needed)
+        };
+    }
+
+    const response = await fetch(`${BACKEND_URL}user/updatePreferences`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+        },
+        body: JSON.stringify(data)
+    })
 }
 </script>
 
