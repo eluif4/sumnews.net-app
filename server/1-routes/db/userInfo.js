@@ -14,7 +14,7 @@ const app = Router();
 
 app.get('/user/bookmarks', authenticateToken, getUserBookmarksController)
 app.get('/user', authenticateToken, getUserController)
-app.get('/user/feed', authenticateToken, getUserFeedController)
+app.post('/user/feed', authenticateToken, getUserFeedController)
 app.post('/user/updatePreferences', authenticateToken, updateUserPreferencesController)
 
 module.exports = app;

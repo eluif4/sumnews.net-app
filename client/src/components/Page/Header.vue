@@ -157,7 +157,7 @@ watch(() => route.path, (newPath, oldPath) => {
             </router-link>
         </div>
         <router-link to="/account" class="account">
-            <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 26 26" fill="none"
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 26 26" fill="none"
                 v-if="!userProfile.user">
                 <g clip-path="url(#clip0_1_201)">
                     <path
@@ -176,7 +176,7 @@ watch(() => route.path, (newPath, oldPath) => {
                     </clipPath>
                 </defs>
             </svg>
-            <img :src="userProfile.user?.picture" class="profileImage" alt="Profile Picture" height="48" width="48"
+            <img :src="userProfile.user?.picture" class="profileImage" alt="Profile Picture" height="24" width="24"
                 v-else>
         </router-link>
     </div>

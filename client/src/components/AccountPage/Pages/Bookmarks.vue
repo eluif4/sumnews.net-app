@@ -1,0 +1,66 @@
+<script setup>
+import { ref, onMounted } from 'vue';
+import ArticleInstance from '../../Article/ArticleInstance.vue';
+import { config } from '../../../constants';
+import { bookmarkAction } from '../../../scripts/actions';
+
+const BACKEND_URL = config.url.BACKEND_URL;
+const userBookmarks = ref([]); // Reactive variable to store bookmarks
+
+onMounted(async () => {
+    try {
+        const response = await fetch(`${BACKEND_URL}user/bookmarks`, {
+            method: 'GET',
+            headers: {
+                "Authorization": `Bearer ${localStorage.getItem('authToken')}`,
+                "Content-Type": "application/json"
+            }
+        });
+        if (response.ok) {
+            const data = await response.json();
+            userBookmarks.value = data.bookmarks; // Set the bookmarks in the reactive ref
+        } else {
+            console.error('Failed to fetch bookmarks:', response.status);
+        }
+    } catch (error) {
+        console.error('Error fetching bookmarks:', error);
+    }
+});
+</script>
+
+<template>
+    <div v-if="userBookmarks.length > 0" class="populated-bookmarks">
+        <p>You have {{ userBookmarks.length }} article{{ userBookmarks.length > 1 ? "s" : "" }} saved</p>
+        <!-- Loop through bookmarks and display -->
+        <router-link v-for="(article, index) in userBookmarks" :key="article.uuid" style="min-width: 100%"
+            :to="{ name: 'article', params: { uuid: article.uuid }, query: { index: index } }">
+            <ArticleInstance :article="article" />
+        </router-link>
+    </div>
+
+    <!-- Show empty message if there are no bookmarks -->
+    <div v-else class="empty-bookmarks" style="color: black">
+        <p>You still haven't bookmarked any articles</p>
+        <p>Click on the <span class="svg" v-html="bookmarkAction.svg"></span> ( bookmark ) icon on an article to save it
+            for further reading</p>
+    </div>
+</template>
+
+<style scoped>
+.empty-bookmarks {
+    color: orange;
+    display: flex;
+    flex-direction: column;
+    background-color: var(--main-color);
+    align-items: center;
+    text-align: center;
+    padding: 10px;
+    gap: 20px;
+    border-radius: var(--border-radius);
+}
+
+.svg {
+    display: flex;
+    justify-content: center;
+}
+</style>

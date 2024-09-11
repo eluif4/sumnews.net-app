@@ -37,12 +37,12 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
     const requestURL = new URL(event.request.url);
 
-    event.respondWith(
-        // Responds with cached assets if available
-        caches.match(event.request).then((response) => {
-            return response || fetch(event.request); // If caches is empty, fetch from network
-        })
-    )
+    // event.respondWith(
+    //     // Responds with cached assets if available
+    //     caches.match(event.request).then((response) => {
+    //         return response || fetch(event.request); // If caches is empty, fetch from network
+    //     })
+    // )
 
     // Bypass the service worker for requests to specific domains
     if (requestURL.origin === 'https://pagead2.googlesyndication.com') {

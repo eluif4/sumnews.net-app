@@ -190,8 +190,11 @@ async function processUser(userDetails) {
 
 async function getUserBookmarks(googleId) {
     try {
-        const userBookmarks = await User.findOne({ googleId: googleId }, { bookmarks: 1, _id: 0 });
-        return userBookmarks.bookmarks;
+        const user = await User.findOne({ googleId: googleId }, { bookmarks: 1, _id: 0 });
+        const articles = await Article.find({
+            uuid: { $in: user.bookmarks }
+        });
+        return articles;
     } catch (error) {
         console.error('Error fetching bookmarks:', error)
         throw error;
@@ -224,7 +227,7 @@ async function getUserFeed(googleId, articlesInFeed = []) {
         const articles = await Article.find({
             datePublished: { $gte: HOURS_AGO },
             uuid: { $nin: articlesInFeed }
-        }).select(['source', 'genre', 'uuid']);
+        });
 
         const USER_PREFERENCES = user.preferences;
         const TOTAL_GENRE_CLICKS = USER_PREFERENCES.totalGenreClicks;

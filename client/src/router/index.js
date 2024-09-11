@@ -17,6 +17,7 @@ import Filter from '../components/Filter/Filter.vue'
 import Backdrop from '../components/Article/Backdrop.vue'
 import ArticleContent from '../components/Article/ArticleContent.vue'
 import DailyRecapPage from '../views/DailyRecapPage.vue'
+import Bookmarks from '../components/AccountPage/Pages/Bookmarks.vue'
 
 const BACKEND_URL = config.url.BACKEND_URL;
 const FRONTEND_URL = config.url.FRONTEND_URL;
@@ -246,6 +247,13 @@ const routes = [
         component: ListItem,
         children: [
             { path: '', component: PrivacyPolicy }
+        ]
+    },
+    {
+        path: '/account/bookmarks',
+        component: ListItem,
+        children: [
+            { path: '', component: Bookmarks },
         ]
     },
     {

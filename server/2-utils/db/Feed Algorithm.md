@@ -3,7 +3,8 @@
 3. **Diversity in Recommendations** : Occasionally introduce articles from underrepresented sources or genres to prevent overfitting and expose the user to a broader range of topics.
 4. **Personalized Time Trends** : Take note of when a user tends to consume different types of articles (e.g., news in the morning, entertainment at night) and adjust the feed based on the time of day or user behavior patterns.
 
-
 What Data is Relevant for Feed Calculation:
 
-Hwat type of artciles does the user share
+What type of artciles does the user share
+
+What articles does the user skip

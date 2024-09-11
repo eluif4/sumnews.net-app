@@ -77,9 +77,9 @@ async function scrollHandler(event) {
         else {
             const filter = {}
             // var response = await front_getArticlesFromDB(filter, undefined, undefined, 10 * List.infiniteScrollCallCount, 10)
-            var response = await fetch(`${BACKEND_URL}user/feed`,
+            var data = await fetch(`${BACKEND_URL}user/feed`,
                 {
-                    method: 'GET',
+                    method: 'POST',
                     headers: {
                         "Content-type": "application/json",
                         "Authorization": `Bearer ${localStorage.getItem('authToken')}`
@@ -89,6 +89,9 @@ async function scrollHandler(event) {
                     })
                 }
             )
+
+            data = data.json();
+            var response = data.articles;
         }
         articlesToAdd = response.filter(article => !existsInFeed(article));
         List.articles = List.articles.concat(articlesToAdd)
