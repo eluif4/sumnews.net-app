@@ -37,12 +37,13 @@ async function getUserController(req, res) {
 async function getUserFeedController(req, res) {
     try {
         const googleId = req.user?.googleId;
+        const articlesInFeed = req.body.articlesInFeed ? req.body.articlesInFeed : [];
 
         if (!googleId) { // Check if user is connected in frontend. If for any reason there is an error, return an empty array
             res.status(500).json({ message: 'User isnt logged in', articles: [] })
         }
         else {
-            const userFeed = await getUserFeed(googleId);
+            const userFeed = await getUserFeed(googleId, articlesInFeed);
             res.status(200).json({ message: 'Successfully fetched users feed', articles: userFeed })
         }
     } catch (error) {

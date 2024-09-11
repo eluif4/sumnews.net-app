@@ -76,7 +76,19 @@ async function scrollHandler(event) {
         // If scrolling in feed
         else {
             const filter = {}
-            var response = await front_getArticlesFromDB(filter, undefined, undefined, 10 * List.infiniteScrollCallCount, 10)
+            // var response = await front_getArticlesFromDB(filter, undefined, undefined, 10 * List.infiniteScrollCallCount, 10)
+            var response = await fetch(`${BACKEND_URL}user/feed`,
+                {
+                    method: 'GET',
+                    headers: {
+                        "Content-type": "application/json",
+                        "Authorization": `Bearer ${localStorage.getItem('authToken')}`
+                    },
+                    body: JSON.stringify({
+                        articlesInFeed: List.articles.map(article => article.uuid)
+                    })
+                }
+            )
         }
         articlesToAdd = response.filter(article => !existsInFeed(article));
         List.articles = List.articles.concat(articlesToAdd)
