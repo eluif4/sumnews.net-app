@@ -198,14 +198,18 @@ async function getUserBookmarks(googleId) {
     }
 }
 
-async function getUserFeed(googleId) {
+async function getUserFeed(googleId, articlesInFeed = []) {
     // WEIGHTS
     const NORMAL_WEIGHT = 5;
     const RANDOM_WEIGHT_MIN = 0.1;
     const RANDOM_WEIGHT_MAX = 0.3;
     const PUBLISHED_DATE_WEIGHT = 10;
 
+    // ARTICLES COUNT
+    const N_HOURS_AGO = 1;
     const N = 100;
+
+    const HOURS_AGO = new Date(Date.now() - 60 * 60 * (N_HOURS_AGO * 1000));
     // Get N most recent articles
     // FUTURE CHANGE: get the article from the past 24 hours and order them instead
     // Find a way to not recalculate every article each scroll. This needs to be very efficient
@@ -216,7 +220,11 @@ async function getUserFeed(googleId) {
             return [];
         }
 
-        const articles = await Article.find().sort({ datePublished: -1 }).limit(N).select(['source', 'genre', 'title']);
+        // Get articles from N hours ago that arent already in the feed
+        const articles = await Article.find({
+            datePublished: { $gte: HOURS_AGO },
+            uuid: { $nin: articlesInFeed }
+        }).select(['source', 'genre', 'uuid']);
 
         const USER_PREFERENCES = user.preferences;
         const TOTAL_GENRE_CLICKS = USER_PREFERENCES.totalGenreClicks;
