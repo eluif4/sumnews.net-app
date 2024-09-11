@@ -9,8 +9,10 @@ const { mongoose } = require('../../config/dbconfig')
 const { handleError } = require('../../3-middleware/errorHandler')
 const kleur = require('kleur')
 const DailyRecap = require("../../4-models/dailyRecap")
+const { articleScore } = require('../personalizedFeed')
 
 const db = mongoose.connection;
+var oldestArticleDateFromScoring = new Date();
 
 // ----- ARTICLES -----
 async function saveToDB(article) { //SAVES THE GIVEN ARTICLE TO DB WITH ALL RELEVANT METADATA ABOUT IT
@@ -203,16 +205,18 @@ async function getUserBookmarks(googleId) {
 
 async function getUserFeed(googleId, articlesInFeed = []) {
     // WEIGHTS
-    const NORMAL_WEIGHT = 5;
-    const RANDOM_WEIGHT_MIN = 0.1;
-    const RANDOM_WEIGHT_MAX = 0.3;
-    const PUBLISHED_DATE_WEIGHT = 10;
+    const WEIGHTS = {
+        GENRES: 1,
+        SOURCE: 1,
+        SMOOTHNESS: 1,
+        EXPLORATION: 0.2,
+    }
 
     // ARTICLES COUNT
-    const N_HOURS_AGO = 1;
-    const N = 100;
+    // const N_HOURS_AGO = 1;
+    const N = 50;
 
-    const HOURS_AGO = new Date(Date.now() - 60 * 60 * (N_HOURS_AGO * 1000));
+    // const HOURS_AGO = new Date(Date.now() - 60 * 60 * (N_HOURS_AGO * 1000));
     // Get N most recent articles
     // FUTURE CHANGE: get the article from the past 24 hours and order them instead
     // Find a way to not recalculate every article each scroll. This needs to be very efficient
@@ -225,71 +229,81 @@ async function getUserFeed(googleId, articlesInFeed = []) {
 
         // Get articles from N hours ago that arent already in the feed
         const articles = await Article.find({
-            datePublished: { $gte: HOURS_AGO },
+            datePublished: { $lt: oldestArticleDateFromScoring },
             uuid: { $nin: articlesInFeed }
-        });
+        })
+            .sort({ datePublished: -1 })
+            .limit(N)
+            .select(['genre', 'source', 'uuid', 'datePublished']);
 
-        const USER_PREFERENCES = user.preferences;
-        const TOTAL_GENRE_CLICKS = USER_PREFERENCES.totalGenreClicks;
-        const TOTAL_SOURCE_CLICKS = USER_PREFERENCES.totalSourceClicks;
+        oldestArticleDateFromScoring = new Date(articles[articlesInFeed.length].datePublished);
 
-        if (!USER_PREFERENCES) {
+        if (!user.preferences) {
             console.log('User preferences not found')
             return [];
         }
 
-        // Assign relevancy scores to articles based on user preferences
         const scoredArticles = articles.map(article => {
             // Function to generate a random weight within a specific range
-            function getRandomWeight(RANDOM_WEIGHT_MIN, RANDOM_WEIGHT_MAX) {
-                return Math.random() * (RANDOM_WEIGHT_MAX - RANDOM_WEIGHT_MIN) + RANDOM_WEIGHT_MIN;
-            }
+            // function getRandomWeight(RANDOM_WEIGHT_MIN, RANDOM_WEIGHT_MAX) {
+            //     return Math.random() * (RANDOM_WEIGHT_MAX - RANDOM_WEIGHT_MIN) + RANDOM_WEIGHT_MIN;
+            // }
 
-            var articleScore = 0;
+            // var articleScore = 0;
 
-            // Add score based on genres
-            if (article.genre) {
-                article.genre.forEach(genre => {
-                    const lowerGenre = genre.toLowerCase(); // Convert genre to lowercase
-                    const matchedGenre = USER_PREFERENCES.genres.find(g => g.name.toLowerCase() === lowerGenre); // Find the matching genre
-                    if (matchedGenre) {
-                        const genrePrecentage = matchedGenre.clicks / TOTAL_GENRE_CLICKS;
-                        // console.log(genrePrecentage)
-                        articleScore += genrePrecentage * NORMAL_WEIGHT; // Use 'clicks' from the matched genre
-                    }
-                });
-            }
+            // // Add score based on genres
+            // if (article.genre) {
+            //     article.genre.forEach(genre => {
+            //         const lowerGenre = genre.toLowerCase(); // Convert genre to lowercase
+            //         const matchedGenre = USER_PREFERENCES.genres.find(g => g.name.toLowerCase() === lowerGenre); // Find the matching genre
+            //         if (matchedGenre) {
+            //             const genrePrecentage = matchedGenre.clicks / TOTAL_GENRE_CLICKS;
+            //             // console.log(genrePrecentage)
+            //             articleScore += genrePrecentage * NORMAL_WEIGHT; // Use 'clicks' from the matched genre
+            //         }
+            //     });
+            // }
 
-            // Add score based on source
-            if (article.source) {
-                const lowerSource = article.source.toLowerCase(); // Convert source to lowercase
-                const matchedSource = USER_PREFERENCES.sources.find(s => s.name.toLowerCase() === lowerSource); // Find the matching source
-                if (matchedSource) {
-                    const sourcePrecentage = matchedSource.clicks / TOTAL_SOURCE_CLICKS;
-                    // console.log(sourcePrecentage);
-                    articleScore += sourcePrecentage * NORMAL_WEIGHT; // Use 'clicks' from the matched source
-                }
-            }
+            // // Add score based on source
+            // if (article.source) {
+            //     const lowerSource = article.source.toLowerCase(); // Convert source to lowercase
+            //     const matchedSource = USER_PREFERENCES.sources.find(s => s.name.toLowerCase() === lowerSource); // Find the matching source
+            //     if (matchedSource) {
+            //         const sourcePrecentage = matchedSource.clicks / TOTAL_SOURCE_CLICKS;
+            //         // console.log(sourcePrecentage);
+            //         articleScore += sourcePrecentage * NORMAL_WEIGHT; // Use 'clicks' from the matched source
+            //     }
+            // }
 
-            // 20% chance to add a random weight
-            if (Math.random() <= 0.2) {
-                const randomWeight = getRandomWeight(RANDOM_WEIGHT_MIN, RANDOM_WEIGHT_MAX); // Get a random weight between 0.5 and 1.5
-                articleScore += randomWeight; // Multiply the article score by the random weight
-            }
+            // // 20% chance to add a random weight
+            // if (Math.random() <= 0.2) {
+            //     const randomWeight = getRandomWeight(RANDOM_WEIGHT_MIN, RANDOM_WEIGHT_MAX); // Get a random weight between 0.5 and 1.5
+            //     articleScore += randomWeight; // Multiply the article score by the random weight
+            // }
+            var articleScoreVal = articleScore(article, user.preferences, WEIGHTS);
 
             return {
                 ...article.toObject(),
-                relevancescore: articleScore
+                relevancescore: articleScoreVal
             };
         })
 
         // Sort articles by their relevanceScore in descneding order
         scoredArticles.sort((a, b) => b.relevancescore - a.relevancescore);
 
+        // Get the top 10 articles
+        const top10Articles = scoredArticles.slice(0, 10);
+
+        // Extract UUIDs from the top 10 articles
+        const articleIds = top10Articles.map(article => article.uuid);
+
+        // Find all articles from the database where the article ID is in `articleIds`
+        const returnArticles = await Article.find({ uuid: { $in: articleIds } });
         // Return the sorted articles to the frontend
-        return scoredArticles;
+        return returnArticles;
+
     } catch (error) {
-        console.log('Failed to fetch personalized feed')
+        console.log('Failed to fetch personalized feed', error)
         return [];
     }
 }

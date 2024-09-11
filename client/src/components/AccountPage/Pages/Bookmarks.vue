@@ -40,15 +40,13 @@ onMounted(async () => {
 
     <!-- Show empty message if there are no bookmarks -->
     <div v-else class="empty-bookmarks" style="color: black">
-        <p>You still haven't bookmarked any articles</p>
-        <p>Click on the <span class="svg" v-html="bookmarkAction.svg"></span> ( bookmark ) icon on an article to save it
-            for further reading</p>
+        <p class="text-xl">You still haven't bookmarked any articles</p>
+        <p class="text-base">Click on the bookmark icon on an article to save it for further reading</p>
     </div>
 </template>
 
 <style scoped>
 .empty-bookmarks {
-    color: orange;
     display: flex;
     flex-direction: column;
     background-color: var(--main-color);
@@ -62,5 +60,9 @@ onMounted(async () => {
 .svg {
     display: flex;
     justify-content: center;
+}
+
+.text-xl {
+    color: black;
 }
 </style>

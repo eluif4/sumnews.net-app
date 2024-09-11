@@ -90,7 +90,7 @@ async function scrollHandler(event) {
                 }
             )
 
-            data = data.json();
+            data = await data.json();
             var response = data.articles;
         }
         articlesToAdd = response.filter(article => !existsInFeed(article));

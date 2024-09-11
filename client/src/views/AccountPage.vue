@@ -229,11 +229,12 @@ const bookmarksPage = {
                 </div>
                 <div class="logout"><button @click="logout">Log Out</button></div>
             </div>
-            <div class="user-actions" v-if="userProfile.user">
-                <AccountPageItem :page="bookmarksPage"></AccountPageItem>
-            </div>
         </div>
         <div class="account-info">
+            <div v-if="userProfile.user" class="user-account-info">
+                <p class="headline">ACCOUNT</p>
+                <AccountPageItem :page="bookmarksPage"></AccountPageItem>
+            </div>
             <p class="headline">GENERAL</p>
             <AccountPageItem :page="aboutUsPage"></AccountPageItem>
             <AccountPageItem :page="contactUsPage"></AccountPageItem>
@@ -367,5 +368,12 @@ const bookmarksPage = {
     flex: 1;
     display: flex;
     flex-direction: row-reverse;
+}
+
+.user-account-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    height: 100%;
 }
 </style>

@@ -53,13 +53,23 @@ const routes = [
                 (isFromEventPage && List.articles.length === 0)
             ) {
                 List.articles = []
-                front_getArticlesFromDB()
-                    .then(response => {
-                        const articles = response
-                        for (const article of articles) {
-                            List.articles.push(article)
-                        }
-                    })
+                var data = await fetch(`${BACKEND_URL}user/feed`,
+                    {
+                        method: 'POST',
+                        headers: {
+                            "Content-type": "application/json",
+                            "Authorization": `Bearer ${localStorage.getItem('authToken')}`
+                        },
+                        body: JSON.stringify({
+                            articlesInFeed: List.articles.map(article => article.uuid)
+                        })
+                    }
+                )
+
+                data = await data.json();
+                for (const article of data.articles) {
+                    List.articles.push(article)
+                }
             } else {
                 // Logic to execute if use is coming from other paths into home
             }
