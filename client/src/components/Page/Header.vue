@@ -7,6 +7,7 @@ import { config } from '../../constants.js'
 import { showPopup, front_getArticlesFromDB, goBack } from '../../scripts/utility.js'
 import { List } from '../../main.js'
 import router from '../../router/index.js'
+import { userProfile } from '../../main.js'
 
 const FRONTEND_URL = config.url.FRONTEND_URL
 const BACKEND_URL = config.url.BACKEND_URL
@@ -156,7 +157,8 @@ watch(() => route.path, (newPath, oldPath) => {
             </router-link>
         </div>
         <router-link to="/account" class="account">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 26 26" fill="none">
+            <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 26 26" fill="none"
+                v-if="!userProfile.user">
                 <g clip-path="url(#clip0_1_201)">
                     <path
                         d="M21.8843 20.1012C20.7305 18.2422 18.1907 16.25 12.9988 16.25C7.80691 16.25 5.26866 18.2406 4.11328 20.1012C5.17779 21.4358 6.52952 22.5131 8.0679 23.253C9.60628 23.9929 11.2917 24.3764 12.9988 24.375C14.7059 24.3764 16.3913 23.9929 17.9297 23.253C19.468 22.5131 20.8198 21.4358 21.8843 20.1012Z"
@@ -174,6 +176,8 @@ watch(() => route.path, (newPath, oldPath) => {
                     </clipPath>
                 </defs>
             </svg>
+            <img :src="userProfile.user?.picture" class="profileImage" alt="Profile Picture" height="48" width="48"
+                v-else>
         </router-link>
     </div>
 </template>
@@ -248,5 +252,10 @@ watch(() => route.path, (newPath, oldPath) => {
     100% {
         transform: translateX(0);
     }
+}
+
+.profileImage {
+    border: 3px solid black;
+    border-radius: var(--border-radius);
 }
 </style>

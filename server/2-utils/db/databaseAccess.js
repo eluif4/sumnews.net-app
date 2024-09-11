@@ -201,8 +201,8 @@ async function getUserBookmarks(googleId) {
 async function getUserFeed(googleId) {
     // WEIGHTS
     const NORMAL_WEIGHT = 5;
-    const RANDOM_WEIGHT_MIN = 1;
-    const RANDOM_WEIGHT_MAX = 3;
+    const RANDOM_WEIGHT_MIN = 0.1;
+    const RANDOM_WEIGHT_MAX = 0.3;
     const PUBLISHED_DATE_WEIGHT = 10;
 
     const N = 100;
@@ -216,10 +216,11 @@ async function getUserFeed(googleId) {
             return [];
         }
 
-        const articles = await Article.find().sort({ datePublished: -1 }).limit(N)
-        // .select(['source', 'genre']);
+        const articles = await Article.find().sort({ datePublished: -1 }).limit(N).select(['source', 'genre', 'title']);
 
         const USER_PREFERENCES = user.preferences;
+        const TOTAL_GENRE_CLICKS = USER_PREFERENCES.totalGenreClicks;
+        const TOTAL_SOURCE_CLICKS = USER_PREFERENCES.totalSourceClicks;
 
         if (!USER_PREFERENCES) {
             console.log('User preferences not found')
@@ -229,10 +230,9 @@ async function getUserFeed(googleId) {
         // Assign relevancy scores to articles based on user preferences
         const scoredArticles = articles.map(article => {
             // Function to generate a random weight within a specific range
-            function getRandomWeight(RANDOM_WEIGHT_MIN = 0.5, RANDOM_WEIGHT_MAX = 1.5) {
+            function getRandomWeight(RANDOM_WEIGHT_MIN, RANDOM_WEIGHT_MAX) {
                 return Math.random() * (RANDOM_WEIGHT_MAX - RANDOM_WEIGHT_MIN) + RANDOM_WEIGHT_MIN;
             }
-
 
             var articleScore = 0;
 
@@ -242,7 +242,9 @@ async function getUserFeed(googleId) {
                     const lowerGenre = genre.toLowerCase(); // Convert genre to lowercase
                     const matchedGenre = USER_PREFERENCES.genres.find(g => g.name.toLowerCase() === lowerGenre); // Find the matching genre
                     if (matchedGenre) {
-                        articleScore += matchedGenre.clicks * NORMAL_WEIGHT; // Use 'clicks' from the matched genre
+                        const genrePrecentage = matchedGenre.clicks / TOTAL_GENRE_CLICKS;
+                        // console.log(genrePrecentage)
+                        articleScore += genrePrecentage * NORMAL_WEIGHT; // Use 'clicks' from the matched genre
                     }
                 });
             }
@@ -252,13 +254,15 @@ async function getUserFeed(googleId) {
                 const lowerSource = article.source.toLowerCase(); // Convert source to lowercase
                 const matchedSource = USER_PREFERENCES.sources.find(s => s.name.toLowerCase() === lowerSource); // Find the matching source
                 if (matchedSource) {
-                    articleScore += matchedSource.clicks * NORMAL_WEIGHT; // Use 'clicks' from the matched source
+                    const sourcePrecentage = matchedSource.clicks / TOTAL_SOURCE_CLICKS;
+                    // console.log(sourcePrecentage);
+                    articleScore += sourcePrecentage * NORMAL_WEIGHT; // Use 'clicks' from the matched source
                 }
             }
 
             // 20% chance to add a random weight
             if (Math.random() <= 0.2) {
-                const randomWeight = getRandomWeight(); // Get a random weight between 0.5 and 1.5
+                const randomWeight = getRandomWeight(RANDOM_WEIGHT_MIN, RANDOM_WEIGHT_MAX); // Get a random weight between 0.5 and 1.5
                 articleScore += randomWeight; // Multiply the article score by the random weight
             }
 
@@ -283,22 +287,32 @@ async function updateUserPreferences(googleId, updateBody) {
     try {
         const bulkUpdate = [];
 
-        // For each genre in the updateBody, create an update operation
+        // Update clicks for genres
         updateBody.genres.forEach((genre) => {
             bulkUpdate.push({
                 updateOne: {
                     filter: { googleId: googleId, 'preferences.genres.name': genre.name.toLowerCase() },
-                    update: { $inc: { 'preferences.genres.$.clicks': genre.addClicks } }
+                    update: {
+                        $inc: {
+                            'preferences.genres.$.clicks': genre.addClicks,
+                            'preferences.totalGenreClicks': genre.addClicks
+                        }
+                    }
                 }
             });
         });
 
-        // For the source, create an update operation
+        // Update clicks for the source
         if (updateBody.source) {
             bulkUpdate.push({
                 updateOne: {
                     filter: { googleId: googleId, 'preferences.sources.name': updateBody.source.name.toLowerCase() },
-                    update: { $inc: { 'preferences.sources.$.clicks': updateBody.source.addClicks } }
+                    update: {
+                        $inc: {
+                            'preferences.sources.$.clicks': updateBody.source.addClicks,
+                            'preferences.totalSourceClicks': updateBody.source.addClicks
+                        }
+                    }
                 }
             });
         }

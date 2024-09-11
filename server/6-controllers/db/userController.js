@@ -8,7 +8,7 @@ const DatabaseAccess = path.join(DBUTILS, "/databaseAccess.js")
 const { getUserBookmarks, getUserFeed, updateUserPreferences } = require(DatabaseAccess)
 
 async function getUserBookmarksController(req, res) {
-    const userBookmarks = await getUserBookmarks(req.body?.googleId);
+    const userBookmarks = await getUserBookmarks(req.user?.googleId);
 
     if (userBookmarks) {
         res.status(200).json({ wasFound: true, bookmarks: userBookmarks })
