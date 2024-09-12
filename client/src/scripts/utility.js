@@ -1,6 +1,7 @@
 import router from '../router'
 import { config } from '../constants';
 import { PopupAttributes } from '../main';
+import { List } from '../main';
 
 const FRONTEND_URL = config.url.FRONTEND_URL
 const BACKEND_URL = config.url.BACKEND_URL
@@ -91,22 +92,26 @@ export function showPopup(methodValue, msg, showTime = 3) {
     }, 1000 * showTime)
 }
 
-async function fetchProtectedResource(path) {
+export async function fetchProtectedResource(path) {
     // Path param: everything after www.sumnews.net/ ( example: account/bookmark )
-    const token = localStorage.getItem('authToken'); // Retrieve the token from localStorage
-
-    const response = await fetch(`${BACKEND_URL}${path}`, {
-        method: 'GET',
+    var response = await fetch(`${BACKEND_URL}user/feed`, {
+        method: 'POST',
         headers: {
-            'Authorization': `Bearer ${token}`, // Send the token as a Bearer token
-            'Content-Type': 'application/json'
-        }
+            "Content-type": "application/json",
+            "Authorization": `Bearer ${localStorage.getItem('authToken')}`
+        },
+        body: JSON.stringify({
+            articlesInFeed: List.articles.map(article => article.uuid)
+        })
     });
 
-    if (!response.ok) {
-        throw new Error('Failed to fetch protected resource');
+    // Check if the response is forbidden (status 403)
+    if (response.status === 403) {
+        console.error("Resource forbidden");
+        // Handle the forbidden case, e.g., return an error message or redirect the user
+        return; // Stop further execution if needed
     }
 
-    const data = await response.json();
+    var data = await response.json();
     return data;
 }

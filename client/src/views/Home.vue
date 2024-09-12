@@ -183,14 +183,11 @@ const wasUpdatedMoreThan24HoursAgo = (lastUpdated) => {
         now.getUTCSeconds()
     ));
 
-
     // Calculate the time difference in milliseconds
     const timeDifference = nowUTC - lastUpdatedUTC;
 
     // Convert time difference from milliseconds to hours
     const hoursDifference = timeDifference / (1000 * 60 * 60);
-
-    console.log(`Times: lastUpdate - ${lastUpdatedUTC} | now - ${nowUTC} | timedif - ${hoursDifference}`)
 
     // Check if the difference is 24 hours or more
     return hoursDifference >= 24;
@@ -213,9 +210,9 @@ onMounted(() => {
     <div class="app-container"
         :style="dailyRecapButtons.length === 0 ? { height: 'var(--article-stack-nodr-height)' } : {}">
         <div id="article-stack" @scroll="scrollHandler">
-            <ArticleSkeleton v-for=" skeleton  in  skeletonArticles " v-if="List.articles.length == 0">
+            <ArticleSkeleton v-for=" skeleton in skeletonArticles " v-if="List.articles.length == 0">
             </ArticleSkeleton>
-            <router-link v-for="( article, index ) in  List.articles " :key="article.uuid" style="min-width: 100%"
+            <router-link v-for="( article, index ) in List.articles " :key="article.uuid" style="min-width: 100%"
                 :to="{ name: 'article', params: { uuid: article.uuid }, query: { index: index } }">
                 <ArticleInstance :article="article" :key="article.uuid" v-if="article.imageUrl"></ArticleInstance>
             </router-link>

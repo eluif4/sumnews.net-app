@@ -1,7 +1,7 @@
 import './global.css';
 import { ref, reactive, createApp, watch } from 'vue';
 import { config } from './constants'
-
+import { fetchProtectedResource } from './scripts/utility';
 import App from './App.vue';
 import router from './router'
 
@@ -75,17 +75,30 @@ else if (!allSourcesInLocalStorage || genresDiffInDays > 1) {
     })
 }
 
-export const userProfile = reactive({ user: null }); // Empty user on setup. Save the connected user to the reactive variable upon login
-fetch(`${BACKEND_URL}user`, {
-  method: 'GET',
-  headers: {
-    "Authorization": `Bearer ${localStorage.getItem('authToken')}`
-  }
-}).then(response => response.json())
-  .then(response => userProfile.user = response.user)
-  .catch(error => {
-    console.error('Error fetching user', error)
-  })
+// Get loggin user information from DB. If no user / fault token is found return null
+async function getUser() {
+  var response = await fetch(`${BACKEND_URL}user`, {
+    method: 'POST',
+    headers: {
+      "Content-type": "application/json",
+      "Authorization": `Bearer ${localStorage.getItem('authToken')}`
+    }
+  });
+
+  // Check if the response is forbidden (status 403)
+  if (response.status === 403) {
+    console.error("User doesnt exist");
+    // Handle the forbidden case, e.g., return an error message or redirect the user
+    return null; // Stop further execution if needed
+  };
+}
+
+export const userProfile = reactive({ user: null }); // Empty user on setup
+
+// Fetch the user and assign the result to the reactive userProfile
+getUser().then(user => {
+  userProfile.user = user; // Update userProfile with fetched user data
+});
 
 // ----- POPUP PROPERTIES -----
 export const PopupAttributes = reactive({

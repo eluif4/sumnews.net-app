@@ -52,9 +52,10 @@ const routes = [
                 (isFromErrorPage && List.articles.length === 0) ||
                 (isFromEventPage && List.articles.length === 0)
             ) {
-                List.articles = []
-                var data = await fetch(`${BACKEND_URL}user/feed`,
-                    {
+                List.articles = [];
+                var token = localStorage.getItem('authToken');
+                if (token) {
+                    var response = await fetch(`${BACKEND_URL}user/feed`, {
                         method: 'POST',
                         headers: {
                             "Content-type": "application/json",
@@ -63,228 +64,242 @@ const routes = [
                         body: JSON.stringify({
                             articlesInFeed: List.articles.map(article => article.uuid)
                         })
-                    }
-                )
+                    });
 
-                data = await data.json();
-                for (const article of data.articles) {
-                    List.articles.push(article)
-                }
-            } else {
-                // Logic to execute if use is coming from other paths into home
-            }
-            next(); // Continue with the navigation
-        }
-    },
-    {
-        path: '/article/:uuid',
-        name: 'article',
-        meta: {
-            enterClass: "slide-in-bottom",
-            leaveClass: "slide-out-bottom",
-        },
-        components: {
-            default: Home,
-            additional: ArticleContent,
-            backdrop: Backdrop,
-        },
-        props: {
-            additional: true,
-        },
-        beforeEnter: async (to, from, next) => {
-            try {
-                var article = List.articles[to.query.index];
-                if (!article) {
-                    const response = await front_getArticlesFromDB({ uuid: to.params.uuid }, undefined, undefined, undefined, 1);
-                    article = response[0];
-                }
-                if (article) {
-                    to.params.article = article;
-                    next();
+                    // Check if the response is forbidden (status 403)
+                    if (response.status === 403) {
+                        console.error("User isnt logged in");
+                        // Handle the forbidden case, e.g., return an error message or redirect the user
+                        var response = await front_getArticlesFromDB();
+                        List.articles = response
+                    }
+
+                    else {
+                        var data = await response.json();
+                        for (const article of data.articles) {
+                            List.articles.push(article);
+                        }
+                    }
                 }
                 else {
-                    next('/404');
+                    var response = await front_getArticlesFromDB();
+                    List.articles = response
                 }
-            } catch (error) {
-                console.error(`Error fetching article:`, error);
-                next('/error');
-            }
-        },
+        } else {
+            // Logic to execute if use is coming from other paths into home
+        }
+            next(); // Continue with the navigation
+    }
     },
-    {
-        path: '/article/:uuid',
-        name: 'eventArticles',
-        meta: {
-            enterClass: "slide-in-bottom",
+{
+    path: '/article/:uuid',
+        name: 'article',
+            meta: {
+        enterClass: "slide-in-bottom",
             leaveClass: "slide-out-bottom",
         },
-        components: {
+    components: {
             default: Home,
             additional: ArticleContent,
-            backdrop: Backdrop,
+                backdrop: Backdrop,
         },
-        props: {
-            additional: true,
+    props: {
+        additional: true,
         },
-        beforeEnter: async (to, from, next) => {
-            try {
+    beforeEnter: async (to, from, next) => {
+        try {
+            var article = List.articles[to.query.index];
+            if (!article) {
                 const response = await front_getArticlesFromDB({ uuid: to.params.uuid }, undefined, undefined, undefined, 1);
-                const article = response[0];
-                if (article) {
-                    to.params.article = article;
-                    next();
-                } else {
-                    next('/404');
-                }
-            } catch (error) {
-                console.error(`Error fetching article:`, error);
-                next('/error');
+                article = response[0];
             }
-        }
-    },
-    {
-        path: '/event/:eventUri',
-        name: 'fullCoverage',
-        component: Home,
-        props: false,
-        beforeEnter: async (to, from) => {
-            if (!from.path.includes('/article') || List.articles.length === 0) {
-                try {
-                    List.articles = [];
-                    const scrollElement = document.getElementById('article-stack');
-                    if (scrollElement != null) {
-                        scrollElement.scrollTo({ top: 0 })
-                    }
-                    fetch(`${BACKEND_URL}db/eventArticles?eventUri=${to.params.eventUri}`)
-                        .then(response => response.json())
-                        .then(data => {
-                            List.articles = data;
-                        })
-                        .catch(error => {
-                            console.error('Error:', error);
-                        });
-                } catch (error) {
-                    console.error(`Something went wrong with the event page`, error)
-                }
-            }
-        }
-    },
-    {
-        path: '/filter',
-        name: 'filter',
-        meta: {
-            enterClass: "slide-in-bottom",
-            leaveClass: "slide-out-bottom",
-        },
-        components: {
-            default: Home,
-            additional: Filter,
-            backdrop: Backdrop,
-        },
-    },
-    {
-        path: '/search',
-        name: 'search',
-        component: Home,
-        props: (route) => ({ searchQuery: route.query.searchQuery }),
-        beforeEnter: async (to, from) => {
-            const response = await fetch(`${BACKEND_URL}db/search?search_query=${to.query.searchQuery}`, {
-                method: 'GET',
-                headers: {
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json'
-                },
-            })
-
-            if (response.ok) {
-                const searchArticles = await response.json();
-                List.infiniteScrollCallCount = 0;
-                List.articles = searchArticles;
+            if (article) {
+                to.params.article = article;
+                next();
             }
             else {
-                console.error('Failed to fetch data:', response.statusText)
-                showPopup(2, 'Internal Error',)
+                next('/404');
             }
-        },
+        } catch (error) {
+            console.error(`Error fetching article:`, error);
+            next('/error');
+        }
     },
-    {
-        path: '/account',
+    },
+{
+    path: '/article/:uuid',
+        name: 'eventArticles',
+            meta: {
+        enterClass: "slide-in-bottom",
+            leaveClass: "slide-out-bottom",
+        },
+    components: {
+            default: Home,
+            additional: ArticleContent,
+                backdrop: Backdrop,
+        },
+    props: {
+        additional: true,
+        },
+    beforeEnter: async (to, from, next) => {
+        try {
+            const response = await front_getArticlesFromDB({ uuid: to.params.uuid }, undefined, undefined, undefined, 1);
+            const article = response[0];
+            if (article) {
+                to.params.article = article;
+                next();
+            } else {
+                next('/404');
+            }
+        } catch (error) {
+            console.error(`Error fetching article:`, error);
+            next('/error');
+        }
+    }
+},
+{
+    path: '/event/:eventUri',
+        name: 'fullCoverage',
+            component: Home,
+                props: false,
+                    beforeEnter: async (to, from) => {
+                        if (!from.path.includes('/article') || List.articles.length === 0) {
+                            try {
+                                List.articles = [];
+                                const scrollElement = document.getElementById('article-stack');
+                                if (scrollElement != null) {
+                                    scrollElement.scrollTo({ top: 0 })
+                                }
+                                fetch(`${BACKEND_URL}db/eventArticles?eventUri=${to.params.eventUri}`)
+                                    .then(response => response.json())
+                                    .then(data => {
+                                        List.articles = data;
+                                    })
+                                    .catch(error => {
+                                        console.error('Error:', error);
+                                    });
+                            } catch (error) {
+                                console.error(`Something went wrong with the event page`, error)
+                            }
+                        }
+                    }
+},
+{
+    path: '/filter',
+        name: 'filter',
+            meta: {
+        enterClass: "slide-in-bottom",
+            leaveClass: "slide-out-bottom",
+        },
+    components: {
+            default: Home,
+            additional: Filter,
+                backdrop: Backdrop,
+        },
+},
+{
+    path: '/search',
+        name: 'search',
+            component: Home,
+                props: (route) => ({ searchQuery: route.query.searchQuery }),
+                    beforeEnter: async (to, from) => {
+                        const response = await fetch(`${BACKEND_URL}db/search?search_query=${to.query.searchQuery}`, {
+                            method: 'GET',
+                            headers: {
+                                'Accept': 'application/json',
+                                'Content-Type': 'application/json'
+                            },
+                        })
+
+                        if (response.ok) {
+                            const searchArticles = await response.json();
+                            List.infiniteScrollCallCount = 0;
+                            List.articles = searchArticles;
+                        }
+                        else {
+                            console.error('Failed to fetch data:', response.statusText)
+                            showPopup(2, 'Internal Error',)
+                        }
+                    },
+    },
+{
+    path: '/account',
         name: 'account',
-        component: AccountPage,
+            component: AccountPage,
         // meta: {
         //     enterClass: "slide-in-bottom",
         //     leaveClass: "slide-out-bottom",
         // }
     },
-    {
-        path: '/account/about',
+{
+    path: '/account/about',
         component: ListItem,
 
-        children: [
-            { path: '', component: AboutUs },
-        ]
-    },
-    {
-        path: '/account/contact-us',
+            children: [
+                { path: '', component: AboutUs },
+            ]
+},
+{
+    path: '/account/contact-us',
         component: ListItem,
-        children: [
-            { path: '', component: ContactUs }
-        ]
-    },
-    {
-        path: '/account/disclaimer',
+            children: [
+                { path: '', component: ContactUs }
+            ]
+},
+{
+    path: '/account/disclaimer',
         component: ListItem,
-        children: [
-            { path: '', component: Disclaimer },
-        ]
-    },
-    {
-        path: '/account/report-bugs',
+            children: [
+                { path: '', component: Disclaimer },
+            ]
+},
+{
+    path: '/account/report-bugs',
         component: ListItem,
-        children: [
-            { path: '', component: ReportBugs }
-        ]
-    },
-    {
-        path: '/account/terms-&-conditions',
+            children: [
+                { path: '', component: ReportBugs }
+            ]
+},
+{
+    path: '/account/terms-&-conditions',
         component: ListItem,
-        children: [
-            { path: '', component: TermsAndConditions }
-        ]
-    },
-    {
-        path: '/account/privacy-policy',
+            children: [
+                { path: '', component: TermsAndConditions }
+            ]
+},
+{
+    path: '/account/privacy-policy',
         component: ListItem,
-        children: [
-            { path: '', component: PrivacyPolicy }
-        ]
-    },
-    {
-        path: '/account/bookmarks',
+            children: [
+                { path: '', component: PrivacyPolicy }
+            ]
+},
+{
+    path: '/account/bookmarks',
         component: ListItem,
-        children: [
-            { path: '', component: Bookmarks },
-        ]
-    },
-    {
-        path: '/dailyrecap/:dailyrecapUUID/:drUri/:articleUUID',
+            children: [
+                { path: '', component: Bookmarks },
+            ]
+},
+{
+    path: '/dailyrecap/:dailyrecapUUID/:drUri/:articleUUID',
         name: 'dailyrecap',
-        component: DailyRecapPage,
-        props: route => ({
-            dailyrecapUUID: route.params.dailyrecapUUID,
-            drUri: route.params.drUri,
-            articleUUID: route.params.articleUUID,
-        })
-    },
-    {
-        path: '/:catchAll(.*)', component: NotFound
-    },
-    {
-        path: '/404', component: NotFound
-    },
-    {
-        path: '/error', component: NotFound
-    }
+            component: DailyRecapPage,
+                props: route => ({
+                    dailyrecapUUID: route.params.dailyrecapUUID,
+                    drUri: route.params.drUri,
+                    articleUUID: route.params.articleUUID,
+                })
+},
+{
+    path: '/:catchAll(.*)', component: NotFound
+},
+{
+    path: '/404', component: NotFound
+},
+{
+    path: '/error', component: NotFound
+}
 ]
 
 const router = createRouter({
