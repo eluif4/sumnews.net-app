@@ -5,7 +5,12 @@ const UTILS = path.join(__dirname, '../../2-utils')
 const DBUTILS = path.join(__dirname, '../../2-utils/db')
 const DatabaseAccess = path.join(DBUTILS, "/databaseAccess.js")
 
-const { getUserBookmarks, getUserFeed, updateUserPreferences } = require(DatabaseAccess)
+const { getUserBookmarks,
+    getUserFeed,
+    updateUserPreferences,
+    addArticleToBookmarks,
+    removeArticleToBookmarks
+} = require(DatabaseAccess)
 
 async function getUserBookmarksController(req, res) {
     const userBookmarks = await getUserBookmarks(req.user?.googleId);
@@ -14,6 +19,42 @@ async function getUserBookmarksController(req, res) {
         res.status(200).json({ wasFound: true, bookmarks: userBookmarks })
     } else {
         res.status(404).json({ wasFound: false, bookmarks: false })
+    }
+}
+
+async function addArticleToBookmarksController(req, res) {
+    try {
+        const articleuuid = req.body?.articleuuid;
+        const userGoogleId = req.user?.googleId;
+
+        if (articleuuid) {
+            await addArticleToBookmarks(userGoogleId, articleuuid);
+            res.status(201).json({ message: 'Bookmark added successfully' });
+        }
+        else {
+            res.status(400).json({ message: 'Invalid parameters' });
+        }
+    } catch (error) {
+        console.error('Failed to add article to bookmarks', error)
+        res.status(500);
+    }
+}
+
+async function removeFromBookmarkController(req, res) {
+    try {
+        const articleuuid = req.body?.articleuuid;
+        const userGoogleId = req.user?.googleId;
+
+        if (articleuuid) {
+            await removeArticleToBookmarks(userGoogleId, articleuuid);
+            res.status(201).json({ message: 'Bookmark removed successfully' });
+        }
+        else {
+            res.status(400).json({ message: 'Invalid parameters' });
+        }
+    } catch (error) {
+        console.error('Failed to remove article from bookmarks', error)
+        res.status(500);
     }
 }
 
@@ -82,6 +123,8 @@ async function updateUserPreferencesController(req, res) {
 
 module.exports = {
     getUserBookmarksController,
+    addArticleToBookmarksController,
+    removeFromBookmarkController,
     getUserController,
     getUserFeedController,
     updateUserPreferencesController

@@ -20,7 +20,6 @@ function generateJWT(user) {
 
 async function googleAuth(req, res) {
     const { code } = req.body;
-    console.log('Authorization Code:', code);
 
     const url = 'https://oauth2.googleapis.com/token';
     const data = {

@@ -36,12 +36,12 @@ async function saveDocument(document) {
     console.log(`Document saved to '${document.collection.name}' collection`)
 }
 
-async function getArticlesFromDB(filter, project, sort, /*collation,*/ skip, limit) {
+async function getArticlesFromDB(filter, project, sort, /*collation,*/ skip, limit, select = []) {
     //GETS ARTICLES FROM DB ACCORDING TO PARAMS
     try {
-        return await Article.find(filter, project).sort(sort)./*collation(collation).*/skip(skip).limit(limit)
+        return await Article.find(filter, project).sort(sort).skip(skip).limit(limit).select(select);
     } catch (error) {
-        console.error(`Couldn't get articles from db`, error)
+        console.error(`Couldn't get articles from db`, error);
     }
 }
 
@@ -203,23 +203,39 @@ async function getUserBookmarks(googleId) {
     }
 }
 
+async function addArticleToBookmarks(googleId, articleuuid) {
+    try {
+        await User.updateOne(
+            { googleId: googleId },                   // Query to find the user by googleId
+            { $addToSet: { bookmarks: articleuuid } } // Add articleuuid to the bookmarks array
+        );
+    } catch (error) {
+        console.error('Failed to save article to bookmark', error);
+    }
+}
+
+async function removeArticleToBookmarks(googleId, articleuuid) {
+    try {
+        await User.updateOne(
+            { googleId: googleId },
+            { $pull: { bookmarks: articleuuid } }
+        )
+    } catch (error) {
+        console.error('Failed to remove article from bookmark', error);
+    }
+}
+
 async function getUserFeed(googleId, articlesInFeed = []) {
     // WEIGHTS
     const WEIGHTS = {
-        GENRES: 1,
+        GENRES: 1.5,
         SOURCE: 1,
         SMOOTHNESS: 1,
         EXPLORATION: 0.2,
     }
 
-    // ARTICLES COUNT
-    // const N_HOURS_AGO = 1;
     const N = 50;
 
-    // const HOURS_AGO = new Date(Date.now() - 60 * 60 * (N_HOURS_AGO * 1000));
-    // Get N most recent articles
-    // FUTURE CHANGE: get the article from the past 24 hours and order them instead
-    // Find a way to not recalculate every article each scroll. This needs to be very efficient
     try {
         const user = await User.findOne({ googleId: googleId });
         if (!user) {
@@ -234,9 +250,14 @@ async function getUserFeed(googleId, articlesInFeed = []) {
         })
             .sort({ datePublished: -1 })
             .limit(N)
-            .select(['genre', 'source', 'uuid', 'datePublished']);
+            .select(['genre', 'source', 'uuid', 'datePublished', 'title']);
 
-        oldestArticleDateFromScoring = new Date(articles[articlesInFeed.length].datePublished);
+        if (articlesInFeed.length > 0) {
+            oldestArticleDateFromScoring = new Date(articles[articlesInFeed.length > 11 ? 10 : articlesInFeed.length].datePublished);
+        }
+        else {
+            oldestArticleDateFromScoring = new Date()
+        }
 
         if (!user.preferences) {
             console.log('User preferences not found')
@@ -244,42 +265,6 @@ async function getUserFeed(googleId, articlesInFeed = []) {
         }
 
         const scoredArticles = articles.map(article => {
-            // Function to generate a random weight within a specific range
-            // function getRandomWeight(RANDOM_WEIGHT_MIN, RANDOM_WEIGHT_MAX) {
-            //     return Math.random() * (RANDOM_WEIGHT_MAX - RANDOM_WEIGHT_MIN) + RANDOM_WEIGHT_MIN;
-            // }
-
-            // var articleScore = 0;
-
-            // // Add score based on genres
-            // if (article.genre) {
-            //     article.genre.forEach(genre => {
-            //         const lowerGenre = genre.toLowerCase(); // Convert genre to lowercase
-            //         const matchedGenre = USER_PREFERENCES.genres.find(g => g.name.toLowerCase() === lowerGenre); // Find the matching genre
-            //         if (matchedGenre) {
-            //             const genrePrecentage = matchedGenre.clicks / TOTAL_GENRE_CLICKS;
-            //             // console.log(genrePrecentage)
-            //             articleScore += genrePrecentage * NORMAL_WEIGHT; // Use 'clicks' from the matched genre
-            //         }
-            //     });
-            // }
-
-            // // Add score based on source
-            // if (article.source) {
-            //     const lowerSource = article.source.toLowerCase(); // Convert source to lowercase
-            //     const matchedSource = USER_PREFERENCES.sources.find(s => s.name.toLowerCase() === lowerSource); // Find the matching source
-            //     if (matchedSource) {
-            //         const sourcePrecentage = matchedSource.clicks / TOTAL_SOURCE_CLICKS;
-            //         // console.log(sourcePrecentage);
-            //         articleScore += sourcePrecentage * NORMAL_WEIGHT; // Use 'clicks' from the matched source
-            //     }
-            // }
-
-            // // 20% chance to add a random weight
-            // if (Math.random() <= 0.2) {
-            //     const randomWeight = getRandomWeight(RANDOM_WEIGHT_MIN, RANDOM_WEIGHT_MAX); // Get a random weight between 0.5 and 1.5
-            //     articleScore += randomWeight; // Multiply the article score by the random weight
-            // }
             var articleScoreVal = articleScore(article, user.preferences, WEIGHTS);
 
             return {
@@ -298,7 +283,7 @@ async function getUserFeed(googleId, articlesInFeed = []) {
         const articleIds = top10Articles.map(article => article.uuid);
 
         // Find all articles from the database where the article ID is in `articleIds`
-        const returnArticles = await Article.find({ uuid: { $in: articleIds } });
+        const returnArticles = await Article.find({ uuid: { $in: articleIds } }).select(['-concepts', '-links', '-sentiment']);
         // Return the sorted articles to the frontend
         return returnArticles;
 
@@ -554,6 +539,8 @@ module.exports = {
     saveUserToDB,
     processUser,
     getUserBookmarks,
+    addArticleToBookmarks,
+    removeArticleToBookmarks,
     getUserFeed,
     updateUserPreferences,
     aggregate,

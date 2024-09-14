@@ -1,6 +1,8 @@
 const { Router } = require('express');
-const { 
+const {
     getUserBookmarksController,
+    addArticleToBookmarksController,
+    removeFromBookmarkController,
     getUserController,
     getUserFeedController,
     updateUserPreferencesController,
@@ -12,9 +14,11 @@ const {
 
 const app = Router();
 
-app.get('/user/bookmarks', authenticateToken, getUserBookmarksController)
-app.get('/user', authenticateToken, getUserController)
-app.post('/user/feed', authenticateToken, getUserFeedController)
-app.post('/user/updatePreferences', authenticateToken, updateUserPreferencesController)
+app.get('/user/bookmarks', authenticateToken, getUserBookmarksController);
+app.post('/user/addToBookmark', authenticateToken, addArticleToBookmarksController);
+app.post('/user/removeFromBookmark', authenticateToken, removeFromBookmarkController);
+app.get('/user', authenticateToken, getUserController);
+app.post('/user/feed', authenticateToken, getUserFeedController);
+app.post('/user/updatePreferences', authenticateToken, updateUserPreferencesController);
 
 module.exports = app;

@@ -2,11 +2,12 @@
 import { ref, computed, watch } from 'vue';;
 import { useRoute } from 'vue-router';
 import { config } from '../../constants';
-import { shareAction, fullCoverageAction, dailyRecapAction } from '../../scripts/actions';
+import { shareAction, fullCoverageAction, dailyRecapAction, bookmarkAction, removeBookmarkAction } from '../../scripts/actions';
 import { OPEN_ORIGINAL_ARTICLE_SWIPE_ACTION, FULL_COVERAGE_SWIPE_ACTION } from '../../scripts/swipeActions';
 import ActionItem from '../Action/ActionItem.vue';
 import ArticleSwipe from './ArticleSwipe.vue';
 import errorImage from '../../assets/icons/sumnews.net_banner.png'
+import { userProfile } from '../../main';
 
 const props = defineProps({ article: Object });
 const articleRef = ref(props.article || {})
@@ -151,7 +152,7 @@ const handleTouchEnd = (e) => {
 
 <template>
     <div id="article-instance" class="article-instance">
-    <!--<div id="article-instance" class="article-instance" :style="{ transform: `translateX(${translateX}px)` }"
+        <!--<div id="article-instance" class="article-instance" :style="{ transform: `translateX(${translateX}px)` }"
         :class="{ 'animate': swipeStarted }" @touchstart="handleTouchStart" @touchmove="handleTouchMove"
         @touchend="handleTouchEnd">
         -->
@@ -163,7 +164,7 @@ const handleTouchEnd = (e) => {
             :class="{ 'animate': swipeStarted }" @error="handleImageError">
             -->
         <img class="article-image" v-if="articleRef.imageUrl" :src="articleRef.imageUrl" alt="Article Image"
-        @error="handleImageError">
+            @error="handleImageError">
         <!--<div class="shader" :class="{ 'animate': swipeStarted }">-->
         <div class="shader">
 
@@ -188,6 +189,10 @@ const handleTouchEnd = (e) => {
                 <div class="actions">
                     <ActionItem :action="shareAction" :article="article"></ActionItem>
                     <ActionItem :action="fullCoverageAction" :article="article" v-if="articleRef.eventUri"></ActionItem>
+                    <ActionItem :action="bookmarkAction" :article="article"
+                        v-if="!userProfile.user?.bookmarks.includes(article.uuid)"></ActionItem>
+                    <ActionItem :action="removeBookmarkAction" :article="article"
+                        v-else-if="userProfile.user.bookmarks.includes(article.uuid)"></ActionItem>
                     <!-- <ActionItem :action="dailyRecapAction" :article="article" v-if="articleRef.drUri"></ActionItem> -->
                 </div>
             </div>
