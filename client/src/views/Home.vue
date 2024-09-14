@@ -1,7 +1,7 @@
 <script setup>
 import { ref, watch, computed, onMounted } from 'vue'
-import { front_getArticlesFromDB } from '../scripts/utility'
-import { List } from '../main'
+import { fetchFeed, fetchUserFeed, front_getArticlesFromDB } from '../scripts/utility'
+import { List, userProfile } from '../main'
 import { useRoute } from 'vue-router';
 import { config } from '../constants.js'
 
@@ -36,7 +36,7 @@ async function scrollHandler(event) {
     const scollableHeight = event.target.scrollHeight - event.target.clientHeight
     const scrollPercentage = (event.target.scrollTop / scollableHeight) * 100
 
-    if (scrollPercentage >= 70 && !List.loading) {
+    if (scrollPercentage >= 50 && !List.loading) {
         List.loading = true
         List.infiniteScrollCallCount++;
         var articlesToAdd = [];
@@ -75,10 +75,9 @@ async function scrollHandler(event) {
         }
         // If scrolling in feed
         else {
-            const filter = {}
-            // var response = await front_getArticlesFromDB(filter, undefined, undefined, 10 * List.infiniteScrollCallCount, 10)
-            var data = await fetch(`${BACKEND_URL}user/feed`,
-                {
+            if (userProfile.user) {
+                console.log('fetching user feed')
+                var response = await fetch(`${BACKEND_URL}user/feed`, {
                     method: 'POST',
                     headers: {
                         "Content-type": "application/json",
@@ -87,11 +86,22 @@ async function scrollHandler(event) {
                     body: JSON.stringify({
                         articlesInFeed: List.articles.map(article => article.uuid)
                     })
-                }
-            )
+                });
 
-            data = await data.json();
-            var response = data.articles;
+                // Check if the response is forbidden (status 403)
+                if (response.status === 403) {
+                    console.error("User isnt logged in");
+                    // Handle the forbidden case, e.g., return an error message or redirect the user
+                    response = await front_getArticlesFromDB();
+                }
+                else {
+                    var data = await response.json();
+                    response = data.articles;
+                }
+            }
+            else {
+                response = await front_getArticlesFromDB(undefined, undefined, undefined, 10 * List.infiniteScrollCallCount, 10)
+            }
         }
         articlesToAdd = response.filter(article => !existsInFeed(article));
         List.articles = List.articles.concat(articlesToAdd)

@@ -38,7 +38,7 @@ async function PostArticlesController(req, res) {
         const skip = parseInt(req.body.skip) || 0
         const limit = parseInt(req.body.limit) || 10
 
-        const articles = await getArticlesFromDB(filter, project, sort, /*collation,*/ skip, limit)
+        const articles = await getArticlesFromDB(filter, project, sort, /*collation,*/ skip, limit, ['-concepts', '-links', '-sentiment'])
         res.send(articles)
     }
     catch (error) {
