@@ -77,20 +77,30 @@ else if (!allSourcesInLocalStorage || genresDiffInDays > 1) {
 
 // Get loggin user information from DB. If no user / fault token is found return null
 async function getUser() {
-  var response = await fetch(`${BACKEND_URL}user`, {
-    method: 'POST',
-    headers: {
-      "Content-type": "application/json",
-      "Authorization": `Bearer ${localStorage.getItem('authToken')}`
-    }
-  });
+  var authToken = localStorage.getItem('authToken');
+  if (authToken) {
+    var response = await fetch(`${BACKEND_URL}user`, {
+      method: 'GET',
+      headers: {
+        "Content-type": "application/json",
+        "Authorization": `Bearer ${authToken}`
+      }
+    });
 
-  // Check if the response is forbidden (status 403)
-  if (response.status === 403) {
-    console.error("User doesnt exist");
-    // Handle the forbidden case, e.g., return an error message or redirect the user
-    return null; // Stop further execution if needed
-  };
+    // Check if the response is forbidden (status 403)
+    if (response.status === 403) {
+      console.error("User doesnt exist");
+      // Handle the forbidden case, e.g., return an error message or redirect the user
+      return null; // Stop further execution if needed
+    }
+    else {
+      const userObject = await response.json();
+      return userObject.user;
+    }
+  }
+  else {
+    return null;
+  }
 }
 
 export const userProfile = reactive({ user: null }); // Empty user on setup
