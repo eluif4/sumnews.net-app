@@ -2,12 +2,19 @@
 import { ref, computed, watch } from 'vue';;
 import { useRoute } from 'vue-router';
 import { config } from '../../constants';
-import { shareAction, fullCoverageAction, dailyRecapAction, bookmarkAction, removeBookmarkAction } from '../../scripts/actions';
+import {
+    shareAction,
+    fullCoverageAction,
+    dailyRecapAction,
+    bookmarkAction,
+    removeBookmarkAction
+} from '../../scripts/actions';
 import { OPEN_ORIGINAL_ARTICLE_SWIPE_ACTION, FULL_COVERAGE_SWIPE_ACTION } from '../../scripts/swipeActions';
 import ActionItem from '../Action/ActionItem.vue';
 import ArticleSwipe from './ArticleSwipe.vue';
 import errorImage from '../../assets/icons/sumnews.net_banner.png'
 import { userProfile } from '../../main';
+
 
 const props = defineProps({ article: Object });
 const articleRef = ref(props.article || {})

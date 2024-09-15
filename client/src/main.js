@@ -93,6 +93,10 @@ async function getUser() {
       // Handle the forbidden case, e.g., return an error message or redirect the user
       return null; // Stop further execution if needed
     }
+    else if (response.status === 404) {
+      localStorage.removeItem('authToken');
+      return null;
+    }
     else {
       const userObject = await response.json();
       return userObject.user;
