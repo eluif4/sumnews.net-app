@@ -186,8 +186,9 @@ async function saveArticle(article) { // Returns the updated article
         sentiment: article.sentiment,
         concepts: article.concepts,
         links: article.links,
-        shares: article.shares,
-        uuid: uuidValue
+        // shares: article.shares,
+        uuid: uuidValue,
+        // No need to specify engagements, it will default to { clicks: 0, shares: 0, originalArticleReads: 0 }
     })
 
     await saveDocument(a);

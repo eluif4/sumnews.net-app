@@ -1,6 +1,6 @@
 import router from '../router'
 import { config } from '../constants';
-import { goBack, showPopup, addArticleToBookmarks, removeArticleFromBookmarks } from './utility';
+import { goBack, showPopup, addArticleToBookmarks, removeArticleFromBookmarks, updateArticleEngagement } from './utility';
 import { PopupAttributes, List, userProfile } from '../main';
 
 const FRONTEND_URL = config.url.FRONTEND_URL
@@ -25,6 +25,8 @@ export async function actionShareFunction(article) {
                     text: `${article.title}`,
                     url: `${FRONTEND_URL}article/${article.uuid}`,
                 });
+
+                await updateArticleEngagement(article, 'shares');
             } catch (error) {
                 console.error('Error sharing:', error.message);
                 showPopup(2, "Oops, something went wrong...")
@@ -45,9 +47,9 @@ export async function actionShareFunction(article) {
 
 async function bookmarkActionFunction(article) {
     var response = await addArticleToBookmarks(article.uuid)
-    userProfile.user.bookmarks.push(article.uuid);
     if (response.status == 201) {
         showPopup(1, "This article has been bookmarked succesfully");
+        userProfile.user?.bookmarks.push(article.uuid);
     } else if (response.status === 400) {
         showPopup(2, "Failed to bookmark this article");
     } else if (response.status === 401 || response.status === 403) {

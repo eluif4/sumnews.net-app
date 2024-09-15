@@ -157,6 +157,28 @@ export async function removeArticleFromBookmarks(articleuuid) {
     }
 }
 
+export async function updateArticleEngagement(article, engagementType) {
+    try {
+        const response = await fetch(`${BACKEND_URL}db/updateArticleEngagement`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                articleuuid: article.uuid, // Send the article UUID
+                engagementType: engagementType // Specify the engagement type
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to update engagement');
+        }
+        console.log(`Successfully updated ${engagementType} for article: ${article.title}`);
+    } catch (error) {
+        console.error('Error updating engagement:', error);
+    }
+}
+
 export function goBack() {
     if (router) {
         if (router.options.history.state.back != null)

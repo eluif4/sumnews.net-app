@@ -6,7 +6,14 @@ const UTILS = path.join(__dirname, '../../2-utils')
 const DBUTILS = path.join(__dirname, '../../2-utils/db')
 const DatabaseAccess = path.join(DBUTILS, "/databaseAccess.js")
 const GetCollections = path.join(DBUTILS, "/getCollections.js")
-const { getArticlesFromDB, aggregate, getDailyRecap, getDailyRecapButtons, getSourcesLogo, BM25 } = require(DatabaseAccess)
+const { getArticlesFromDB,
+    aggregate,
+    getDailyRecap,
+    getDailyRecapButtons,
+    getSourcesLogo,
+    BM25,
+    updateArticleEngagement
+} = require(DatabaseAccess)
 const { getAllSources, getAllGenres } = require(GetCollections)
 const DailyRecap = path.join(UTILS, "/dailyRecaps.js")
 const { createDailyRecap } = require(DailyRecap)
@@ -189,6 +196,22 @@ async function getSourcesLogoController(req, res) {
     res.send(sourcesLogo);
 }
 
+async function updateArticleEngagementController(req, res) {
+    const { articleuuid, engagementType } = req.body
+    const engagementTypesList = ['clicks', 'shares', 'originalArticleReads'];
+    // Validate and sanitize inputs
+    if (!engagementTypesList.includes(engagementType)) {
+        return res.status(400).send('Invalid engagement type');
+    }
+
+    try {
+        await updateArticleEngagement(articleuuid, engagementType);
+        res.status(200).send('Engagement updated');
+    } catch (error) {
+        res.status(500).send('Server Error');
+    }
+}
+
 module.exports = {
     getArticlesController,
     getArticlesFromSearchController,
@@ -204,4 +227,5 @@ module.exports = {
     getDailyRecapByIdController,
     getDailyRecapsController,
     getSourcesLogoController,
+    updateArticleEngagementController
 }

@@ -1,6 +1,11 @@
 <script setup>
 import { ref, watch, computed, onMounted } from 'vue'
-import { fetchFeed, fetchUserFeed, front_getArticlesFromDB } from '../scripts/utility'
+import {
+    fetchFeed,
+    fetchUserFeed,
+    front_getArticlesFromDB,
+    updateArticleEngagement
+} from '../scripts/utility'
 import { List, userProfile } from '../main'
 import { useRoute } from 'vue-router';
 import { config } from '../constants.js'
@@ -224,7 +229,8 @@ onMounted(() => {
             </ArticleSkeleton>
             <router-link v-for="( article, index ) in List.articles " :key="article.uuid" style="min-width: 100%"
                 :to="{ name: 'article', params: { uuid: article.uuid }, query: { index: index } }">
-                <ArticleInstance :article="article" :key="article.uuid" v-if="article.imageUrl"></ArticleInstance>
+                <ArticleInstance :article="article" :key="article.uuid" v-if="article.imageUrl"
+                    @click="updateArticleEngagement(article, 'clicks')"></ArticleInstance>
             </router-link>
         </div>
         <Cookies></Cookies>

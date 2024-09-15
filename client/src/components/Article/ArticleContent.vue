@@ -1,8 +1,19 @@
 <script setup>
 import { ref, computed, watch } from 'vue';
 import { useRoute } from 'vue-router';
-import { goBack, showPopup, front_getArticlesFromDB } from '../../scripts/utility.js';
-import { shareAction, bookmarkAction, fullCoverageAction, backAction, dailyRecapAction } from '../../scripts/actions'
+import {
+    goBack,
+    showPopup,
+    front_getArticlesFromDB,
+    updateArticleEngagement
+} from '../../scripts/utility.js';
+import {
+    shareAction,
+    bookmarkAction,
+    fullCoverageAction,
+    backAction,
+    dailyRecapAction
+} from '../../scripts/actions'
 import { config } from '../../constants'
 import ActionItem from '../Action/ActionItem.vue';
 import router from '../../router';
@@ -283,7 +294,8 @@ async function updateUserPreferences() {
             </div> -->
 
             <!-- READ ORIGINAL ARTICLE -->
-            <a :href="articleRef.url" target="_blank" rel="noopener noreferrer" class="original-article-link">
+            <a :href="articleRef.url" @click="updateArticleEngagement(articleRef, 'originalArticleReads')"
+                target="_blank" rel="noopener noreferrer" class="original-article-link">
                 <div class="original-article-container">
                     Read original article
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 12 12" fill="none">

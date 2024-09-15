@@ -526,6 +526,16 @@ async function getDailyRecapButtons() {
     }
 }
 
+async function updateArticleEngagement(articleuuid, engagementType) {
+    const update = {};
+    update[`engagements.${engagementType}`] = 1;
+
+    await Article.updateOne(
+        { uuid: articleuuid },
+        { $inc: update }
+    );
+}
+
 module.exports = {
     saveToDB,
     saveDocument,
@@ -550,4 +560,5 @@ module.exports = {
     getEventByEventUri,
     getDailyRecap,
     getDailyRecapButtons,
+    updateArticleEngagement,
 };
