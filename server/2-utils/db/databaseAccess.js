@@ -232,6 +232,7 @@ async function getUserFeed(googleId, articlesInFeed = []) {
         SOURCE: 1,
         SMOOTHNESS: 1,
         EXPLORATION: 0.2,
+        ENGAGEMENT: 0.5,
     }
 
     const N = 50;
@@ -250,7 +251,7 @@ async function getUserFeed(googleId, articlesInFeed = []) {
         })
             .sort({ datePublished: -1 })
             .limit(N)
-            .select(['genre', 'source', 'uuid', 'datePublished', 'title']);
+            .select(['genre', 'source', 'uuid', 'datePublished', 'title', 'engagements']);
 
         if (articlesInFeed.length > 0) {
             oldestArticleDateFromScoring = new Date(articles[articlesInFeed.length > 11 ? 10 : articlesInFeed.length].datePublished);

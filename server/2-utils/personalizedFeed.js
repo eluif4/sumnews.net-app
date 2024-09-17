@@ -10,7 +10,7 @@ function articleScore(article, userPreferences, weights) {
     const engagementFactor = (article.engagements.clicks +
         article.engagements.shares +
         article.engagements.originalArticleReads) /
-        (article.engagements.clicks + 1);
+        (article.engagements.clicks + k) || 0;
 
     /* 2. Relevance: How relevant and important each article is considering data like, 
         2a. user's interest ( genres, sources, keywords, concepts ... )
@@ -23,7 +23,7 @@ function articleScore(article, userPreferences, weights) {
 
     // Helper function to get user preference score for a property
     const getUserPreferenceScore = (property, userPreferences) => {
-        return userPreferences.find(p => p.name.toLowerCase() === property.toLowerCase())?.clicks || 0;
+        return userPreferences.find(p => p.name.toLowerCase() === property.toLowerCase())?.clicks || 1;
     };
 
     // Calculate genre score
@@ -32,11 +32,11 @@ function articleScore(article, userPreferences, weights) {
         const userGenreScore = getUserPreferenceScore(genre, userGenres);
         genreScore += userGenreScore;
     });
-    genreScore = totalGenreClicks > 0 ? genreScore / totalGenreClicks : 0;
+    genreScore = totalGenreClicks > 0 ? genreScore / totalGenreClicks : 1;
 
     // Calculate source score
     const sourceScore = getUserPreferenceScore(articleSource, userSources);
-    const normalizedSourceScore = totalSourceClicks > 0 ? sourceScore / totalSourceClicks : 0;
+    const normalizedSourceScore = totalSourceClicks > 0 ? sourceScore / totalSourceClicks : 1;
 
     // Feature value for document
     const genreFeatureValue = genreScore * (weights.GENRE || 1);
@@ -58,8 +58,7 @@ function articleScore(article, userPreferences, weights) {
     const explorationFactor = lambda * R_d;
 
     // Final score combining document score with exploration factor
-    const finalScore = documentScore + explorationFactor;
-
+    const finalScore = documentScore + (engagementFactor * weights.ENGAGEMENT) + explorationFactor;
     return finalScore;
 }
 
