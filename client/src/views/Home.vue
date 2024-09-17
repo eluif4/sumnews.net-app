@@ -7,11 +7,13 @@ import {
     updateArticleEngagement
 } from '../scripts/utility'
 import { List, userProfile } from '../main'
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import { config } from '../constants.js'
+import { GoogleLogin } from 'vue3-google-login';
 
 const BACKEND_URL = config.url.BACKEND_URL
 const route = useRoute();
+const router = useRouter();
 
 import SumnewsLogo from '../assets/icons/sumnews.net.png'
 
@@ -213,9 +215,18 @@ const isPremium = ref(true)
 onMounted(() => {
     setDailyRecapButtons();
 })
+
+// Google One Tap
+const callback = (response) => {
+    // This callback will be triggered when user click on the One Tap prompt
+    // This callback will be also triggered when user click on login button 
+    // and selects or login to his Google account from the popup
+    console.log("Handle the response", response)
+}
 </script>
 
 <template>
+    <!-- <GoogleLogin :callback="callback" prompt></GoogleLogin> -->
     <Header />
     <div class="drcontainer">
         <DailyRecapButtonSkeleton v-for="dritem in tempDailyRecapButtons" :dr="dritem"
@@ -236,6 +247,8 @@ onMounted(() => {
         <Cookies></Cookies>
     </div>
     <Popup></Popup>
+    <!-- Google One Tap -->
+
 </template>
 
 <style>

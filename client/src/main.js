@@ -3,7 +3,8 @@ import { ref, reactive, createApp, watch } from 'vue';
 import { config } from './constants'
 import { fetchProtectedResource } from './scripts/utility';
 import App from './App.vue';
-import router from './router'
+import router from './router';
+import vue3GoogleLogin from 'vue3-google-login';
 
 const FRONTEND_URL = config.url.FRONTEND_URL
 const BACKEND_URL = config.url.BACKEND_URL
@@ -151,5 +152,8 @@ window.addEventListener("beforeinstallprompt", (event) => {
   showPWA.value = true
 });
 
+app.use(vue3GoogleLogin, {
+  clientId: "460348077182-hfarubd5kv9mhq03e4g1ugfcjeopeo4m.apps.googleusercontent.com"
+});
 app.use(router);
 app.mount('#app');
