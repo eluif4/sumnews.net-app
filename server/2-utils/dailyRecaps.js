@@ -3,6 +3,7 @@ const { v4: uuidv4 } = require('uuid');
 const DrEvent = require('../4-models/drEvents')
 const DailyRecap = require("../4-models/dailyRecap");
 var cache = require('memory-cache')
+const { postToInstaStory } = require('./UploadDailyRecapToInstagramStory.js')
 
 // Yesterday's date
 const yesterday = new Date();
@@ -23,6 +24,7 @@ async function createDailyRecap(source) {
         var sort = { "articlesCount": -1 }
         var events = await getEvents(filter, undefined, sort, 0, 5)
         var eventUris = events.map(event => event.eventUri)
+        var instagramStoryArticles = [];
 
         for (const eventUri of eventUris) { // Loop over events
             let drUri = `${source}_${uuidv4()}` // Create drUri
@@ -44,6 +46,7 @@ async function createDailyRecap(source) {
 
             if (articles.length > 0) { // If there are articles in event
                 drEvents.push(drUri) // Add drUri to array of drEvents (for the dailyRecap object)
+                instagramStoryArticles.push(articles[0])
                 let drEvent = new DrEvent({
                     id: uuidv4(),
                     drUri: drUri,
@@ -54,6 +57,8 @@ async function createDailyRecap(source) {
                 await saveDocument(drEvent);
             }
         }
+        console.log(`Creating Instagram story with (${instagramStoryArticles.length}) ${instagramStoryArticles}`)
+        await postToInstaStory(instagramStoryArticles)
     } else { // If source !== sumnews.net
         var filter = {
             "source": source,
@@ -62,7 +67,8 @@ async function createDailyRecap(source) {
         }
 
         const sort = {
-            content: -1
+            summarizedContent: -1
+            // FUTURE CHANGE: Change this filter to originalContentLengt hwhen it is addede
         }
 
         // Array of 5 longest articles in db from past 24 hours that dont have a drUri
