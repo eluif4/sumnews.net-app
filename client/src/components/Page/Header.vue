@@ -176,7 +176,7 @@ watch(() => route.path, (newPath, oldPath) => {
                     </clipPath>
                 </defs>
             </svg>
-            <img :src="userProfile.user?.picture" class="profileImage" alt="Profile Picture" height="24" width="24"
+            <img :src="userProfile.user?.picture" class="profileImage" alt="Profile Picture" height="36" width="36"
                 v-else>
         </router-link>
     </div>

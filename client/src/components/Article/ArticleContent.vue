@@ -207,6 +207,28 @@ async function updateUserPreferences() {
         body: JSON.stringify(data)
     })
 }
+
+const timeSaved = computed(() => {
+    const AVG_WPM = 238;
+    const AVGCHAR_PER_WORD = 4.7;
+
+    const charCountInArticle = articleRef.value.articleCharCount || 0;
+    const charCountInSummary = articleRef.value.summarizedContent.length || 0;
+
+    // Calculate reading time in minutes
+    const articleReadingTime = charCountInArticle / (AVGCHAR_PER_WORD * AVG_WPM / 60);
+    const summaryReadingTime = charCountInSummary / (AVGCHAR_PER_WORD * AVG_WPM / 60);
+
+    // Time saved
+    return (articleReadingTime - summaryReadingTime).toFixed(2);
+})
+
+// Computed property to format time saved
+const formattedTimeSaved = computed(() => {
+    return timeSaved.value > 60
+        ? `${Math.round((timeSaved.value / 60) * 2) / 2} minute${Math.round(timeSaved.value * 2) / 2 > 1 ? 's' : ''}`
+        : `${timeSaved.value} second${timeSaved.value > 1 ? 's' : ''}`;
+});
 </script>
 
 <template>
@@ -246,6 +268,11 @@ async function updateUserPreferences() {
                     {{ articleRef.author.length === 0 ? "" : "By: " + articleRef.author.join(', ') }}
                 </div>
                 <div class="source-date">{{ articleRef.source }}, {{ formattedDate }}</div>
+            </div>
+
+            <!-- TIME SAVED -->
+            <div class="time-saved">
+                {{ formattedTimeSaved }} saved
             </div>
             <!-- SUMMARIZED CONTENT -->
             <div class="summarized-content" v-html="formattedSummarizedContent"></div>

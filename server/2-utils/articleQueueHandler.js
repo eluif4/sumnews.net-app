@@ -181,6 +181,7 @@ async function saveArticle(article) { // Returns the updated article
         eventUri: article.eventUri ? article.eventUri : null,
         drUri: null,
         // content: article.body,
+        articleCharCount: article.body.length,
         summarizedContent: article.summarizedContent,
         imageUrl: article.image,
         sentiment: article.sentiment,

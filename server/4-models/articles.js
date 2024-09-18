@@ -13,6 +13,7 @@ const articleSchema = new mongoose.Schema({
     eventUri: String,
     drUri: String,
     // content: String,
+    articleCharCount: Number,
     summarizedContent: String,
     imageUrl: String,
     sentiment: Number,

@@ -220,6 +220,11 @@ const bookmarksPage = {
         <div class="signincontainer">
             <PWA></PWA>
             <!-- <SignInUsingGoogle></SignInUsingGoogle> -->
+            <div class="text-xl text-center" style="color: black" v-if="!userProfile.user">
+                Dont have an account yet?
+                <br>
+                Try signing up here!
+            </div>
             <SignInUsing :platform="googlePlatform" v-if="!userProfile.user"></SignInUsing>
             <div class="userInfo" v-else>
                 <img :src="userProfile.user.picture" class="profileImage" alt="Profile Picture" height="48" width="48">
