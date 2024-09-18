@@ -7,6 +7,7 @@ import { googleSdkLoaded } from "vue3-google-login"
 import { config } from '../constants';
 import router from '../router';
 import { userProfile } from '../main';
+import { INSTAGRAM, LINKEDIN, X } from '../scripts/socials';
 
 const FRONTEND_URL = config.url.FRONTEND_URL;
 const BACKEND_URL = config.url.BACKEND_URL;
@@ -240,6 +241,19 @@ const bookmarksPage = {
                 <p class="headline">ACCOUNT</p>
                 <AccountPageItem :page="bookmarksPage"></AccountPageItem>
             </div>
+            <div class="text-md text-center -mb-2">Want to stay connected?<br>Check out our social media pages below!
+            </div>
+            <div class="social-icons">
+                <a href="https://www.instagram.com/sumnews_net" target="_blank" rel="noopener noreferrer">
+                    <div v-html="INSTAGRAM.svg"></div>
+                </a>
+                <a href="https://www.linkedin.com/company/sumnews-net" target="_blank" rel="noopener noreferrer">
+                    <div v-html="LINKEDIN.svg"></div>
+                </a>
+                <a href="https://x.com/sumnewsdotnet" target="_blank" rel="noopener noreferrer">
+                    <div v-html="X.svg"></div>
+                </a>
+            </div>
             <p class="headline">GENERAL</p>
             <AccountPageItem :page="aboutUsPage"></AccountPageItem>
             <AccountPageItem :page="contactUsPage"></AccountPageItem>
@@ -380,5 +394,12 @@ const bookmarksPage = {
     flex-direction: column;
     gap: 2rem;
     height: 100%;
+}
+
+.social-icons {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-evenly;
 }
 </style>
