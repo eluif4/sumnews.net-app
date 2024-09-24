@@ -244,13 +244,13 @@ const bookmarksPage = {
             <div class="text-md text-center -mb-2">Want to stay connected?<br>Check out our social media pages below!
             </div>
             <div class="social-icons">
-                <a href="https://www.instagram.com/sumnews_net" target="_blank" rel="noopener noreferrer">
+                <a :href="INSTAGRAM.link" target="_blank" rel="noopener noreferrer">
                     <div v-html="INSTAGRAM.svg"></div>
                 </a>
-                <a href="https://www.linkedin.com/company/sumnews-net" target="_blank" rel="noopener noreferrer">
+                <a :href="LINKEDIN.link" target="_blank" rel="noopener noreferrer">
                     <div v-html="LINKEDIN.svg"></div>
                 </a>
-                <a href="https://x.com/sumnewsdotnet" target="_blank" rel="noopener noreferrer">
+                <a :href="X.link" target="_blank" rel="noopener noreferrer">
                     <div v-html="X.svg"></div>
                 </a>
             </div>
