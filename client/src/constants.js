@@ -3,7 +3,7 @@ const prod = {
     url: {
         // BACKEND_URL: 'https://sumnews-47050b3e4ef6.herokuapp.com/', old backend
         BACKEND_URL: 'https://sumnewsv3-3d5592632fd4.herokuapp.com/', // new backend
-        FRONTEND_URL: 'https://sumnews.net/'
+        FRONTEND_URL: 'https://app.sumnews.net/'
     },
 };
 
