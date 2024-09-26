@@ -1,9 +1,4 @@
-<script setup>
-import UpdateModal from '../components/Popups/UpdateModal.vue';
-</script>
-
 <template>
-    <UpdateModal></UpdateModal>
     <!-- <transition :name="transitionName" mode="out-in"> -->
     <router-view></router-view>
     <!-- </transition> -->
