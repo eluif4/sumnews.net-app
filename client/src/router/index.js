@@ -1,7 +1,8 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import { front_getArticlesFromDB, showPopup } from '../scripts/utility'
-import { List } from '../main'
+import { front_getArticlesFromDB, showPopup, fetchFeed } from '../scripts/utility'
+import { List, userProfile } from '../main'
 import { config } from '../constants'
+import { fetchUserFeed } from '../scripts/utility'
 
 import Home from '../views/Home.vue'
 import AccountPage from '../views/AccountPage.vue'
@@ -17,6 +18,7 @@ import Filter from '../components/Filter/Filter.vue'
 import Backdrop from '../components/Article/Backdrop.vue'
 import ArticleContent from '../components/Article/ArticleContent.vue'
 import DailyRecapPage from '../views/DailyRecapPage.vue'
+import Bookmarks from '../components/AccountPage/Pages/Bookmarks.vue'
 
 const BACKEND_URL = config.url.BACKEND_URL;
 const FRONTEND_URL = config.url.FRONTEND_URL;
@@ -51,14 +53,14 @@ const routes = [
                 (isFromErrorPage && List.articles.length === 0) ||
                 (isFromEventPage && List.articles.length === 0)
             ) {
-                List.articles = []
-                front_getArticlesFromDB()
-                    .then(response => {
-                        const articles = response
-                        for (const article of articles) {
-                            List.articles.push(article)
-                        }
-                    })
+                List.articles = [];
+                var token = localStorage.getItem('authToken');
+                if (token) {
+                    fetchUserFeed()
+                }
+                else {
+                    fetchFeed()
+                }
             } else {
                 // Logic to execute if use is coming from other paths into home
             }
@@ -247,6 +249,21 @@ const routes = [
         children: [
             { path: '', component: PrivacyPolicy }
         ]
+    },
+    {
+        path: '/account/bookmarks',
+        component: ListItem,
+        children: [
+            { path: '', component: Bookmarks },
+        ],
+        beforeEnter: async (to, from, next) => {
+            // If the user isn't logged in, redirect them to the /account path
+            if (!userProfile.user) {
+                next('/account');
+            } else {
+                next();  // Proceed to the route if the user is logged in
+            }
+        }
     },
     {
         path: '/dailyrecap/:dailyrecapUUID/:drUri/:articleUUID',

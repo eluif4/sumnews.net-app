@@ -12,8 +12,11 @@ const { getArticlesController,
     getDailyRecapButtonsController,
     getDailyRecapByIdController,
     getEventByEventUriController,
-    getSourcesLogoController
+    getSourcesLogoController,
+    updateArticleEngagementController
 } = require('../../6-controllers/db/articlesController');
+
+const { verifyToken } = require('../../3-middleware/authenticator')
 
 const app = Router();
 
@@ -29,5 +32,7 @@ app.post('/db/getEventByEventUri', getEventByEventUriController)
 app.post('/db/getDailyRecaps', getDailyRecapsController)
 app.get('/db/getDailyRecapButtons', getDailyRecapButtonsController)
 app.post('/db/getSourcesLogo', getSourcesLogoController)
+app.post('/db/updateArticleEngagement', updateArticleEngagementController)
+
 
 module.exports = app;

@@ -1,6 +1,7 @@
 import router from '../router'
 import { config } from '../constants';
-import { PopupAttributes } from '../main';
+import { PopupAttributes, userProfile } from '../main';
+import { List } from '../main';
 
 const FRONTEND_URL = config.url.FRONTEND_URL
 const BACKEND_URL = config.url.BACKEND_URL
@@ -73,6 +74,111 @@ export async function front_getArticlesFromDB(
     }
 }
 
+export async function fetchFeed(skip = 0) {
+    front_getArticlesFromDB(undefined, undefined, undefined, skip, 10)
+        .then(response => {
+            const articles = response
+            for (const article of articles) {
+                List.articles.push(article)
+            }
+        })
+}
+
+export async function fetchUserFeed() {
+    console.log('fetching user feed')
+    var response = await fetch(`${BACKEND_URL}user/feed`, {
+        method: 'POST',
+        headers: {
+            "Content-type": "application/json",
+            "Authorization": `Bearer ${localStorage.getItem('authToken')}`
+        },
+        body: JSON.stringify({
+            articlesInFeed: List.articles.map(article => article.uuid)
+        })
+    });
+
+    // Check if the response is forbidden (status 403)
+    if (response.status === 403) {
+        console.error("User isnt logged in");
+        // Handle the forbidden case, e.g., return an error message or redirect the user
+        var response = await front_getArticlesFromDB();
+        List.articles = response
+    }
+
+    else {
+        var data = await response.json();
+        for (const article of data.articles) {
+            List.articles.push(article);
+        }
+    }
+}
+
+export async function addArticleToBookmarks(articleuuid) {
+    try {
+        if (articleuuid) {
+            var data = { articleuuid: articleuuid };
+            var response = await fetch(`${BACKEND_URL}user/addToBookmark`, {
+                method: 'POST',
+                headers: {
+                    'Content-type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+                },
+                body: JSON.stringify(data)
+            })
+
+            return response;
+        } else {
+            return { status: 500, message: 'Article wasnt provided' }
+        }
+    } catch (error) {
+        console.error('Failed to add article to bookmarks', error)
+    }
+}
+
+export async function removeArticleFromBookmarks(articleuuid) {
+    try {
+        if (articleuuid) {
+            var data = { articleuuid: articleuuid };
+            var response = await fetch(`${BACKEND_URL}user/removeFromBookmark`, {
+                method: 'POST',
+                headers: {
+                    'Content-type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+                },
+                body: JSON.stringify(data)
+            })
+
+            return response;
+        } else {
+            return { status: 500, message: 'Article wasnt provided' }
+        }
+    } catch (error) {
+        console.error('Failed to remove article from bookmarks', error)
+    }
+}
+
+export async function updateArticleEngagement(article, engagementType) {
+    try {
+        const response = await fetch(`${BACKEND_URL}db/updateArticleEngagement`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                articleuuid: article.uuid, // Send the article UUID
+                engagementType: engagementType // Specify the engagement type
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to update engagement');
+        }
+        console.log(`Successfully updated ${engagementType} for article: ${article.title}`);
+    } catch (error) {
+        console.error('Error updating engagement:', error);
+    }
+}
+
 export function goBack() {
     if (router) {
         if (router.options.history.state.back != null)
@@ -89,4 +195,28 @@ export function showPopup(methodValue, msg, showTime = 3) {
     setTimeout(() => {
         PopupAttributes.methodValue = -1
     }, 1000 * showTime)
+}
+
+export async function fetchProtectedResource(path) {
+    // Path param: everything after www.sumnews.net/ ( example: account/bookmark )
+    var response = await fetch(`${BACKEND_URL}user/feed`, {
+        method: 'POST',
+        headers: {
+            "Content-type": "application/json",
+            "Authorization": `Bearer ${localStorage.getItem('authToken')}`
+        },
+        body: JSON.stringify({
+            articlesInFeed: List.articles.map(article => article.uuid)
+        })
+    });
+
+    // Check if the response is forbidden (status 403)
+    if (response.status === 403) {
+        console.error("Resource forbidden");
+        // Handle the forbidden case, e.g., return an error message or redirect the user
+        return; // Stop further execution if needed
+    }
+
+    var data = await response.json();
+    return data;
 }

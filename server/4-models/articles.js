@@ -13,14 +13,34 @@ const articleSchema = new mongoose.Schema({
     eventUri: String,
     drUri: String,
     // content: String,
+    articleCharCount: Number,
     summarizedContent: String,
     imageUrl: String,
     sentiment: Number,
     concepts: Array,
     links: Array,
-    shares: Object,
-    uuid: String,
-}, { collection: 'articles'} );
+    // shares: Object,
+    uuid: {
+        type: String,
+        unique: true,
+        required: true
+    },
+    engagements: {
+        // Add type of engagements here
+        clicks: {
+            type: Number,
+            default: 0
+        },
+        shares: {
+            type: Number,
+            default: 0
+        },
+        originalArticleReads: {
+            type: Number,
+            default: 0
+        }
+    }
+}, { collection: 'articles' });
 
 const Article = mongoose.model('Article', articleSchema);
 module.exports = Article;

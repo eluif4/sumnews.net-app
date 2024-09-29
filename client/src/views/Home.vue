@@ -1,12 +1,19 @@
 <script setup>
 import { ref, watch, computed, onMounted } from 'vue'
-import { front_getArticlesFromDB } from '../scripts/utility'
-import { List } from '../main'
-import { useRoute } from 'vue-router';
+import {
+    fetchFeed,
+    fetchUserFeed,
+    front_getArticlesFromDB,
+    updateArticleEngagement
+} from '../scripts/utility'
+import { List, userProfile } from '../main'
+import { useRoute, useRouter } from 'vue-router';
 import { config } from '../constants.js'
+import { GoogleLogin } from 'vue3-google-login';
 
 const BACKEND_URL = config.url.BACKEND_URL
 const route = useRoute();
+const router = useRouter();
 
 import SumnewsLogo from '../assets/icons/sumnews.net.png'
 
@@ -36,7 +43,7 @@ async function scrollHandler(event) {
     const scollableHeight = event.target.scrollHeight - event.target.clientHeight
     const scrollPercentage = (event.target.scrollTop / scollableHeight) * 100
 
-    if (scrollPercentage >= 70 && !List.loading) {
+    if (scrollPercentage >= 50 && !List.loading) {
         List.loading = true
         List.infiniteScrollCallCount++;
         var articlesToAdd = [];
@@ -75,8 +82,33 @@ async function scrollHandler(event) {
         }
         // If scrolling in feed
         else {
-            const filter = {}
-            var response = await front_getArticlesFromDB(filter, undefined, undefined, 10 * List.infiniteScrollCallCount, 10)
+            if (userProfile.user) {
+                console.log('fetching user feed')
+                var response = await fetch(`${BACKEND_URL}user/feed`, {
+                    method: 'POST',
+                    headers: {
+                        "Content-type": "application/json",
+                        "Authorization": `Bearer ${localStorage.getItem('authToken')}`
+                    },
+                    body: JSON.stringify({
+                        articlesInFeed: List.articles.map(article => article.uuid)
+                    })
+                });
+
+                // Check if the response is forbidden (status 403)
+                if (response.status === 403) {
+                    console.error("User isnt logged in");
+                    // Handle the forbidden case, e.g., return an error message or redirect the user
+                    response = await front_getArticlesFromDB();
+                }
+                else {
+                    var data = await response.json();
+                    response = data.articles;
+                }
+            }
+            else {
+                response = await front_getArticlesFromDB(undefined, undefined, undefined, 10 * List.infiniteScrollCallCount, 10)
+            }
         }
         articlesToAdd = response.filter(article => !existsInFeed(article));
         List.articles = List.articles.concat(articlesToAdd)
@@ -168,14 +200,11 @@ const wasUpdatedMoreThan24HoursAgo = (lastUpdated) => {
         now.getUTCSeconds()
     ));
 
-
     // Calculate the time difference in milliseconds
     const timeDifference = nowUTC - lastUpdatedUTC;
 
     // Convert time difference from milliseconds to hours
     const hoursDifference = timeDifference / (1000 * 60 * 60);
-
-    console.log(`Times: lastUpdate - ${lastUpdatedUTC} | now - ${nowUTC} | timedif - ${hoursDifference}`)
 
     // Check if the difference is 24 hours or more
     return hoursDifference >= 24;
@@ -186,9 +215,18 @@ const isPremium = ref(true)
 onMounted(() => {
     setDailyRecapButtons();
 })
+
+// Google One Tap
+const callback = (response) => {
+    // This callback will be triggered when user click on the One Tap prompt
+    // This callback will be also triggered when user click on login button 
+    // and selects or login to his Google account from the popup
+    console.log("Handle the response", response)
+}
 </script>
 
 <template>
+    <!-- <GoogleLogin :callback="callback" prompt></GoogleLogin> -->
     <Header />
     <div class="drcontainer">
         <DailyRecapButtonSkeleton v-for="dritem in tempDailyRecapButtons" :dr="dritem"
@@ -198,16 +236,19 @@ onMounted(() => {
     <div class="app-container"
         :style="dailyRecapButtons.length === 0 ? { height: 'var(--article-stack-nodr-height)' } : {}">
         <div id="article-stack" @scroll="scrollHandler">
-            <ArticleSkeleton v-for=" skeleton  in  skeletonArticles " v-if="List.articles.length == 0">
+            <ArticleSkeleton v-for=" skeleton in skeletonArticles " v-if="List.articles.length == 0">
             </ArticleSkeleton>
-            <router-link v-for="( article, index ) in  List.articles " :key="article.uuid" style="min-width: 100%"
+            <router-link v-for="( article, index ) in List.articles " :key="article.uuid" style="min-width: 100%"
                 :to="{ name: 'article', params: { uuid: article.uuid }, query: { index: index } }">
-                <ArticleInstance :article="article" :key="article.uuid" v-if="article.imageUrl"></ArticleInstance>
+                <ArticleInstance :article="article" :key="article.uuid" v-if="article.imageUrl"
+                    @click="updateArticleEngagement(article, 'clicks')"></ArticleInstance>
             </router-link>
         </div>
         <Cookies></Cookies>
     </div>
     <Popup></Popup>
+    <!-- Google One Tap -->
+
 </template>
 
 <style>

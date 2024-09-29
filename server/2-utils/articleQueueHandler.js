@@ -181,13 +181,15 @@ async function saveArticle(article) { // Returns the updated article
         eventUri: article.eventUri ? article.eventUri : null,
         drUri: null,
         // content: article.body,
+        articleCharCount: article.body.length,
         summarizedContent: article.summarizedContent,
         imageUrl: article.image,
         sentiment: article.sentiment,
         concepts: article.concepts,
         links: article.links,
-        shares: article.shares,
-        uuid: uuidValue
+        // shares: article.shares,
+        uuid: uuidValue,
+        // No need to specify engagements, it will default to { clicks: 0, shares: 0, originalArticleReads: 0 }
     })
 
     await saveDocument(a);

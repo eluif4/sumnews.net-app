@@ -1,8 +1,19 @@
 <script setup>
 import { ref, computed, watch } from 'vue';
 import { useRoute } from 'vue-router';
-import { goBack, showPopup, front_getArticlesFromDB } from '../../scripts/utility.js';
-import { shareAction, bookmarkAction, fullCoverageAction, backAction, dailyRecapAction } from '../../scripts/actions'
+import {
+    goBack,
+    showPopup,
+    front_getArticlesFromDB,
+    updateArticleEngagement
+} from '../../scripts/utility.js';
+import {
+    shareAction,
+    bookmarkAction,
+    fullCoverageAction,
+    backAction,
+    dailyRecapAction
+} from '../../scripts/actions'
 import { config } from '../../constants'
 import ActionItem from '../Action/ActionItem.vue';
 import router from '../../router';
@@ -11,6 +22,12 @@ import errorImage from '../../assets/icons/sumnews.net_banner.png'
 const route = useRoute();
 const props = defineProps({ article: Object });
 const articleRef = ref(props.article || {});
+
+const FRONTEND_URL = config.url.FRONTEND_URL
+const BACKEND_URL = config.url.BACKEND_URL
+
+// Everytime the user enters an article
+updateUserPreferences();
 
 // Check if article image is valid
 function isValidImageUrl(url) {
@@ -29,6 +46,7 @@ async function checkAndReplaceImageUrl() {
     }
 }
 
+
 checkAndReplaceImageUrl(); // Call the function to check and replace the imageUrl
 
 const isFromFullCoverage = ref(false);
@@ -37,9 +55,6 @@ const translateY = ref(0);
 const startY = ref(0);
 const THRESHOLD = 100;
 const SCREENHEIGHT = window.innerHeight;
-
-const FRONTEND_URL = config.url.FRONTEND_URL
-const BACKEND_URL = config.url.BACKEND_URL
 
 // FUNCTIONS
 const getMonthOfYear = (date) => {
@@ -159,6 +174,62 @@ const handleTransitionEnd = () => {
         }
     }
 }
+
+async function updateUserPreferences() {
+    console.log('updating user preferences');
+    var data = {
+        genres: [],
+        source: {}
+    }
+
+    if (articleRef.value.genre) {
+        articleRef.value.genre.forEach(genre => {
+            data.genres.push({
+                name: genre.toLowerCase(),  // Convert genre to lowercase
+                addClicks: 1  // Set the addClicks value (could be dynamic if needed)
+            });
+        });
+    }
+
+    // Add source to the updateObject
+    if (articleRef.value.source) {
+        data.source = {
+            name: articleRef.value.source.toLowerCase(),  // Convert source to lowercase
+            addClicks: 1  // Set the addClicks value (could be dynamic if needed)
+        };
+    }
+
+    const response = await fetch(`${BACKEND_URL}user/updatePreferences`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+        },
+        body: JSON.stringify(data)
+    })
+}
+
+const timeSaved = computed(() => {
+    const AVG_WPM = 238;
+    const AVGCHAR_PER_WORD = 4.7;
+
+    const charCountInArticle = articleRef.value.articleCharCount || 0;
+    const charCountInSummary = articleRef.value.summarizedContent.length || 0;
+
+    // Calculate reading time in minutes
+    const articleReadingTime = charCountInArticle / (AVGCHAR_PER_WORD * AVG_WPM / 60);
+    const summaryReadingTime = charCountInSummary / (AVGCHAR_PER_WORD * AVG_WPM / 60);
+
+    // Time saved
+    return (articleReadingTime - summaryReadingTime).toFixed(2);
+})
+
+// Computed property to format time saved
+const formattedTimeSaved = computed(() => {
+    return timeSaved.value > 60
+        ? `${Math.round((timeSaved.value / 60) * 2) / 2} minute${Math.round(timeSaved.value * 2) / 2 > 1 ? 's' : ''}`
+        : `${timeSaved.value} second${timeSaved.value > 1 ? 's' : ''}`;
+});
 </script>
 
 <template>
@@ -198,6 +269,11 @@ const handleTransitionEnd = () => {
                     {{ articleRef.author.length === 0 ? "" : "By: " + articleRef.author.join(', ') }}
                 </div>
                 <div class="source-date">{{ articleRef.source }}, {{ formattedDate }}</div>
+            </div>
+
+            <!-- TIME SAVED -->
+            <div class="time-saved">
+                {{ formattedTimeSaved }} saved
             </div>
             <!-- SUMMARIZED CONTENT -->
             <div class="summarized-content" v-html="formattedSummarizedContent"></div>
@@ -246,7 +322,8 @@ const handleTransitionEnd = () => {
             </div> -->
 
             <!-- READ ORIGINAL ARTICLE -->
-            <a :href="articleRef.url" target="_blank" rel="noopener noreferrer" class="original-article-link">
+            <a :href="articleRef.url" @click="updateArticleEngagement(articleRef, 'originalArticleReads')"
+                target="_blank" rel="noopener noreferrer" class="original-article-link">
                 <div class="original-article-container">
                     Read original article
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 12 12" fill="none">

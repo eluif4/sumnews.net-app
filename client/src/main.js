@@ -1,9 +1,10 @@
 import './global.css';
 import { ref, reactive, createApp, watch } from 'vue';
 import { config } from './constants'
-
+import { fetchProtectedResource } from './scripts/utility';
 import App from './App.vue';
-import router from './router'
+import router from './router';
+import vue3GoogleLogin from 'vue3-google-login';
 
 const FRONTEND_URL = config.url.FRONTEND_URL
 const BACKEND_URL = config.url.BACKEND_URL
@@ -75,6 +76,45 @@ else if (!allSourcesInLocalStorage || genresDiffInDays > 1) {
     })
 }
 
+// Get loggin user information from DB. If no user / fault token is found return null
+async function getUser() {
+  var authToken = localStorage.getItem('authToken');
+  if (authToken) {
+    var response = await fetch(`${BACKEND_URL}user`, {
+      method: 'GET',
+      headers: {
+        "Content-type": "application/json",
+        "Authorization": `Bearer ${authToken}`
+      }
+    });
+
+    // Check if the response is forbidden (status 403)
+    if (response.status === 403) {
+      console.error("User doesnt exist");
+      // Handle the forbidden case, e.g., return an error message or redirect the user
+      return null; // Stop further execution if needed
+    }
+    else if (response.status === 404) {
+      localStorage.removeItem('authToken');
+      return null;
+    }
+    else {
+      const userObject = await response.json();
+      return userObject.user;
+    }
+  }
+  else {
+    return null;
+  }
+}
+
+export const userProfile = reactive({ user: null }); // Empty user on setup
+
+// Fetch the user and assign the result to the reactive userProfile
+getUser().then(user => {
+  userProfile.user = user; // Update userProfile with fetched user data
+});
+
 // ----- POPUP PROPERTIES -----
 export const PopupAttributes = reactive({
   show: false,
@@ -112,5 +152,8 @@ window.addEventListener("beforeinstallprompt", (event) => {
   showPWA.value = true
 });
 
+app.use(vue3GoogleLogin, {
+  clientId: "460348077182-hfarubd5kv9mhq03e4g1ugfcjeopeo4m.apps.googleusercontent.com"
+});
 app.use(router);
 app.mount('#app');

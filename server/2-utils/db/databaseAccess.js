@@ -1,6 +1,7 @@
 const Article = require("../../4-models/articles")
-// const User = require("../../4-models/users")
+const User = require("../../4-models/users")
 const Source = require('../../4-models/sources')
+const Genre = require('../../4-models/genres')
 const Event = require('../../4-models/events')
 
 // const { MongoClient } = require('mongodb')
@@ -8,8 +9,10 @@ const { mongoose } = require('../../config/dbconfig')
 const { handleError } = require('../../3-middleware/errorHandler')
 const kleur = require('kleur')
 const DailyRecap = require("../../4-models/dailyRecap")
+const { articleScore } = require('../personalizedFeed')
 
 const db = mongoose.connection;
+var oldestArticleDateFromScoring = new Date();
 
 // ----- ARTICLES -----
 async function saveToDB(article) { //SAVES THE GIVEN ARTICLE TO DB WITH ALL RELEVANT METADATA ABOUT IT
@@ -33,12 +36,12 @@ async function saveDocument(document) {
     console.log(`Document saved to '${document.collection.name}' collection`)
 }
 
-async function getArticlesFromDB(filter, project, sort, /*collation,*/ skip, limit) {
+async function getArticlesFromDB(filter, project, sort, /*collation,*/ skip, limit, select = []) {
     //GETS ARTICLES FROM DB ACCORDING TO PARAMS
     try {
-        return await Article.find(filter, project).sort(sort)./*collation(collation).*/skip(skip).limit(limit)
+        return await Article.find(filter, project).sort(sort).skip(skip).limit(limit).select(select);
     } catch (error) {
-        console.error(`Couldn't get articles from db`, error)
+        console.error(`Couldn't get articles from db`, error);
     }
 }
 
@@ -61,19 +64,6 @@ async function articlesSinceYesterday() {
 
     var articles = [];
     try {
-        // var query = {
-        //     "datePublished": {
-        //         "$gte": yesterdayFormatted,
-        //         "$lt": todayFormatted
-        //     }
-        // };
-
-        // var options = {
-        //     sort: {"datePublished": -1},
-        //     projection: {_id: 1, url: 1}
-        // };
-
-        // articles = await Article.find(query, options);
         articles = await Article.find({
             "datePublished": {
                 "$gte": yesterdayFormatted,
@@ -151,6 +141,198 @@ async function saveUserToDB(user) {
         console.log(`User saved successfully`)
     } catch (error) {
         console.error(`Couldn't save user to db`)
+    }
+}
+
+async function processUser(userDetails) {
+    try {
+        const { email, name, given_name, family_name, sub, picture } = userDetails; // Extract essential user info
+        // Check if the user already exists in the database
+        var user = await User.findOne({ googleId: sub });
+        if (!user) {
+            var dbsources = await Source.find().select('source'); // Get all sources from db
+            var dbgenres = await Genre.find().select('genre'); // Get all genres from db
+
+            // Create usergenres as an array of objects
+            var usergenres = dbgenres.map(curGenre => ({
+                name: curGenre.genre.toLowerCase(), // Convert genre name to lowercase
+                clicks: 0 // Initialize clicks with 0
+            }));
+
+            // Create usersources as an array of objects
+            var usersources = dbsources.map(curSource => ({
+                name: curSource.source.toLowerCase(), // Convert source name to lowercase
+                clicks: 0 // Initialize clicks with 0
+            }));
+
+            // If the user doesn't exist, create a new one
+            user = new User({
+                email: email,
+                googleId: sub,
+                name: name,
+                given_name: given_name,
+                family_name: family_name,
+                picture: picture,
+                createdDate: new Date(),
+                bookmarks: [],
+                preferences: {
+                    sources: usersources,
+                    genres: usergenres,
+                }
+            })
+
+            await saveDocument(user); // Save the user to the database
+        }
+        return user;
+    } catch (error) {
+        console.error('Error handling Google authentication:', error);
+        return null;
+    }
+}
+
+async function getUserBookmarks(googleId) {
+    try {
+        const user = await User.findOne({ googleId: googleId }, { bookmarks: 1, _id: 0 });
+        const articles = await Article.find({
+            uuid: { $in: user.bookmarks }
+        });
+        return articles;
+    } catch (error) {
+        console.error('Error fetching bookmarks:', error)
+        throw error;
+    }
+}
+
+async function addArticleToBookmarks(googleId, articleuuid) {
+    try {
+        await User.updateOne(
+            { googleId: googleId },                   // Query to find the user by googleId
+            { $addToSet: { bookmarks: articleuuid } } // Add articleuuid to the bookmarks array
+        );
+    } catch (error) {
+        console.error('Failed to save article to bookmark', error);
+    }
+}
+
+async function removeArticleToBookmarks(googleId, articleuuid) {
+    try {
+        await User.updateOne(
+            { googleId: googleId },
+            { $pull: { bookmarks: articleuuid } }
+        )
+    } catch (error) {
+        console.error('Failed to remove article from bookmark', error);
+    }
+}
+
+async function getUserFeed(googleId, articlesInFeed = []) {
+    // WEIGHTS
+    const WEIGHTS = {
+        GENRES: 1.5,
+        SOURCE: 1,
+        SMOOTHNESS: 1,
+        EXPLORATION: 0.2,
+        ENGAGEMENT: 0.5,
+    }
+
+    const N = 50;
+
+    try {
+        const user = await User.findOne({ googleId: googleId });
+        if (!user) {
+            console.log('User not found')
+            return [];
+        }
+
+        // Get articles from N hours ago that arent already in the feed
+        const articles = await Article.find({
+            datePublished: { $lt: oldestArticleDateFromScoring },
+            uuid: { $nin: articlesInFeed }
+        })
+            .sort({ datePublished: -1 })
+            .limit(N)
+            .select(['genre', 'source', 'uuid', 'datePublished', 'title', 'engagements']);
+
+        if (articlesInFeed.length > 0) {
+            oldestArticleDateFromScoring = new Date(articles[articlesInFeed.length > 11 ? 10 : articlesInFeed.length].datePublished);
+        }
+        else {
+            oldestArticleDateFromScoring = new Date()
+        }
+
+        if (!user.preferences) {
+            console.log('User preferences not found')
+            return [];
+        }
+
+        const scoredArticles = articles.map(article => {
+            var articleScoreVal = articleScore(article, user.preferences, WEIGHTS);
+
+            return {
+                ...article.toObject(),
+                relevancescore: articleScoreVal
+            };
+        })
+
+        // Sort articles by their relevanceScore in descneding order
+        scoredArticles.sort((a, b) => b.relevancescore - a.relevancescore);
+
+        // Get the top 10 articles
+        const top10Articles = scoredArticles.slice(0, 10);
+
+        // Extract UUIDs from the top 10 articles
+        const articleIds = top10Articles.map(article => article.uuid);
+
+        // Find all articles from the database where the article ID is in `articleIds`
+        const returnArticles = await Article.find({ uuid: { $in: articleIds } }).select(['-concepts', '-links', '-sentiment']);
+        // Return the sorted articles to the frontend
+        return returnArticles;
+
+    } catch (error) {
+        console.log('Failed to fetch personalized feed', error)
+        return [];
+    }
+}
+
+async function updateUserPreferences(googleId, updateBody) {
+    try {
+        const bulkUpdate = [];
+
+        // Update clicks for genres
+        updateBody.genres.forEach((genre) => {
+            bulkUpdate.push({
+                updateOne: {
+                    filter: { googleId: googleId, 'preferences.genres.name': genre.name.toLowerCase() },
+                    update: {
+                        $inc: {
+                            'preferences.genres.$.clicks': genre.addClicks,
+                            'preferences.totalGenreClicks': genre.addClicks
+                        }
+                    }
+                }
+            });
+        });
+
+        // Update clicks for the source
+        if (updateBody.source) {
+            bulkUpdate.push({
+                updateOne: {
+                    filter: { googleId: googleId, 'preferences.sources.name': updateBody.source.name.toLowerCase() },
+                    update: {
+                        $inc: {
+                            'preferences.sources.$.clicks': updateBody.source.addClicks,
+                            'preferences.totalSourceClicks': updateBody.source.addClicks
+                        }
+                    }
+                }
+            });
+        }
+
+        // Perform the bulk update operation
+        const updatedUser = await User.bulkWrite(bulkUpdate);
+
+    } catch (error) {
+        console.error('Failed to update user', error)
     }
 }
 
@@ -285,7 +467,7 @@ async function getDailyRecap(id) {
                 'sourceLogo': 1
             }
         }
-    ];    
+    ];
 
     if (id) {
         pipeline.unshift(match);
@@ -345,6 +527,16 @@ async function getDailyRecapButtons() {
     }
 }
 
+async function updateArticleEngagement(articleuuid, engagementType) {
+    const update = {};
+    update[`engagements.${engagementType}`] = 1;
+
+    await Article.updateOne(
+        { uuid: articleuuid },
+        { $inc: update }
+    );
+}
+
 module.exports = {
     saveToDB,
     saveDocument,
@@ -356,6 +548,12 @@ module.exports = {
     BM25,
     getUser,
     saveUserToDB,
+    processUser,
+    getUserBookmarks,
+    addArticleToBookmarks,
+    removeArticleToBookmarks,
+    getUserFeed,
+    updateUserPreferences,
     aggregate,
     getSourcesLogo,
     getAllSources,
@@ -363,4 +561,5 @@ module.exports = {
     getEventByEventUri,
     getDailyRecap,
     getDailyRecapButtons,
+    updateArticleEngagement,
 };
