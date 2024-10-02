@@ -68,7 +68,7 @@ function formatDate(isoDateString) {
 async function createDailyRecapImage(genres, title, date, summarizedContent, imageUrl, nSources) {
     try {
         // Trim HTML tags from the summarizedContent before uploading to story
-        var cleanedSummarizedContent = summarizedContent.replace(/<[^>]*>.*?<\/[^>]*>/g, '').trim();
+        var cleanedSummarizedContent = summarizedContent.replace(/<\/?[^>]+(>|$)/g, '').trim();
         // Load the image
         const image = await loadImage(imageUrl);
         const { imageWidth, imageHeight } = await loadImageDimensions(imageUrl);
@@ -270,20 +270,6 @@ async function postToInstaStory(articles) {
         console.error('Failed to upload image to instagram story', error)
     }
 };
-
-// async function uploadDailyRecapToInstagramStory(article, nSources) {
-//     console.log('Starting process')
-//     // Step 1. Create story images
-//     const image = await createDailyRecapImage(article.genre, article.title, article.datePublished, article.summarizedContent, article.imageUrl, nSources);
-
-//     // Step 4: Upload to Instagram
-//     console.log('posting to insta')
-//     await postToInstaStory(imagepath);
-
-//     // Step 5: Delete the image file
-//     console.log('deleting file')
-//     fs.unlinkSync(imagepath);
-// }
 
 module.exports = {
     postToInstaStory

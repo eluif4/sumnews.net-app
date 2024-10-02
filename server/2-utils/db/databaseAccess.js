@@ -429,56 +429,68 @@ async function getDailyRecap(id) {
 
     const pipeline = [
         {
-            '$unwind': {
-                'path': '$drEvents',
-                'preserveNullAndEmptyArrays': false
+            "$unwind": {
+                "path": "$drEvents",
+                "preserveNullAndEmptyArrays": false
             }
         },
         {
-            '$lookup': {
-                'from': 'articles',
-                'localField': 'drEvents',
-                'foreignField': 'drUri',
-                'as': 'eventArticles'
+            "$lookup": {
+                "from": "articles",
+                "localField": "drEvents",
+                "foreignField": "drUri",
+                "as": "eventArticles"
             }
         },
         {
-            '$lookup': {
-                'from': 'sources',
-                'localField': 'source',
-                'foreignField': 'source',
-                'as': 'sourceDetails'
+            "$lookup": {
+                "from": "sources",
+                "localField": "source",
+                "foreignField": "source",
+                "as": "sourceDetails"
             }
         },
         {
-            '$unwind': {
-                'path': '$sourceDetails',
-                'preserveNullAndEmptyArrays': true
+            "$unwind": {
+                "path": "$sourceDetails",
+                "preserveNullAndEmptyArrays": true
             }
         },
         {
-            '$group': {
-                '_id': '$_id',
-                'id': { '$first': '$id' },
-                'source': { '$first': '$source' },
-                'sourceLogo': { '$first': '$sourceDetails.logo' },
-                'dateCreated': { '$first': '$dateCreated' },
-                'drEvents': {
-                    '$push': {
-                        'drUri': '$drEvents',
-                        'articles': '$eventArticles'
+            "$group": {
+                "_id": "$_id",
+                "id": { "$first": "$id" },
+                "source": { "$first": "$source" },
+                "sourceLogo": { "$first": "$sourceDetails.logo" },
+                "dateCreated": { "$first": "$dateCreated" },
+                "drEvents": {
+                    "$push": {
+                        "drUri": "$drEvents",
+                        "articles": {
+                            "$let": {
+                                "vars": {
+                                    "sortedArticles": {
+                                        "$sortArray": {
+                                            "input": "$eventArticles",
+                                            "sortBy": { "datePublished": -1 }
+                                        }
+                                    }
+                                },
+                                "in": "$$sortedArticles"
+                            }
+                        }
                     }
                 }
             }
         },
         {
-            '$project': {
-                '_id': 1,
-                'id': 1,
-                'source': 1,
-                'dateCreated': 1,
-                'drEvents': 1,
-                'sourceLogo': 1
+            "$project": {
+                "_id": 1,
+                "id": 1,
+                "source": 1,
+                "dateCreated": 1,
+                "drEvents": 1,
+                "sourceLogo": 1
             }
         }
     ];
