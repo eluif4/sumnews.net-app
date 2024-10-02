@@ -110,9 +110,9 @@ async function processEvent(article) {
 
         const cachedSources = cache.get('sources');
         var allSources = cachedSources ? cachedSources : await getAllSources();
+        var sources = allSources.map(source => source.source)
 
         const eventUri = article.eventUri;
-        var sources = allSources.map(source => source.source)
         var articleEventsAddedToQueueCount = 0;
 
         /* 
@@ -121,45 +121,49 @@ async function processEvent(article) {
         I filter out most of the articles due to source and langauge therefore leaving me with only a fue dozen articles per event
         */
         try {
-            var response = await getArticlesFromEvent(eventUri); // I dont get the event her but instead get Articles from the event.
-            // I need to call POSThttps://eventregistry.org/api/v1/event/getEvent to get information about the event. Usefule for when saving an event
+            var response = await getArticlesFromEvent(eventUri); // I dont get the event here but instead get Articles from the event.
+            // I need to call POST https://eventregistry.org/api/v1/event/getEvent to get information about the event. Usefule for when saving an event
 
-            var eventArticles = response[eventUri].articles.results;
-            eventArticles = eventArticles.filter(item => item.url !== article.url);
-            // Remove the current url from the eventArticles array
-            // const dequeuedArticle = eventArticles.shift()
-            // Loop over articles from event to see if they are from a source in my DB
-            for (const articleEvent of eventArticles) {
-                // If articleEvent is from source in DB add the articleEvent to articleQueue
-                // If isnt the current url and is an article from the sources
-                if (articleContainsSource(articleEvent, sources) && !articleQueue.exist(articleEvent) && !bulkSendArticlesToGeminiQueue.exist(articleEvent)) {
-                    bulkSendArticlesToGeminiQueue.enqueue(articleEvent);
-                    articleEventsAddedToQueueCount++;
-                    console.log(`Event Article ${articleEvent.url} has been added to 'bulkSendArticlesToGeminiQueue' (${bulkSendArticlesToGeminiQueue.size()}/10)`)
+            if (!response.error) {
+                var eventArticles = response[eventUri].articles.results;
+                // Remove the current url from the eventArticles array
+                eventArticles = eventArticles.filter(item => item.url !== article.url);
+                // Loop over articles from event to see if they are from a source in my DB
+                for (const articleEvent of eventArticles) {
+                    // If articleEvent is from source in DB add the articleEvent to articleQueue
+                    // If isnt the current url and is an article from the sources
+                    if (articleContainsSource(articleEvent, sources) && !articleQueue.exist(articleEvent) && !bulkSendArticlesToGeminiQueue.exist(articleEvent)) {
+                        bulkSendArticlesToGeminiQueue.enqueue(articleEvent);
+                        articleEventsAddedToQueueCount++;
+                        console.log(`Event Article ${articleEvent.url} has been added to 'bulkSendArticlesToGeminiQueue' (${bulkSendArticlesToGeminiQueue.size()}/10)`)
+                    }
                 }
+                console.log(kleur.green(`${articleEventsAddedToQueueCount}/${eventArticles.length} articles added to queue from event ${eventUri}`))
+            } else {
+                throw new Error(`Failed to get articles from event: ${response.error}`);
             }
-            console.log(kleur.green(`${articleEventsAddedToQueueCount}/${eventArticles.length} articles added to queue from event ${eventUri}`))
+
+            const e = new Event({
+                eventUri: eventUri,
+                articlesCount: response[eventUri].articles.totalResults ? response[eventUri].articles.totalResults : -1,
+                // FUTURE CHANGE: THE NUMBER BELOW ISNT CORRECT. SOME ARTICLES ARENT SAVE TO DB
+                articlesSaved: articleEventsAddedToQueueCount,
+                dateCreated: new Date(),
+                // socialScore: response[eventUri].socialScore,
+                // sentiment: response[eventUri].sentiment,
+                // summary: response[eventUri].summary,
+                // concepts: response[eventUri].concepts,
+            })
+
+            // Save event (e) to DB if there are more than 1 articles in the full coverage
+            if (articleEventsAddedToQueueCount >= 1)
+                await saveDocument(e);
+
+            return articleEventsAddedToQueueCount >= 1;
         } catch (error) {
             console.error(`Error processing event`, error)
+            return false;
         }
-
-        const e = new Event({
-            eventUri: eventUri,
-            articlesCount: response[eventUri].articles.totalResults,
-            // FUTURE CHANGE: THE NUMBER BELOW ISNT CORRECT. SAME ARTICLES ARENT SAVE TO DB
-            articlesSaved: articleEventsAddedToQueueCount,
-            dateCreated: new Date(),
-            // socialScore: response[eventUri].socialScore,
-            // sentiment: response[eventUri].sentiment,
-            // summary: response[eventUri].summary,
-            // concepts: response[eventUri].concepts,
-        })
-
-        // Save event (e) to DB if there are more than 1 articles in the full coverage
-        if (articleEventsAddedToQueueCount >= 1)
-            await saveDocument(e);
-
-        return articleEventsAddedToQueueCount >= 1;
     } else {
         return true
     }
