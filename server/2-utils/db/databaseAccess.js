@@ -28,8 +28,6 @@ async function saveToDB(article) { //SAVES THE GIVEN ARTICLE TO DB WITH ALL RELE
 }
 
 async function saveDocument(document) {
-    // console.log(kleur.bold(`Saving ${document.collection.modelName} into '${document.collection.name}' collection`));
-
     // await client.connect();
     const collection = db.collection(document.collection.name);
     await collection.insertOne(document);
@@ -46,8 +44,24 @@ async function getArticlesFromDB(filter, project, sort, /*collation,*/ skip, lim
 }
 
 async function doesArticleExist(article) {
-    const articles = await getArticlesFromDB({ "url": article.url })
-    return articles.length > 0
+    try {
+        const { url, title } = article;
+
+        // Check if an article with the given URL or title exists
+        // Checking these two values should mitigate duplicates from the site
+        const existingArticle = await Article.findOne({
+            $or: [
+                { url: url },    // Check if the URL exists
+                { title: title } // Check if the title exists
+            ]
+        });
+
+        // Return true if the article exists, otherwise false
+        return !!existingArticle;
+    } catch (error) {
+        console.error("Error checking if article exists:", error);
+        return false;
+    }
 }
 
 async function articlesSinceYesterday() {
