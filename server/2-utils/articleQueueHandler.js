@@ -25,8 +25,8 @@ async function processQueue() {
             while (bulkSendArticlesToGeminiQueue.size() < BULK_SEND_ARTICLE_QUEUE_SIZE && !articleQueue.isEmpty()) {
                 const article = articleQueue.dequeue();
                 if (article.url) { // If is a real article
-                    // Check for an event, adds all articles in found event to queue and save event to DB
-                    if (article.eventUri) {
+                    // Check for an english event, adds all articles in event to queue and save event to DB
+                    if (article.eventUri && article.eventUri.includes('eng-')) {
                         const eventIsMoreThan1Article = await processEvent(article)
                         if (!eventIsMoreThan1Article)
                             article.eventUri = null;
