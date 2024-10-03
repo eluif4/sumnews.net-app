@@ -2,9 +2,12 @@ const { createCanvas, loadImage, registerFont } = require('canvas');
 const fs = require('fs');
 const { IgApiClient } = require('instagram-private-api');
 
+const IG_USERNAME = process.env.IG_USERNAME;
+const IG_PASSWORD = process.env.IG_PASSWORD;
+
 const imagepath = './story_output.png';
 
-registerFont('./server/fonts/Bitter-Regular.ttf', { family: 'Bitter' });
+// registerFont('./server/fonts/Bitter-Regular.ttf', { family: 'Bitter' });
 // ----- CANVAS CREATION -----
 // Define canvas dimensions
 const width = 1080;
@@ -268,16 +271,13 @@ function sleep(ms) {
 
 // ----- INSTAGRAM STORY CREATION -----
 async function postToInstaStory(articles) {
-    const IG_USERNAME = process.env.IG_USERNAME;
-    const IG_PASSWORD = process.env.IG_PASSWORD;
-
     console.log('Connecting to ' + IG_USERNAME + ' account...');
     const ig = new IgApiClient();
     ig.state.generateDevice(IG_USERNAME);
     await ig.account.login(IG_USERNAME, IG_PASSWORD);
 
     console.log('Connected...')
-    
+
     try {
         for (const article of articles) {
             // Sleep for a random time between 10 to 30 seconds
@@ -324,64 +324,3 @@ async function postToInstaStory(articles) {
 module.exports = {
     postToInstaStory
 }
-
-const articles2 = [{
-    "title": "Opinion | North Carolinians need help. Trump is feeding them lies.",
-    "datePublished": {
-        "$date": "2024-10-03T16:36:59.000Z"
-    },
-    "genre": [
-        "Politics",
-        "Opinion"
-    ],
-    "summarizedContent": "Following Hurricane Helene's devastating impact on North Carolina, Donald Trump is spreading misinformation about the recovery efforts led by Democrats. Trump claims Biden was \"sleeping\" and that government officials were \"going out of their way to not help people in Republican areas.\" However, federal aid has been flowing in since Saturday, a day after the storm, and Biden visited North Carolina on Wednesday. <quote>\"At a time like this, when a crisis hits, when our fellow citizens cry out in need ... We are not talking about politics,\"</quote> Trump said Monday. <quote>\"Then he immediately made it about politics,\"</quote> the author writes. North Carolina needs more help, but it's not nothing. The author calls out Trump and his MAGA allies for their hypocrisy and using the disaster for political gain.",
-    "imageUrl": "https://media-cldnry.s-nbcnews.com/image/upload/t_nbcnews-fp-1024-512,f_auto,q_auto:best/rockcms/2024-10/241002-donald-trump-ew-557p-3ab8ec.jpg"
-},
-{
-    "title": "Israel Strikes Hezbollah as Biden Comments Send Oil Surging",
-    "datePublished": {
-        "$date": "2024-10-03T17:03:31.000Z"
-    },
-    "genre": [
-        "World",
-        "Politics",
-        "Business & Finance"
-    ],
-    "summarizedContent": "Israel continues its offensive against Hezbollah militants in Lebanon with clashes in the south and airstrikes targeting Beirut. President Biden's comments on the potential for US support of attacks on Iranian oil facilities fueled uncertainty about the scope of Israel's retaliation for an earlier Iranian missile strike.  The article details the ongoing conflict, highlighting the international focus on Israel's response to the Iranian attack and the potential for a wider regional war.",
-    "imageUrl": "https://media.zenfs.com/en/bloomberg_markets_842/c5d26207aef1f2962bd24df45fd130b0"
-},
-{
-    "title": "It's International Coffee Day and Breville's new bundle will make you...",
-    "datePublished": {
-        "$date": "2024-10-01T14:38:11.000Z"
-    },
-    "genre": [
-        "Shopping"
-    ],
-    "summarizedContent": "Breville has launched a new \"Fast-Track Barista Pack\" that includes an espresso or coffee machine, two bags of premium coffee beans, and access to video tutorials. The bundle is designed to help people create café-quality beverages at home. <quote>\"This isn't just about selling you a shiny new gadget; it's about transforming you, yes YOU, into a bona fide home barista.\"</quote>  The pack includes Breville's 4 Keys Formula for making the perfect cup of coffee. ",
-    "imageUrl": "https://nypost.com/wp-content/uploads/sites/2/2024/09/brevillefasttracklead.jpg?quality=75&strip=all&w=1024"
-},
-{
-    "title": "FIFA News - International Football Results, Fixtures, Scores, Stats, and Rumors - The Athletic",
-    "datePublished": {
-        "$date": "2024-10-03T13:43:43.000Z"
-    },
-    "genre": [
-        "Sports"
-    ],
-    "summarizedContent": "Kylian Mbappe has been ruled out of France's upcoming Nations League fixtures due to a thigh injury sustained during Real Madrid's 3-2 victory against Alaves in La Liga on September 24. While Mbappe made a quick recovery and appeared as a substitute in Madrid's Champions League defeat at Lille, he is expected to miss the international matches.",
-    "imageUrl": "https://theathletic.com/app/themes/athletic/assets/img/open-graph-asset.png"
-},
-{
-    "title": "Iran may be behind attacks on Israeli embassies, Sweden says",
-    "datePublished": {
-        "$date": "2024-10-03T17:26:42.000Z"
-    },
-    "genre": [
-        "World"
-    ],
-    "summarizedContent": "Sweden has accused Iran of being behind a series of attacks on Israeli embassies in the country. Two explosions were reported near the Israeli embassy in central Copenhagen in the early hours of Wednesday. Two Swedish teenagers aged 16 and 19 were arrested at the Copenhagen train station later that afternoon. They were charged with possessing hand grenades and denotating them near the embassy. This is not the first time that incidents of this kind take place near Israeli embassies in a Nordic capital. In January, a \"dangerous object\" was found outside the Israeli embassy in Stockholm and destroyed in what the Israeli ambassador called an \"attempted attack\".",
-    "imageUrl": "https://ichef.bbci.co.uk/news/1024/branded_news/e261/live/986ec910-81ac-11ef-b9cf-b3b8b58e312b.jpg"
-}]
-
-postToInstaStory(articles2);
