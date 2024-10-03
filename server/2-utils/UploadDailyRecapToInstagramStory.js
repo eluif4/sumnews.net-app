@@ -1,6 +1,7 @@
 const { createCanvas, loadImage, registerFont } = require('canvas');
 const { IgApiClient } = require('instagram-private-api');
 const fs = require('fs');
+const nodemailer = require('nodemailer');  // Assuming you're using nodemailer for emails
 
 const IG_USERNAME = process.env.IG_USERNAME;
 const IG_PASSWORD = process.env.IG_PASSWORD;
@@ -195,9 +196,9 @@ async function createDailyRecapImage(genres, title, date, summarizedContent, ima
         ctx.fillStyle = genreBgColor;
         ctx.textAlign = 'center';
         ctx.textBaseline = 'bottom';
-        const articleText = nSources === 1
-            ? 'One article covers this event'
-            : `${nSources} articles cover this event`;
+        // const articleText = nSources === 1
+        //     ? 'One article covers this event'
+        //     : `${nSources} articles cover this event`;
         ctx.fillText(articleText, width / 2, height - 40); // Moved up by 30px
 
         // Save canvas to a file
@@ -209,7 +210,7 @@ async function createDailyRecapImage(genres, title, date, summarizedContent, ima
 }
 
 // Helper function to wrap text into lines with a maximum of 15 lines
-function wrapText(ctx, text, maxWidth, maxLines = 12) {
+function wrapText(ctx, text, maxWidth, maxLines = 15) {
     const words = text.split(' ');
     let lines = [];
     let currentLine = words[0];
@@ -240,16 +241,43 @@ function wrapText(ctx, text, maxWidth, maxLines = 12) {
     return lines;
 }
 
+// Function to sleep for a random time between min and max seconds
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+
+// Function to send email notification
+// async function sendFailureEmail(subject, message) {
+//     // Configure nodemailer (assuming Gmail, but you can use any email service)
+//     let transporter = nodemailer.createTransport({
+//         service: 'gmail',
+//         auth: {
+//             user: process.env.EMAIL_USER, // Your email
+//             pass: process.env.EMAIL_PASS  // Your email password
+//         }
+//     });
+
+//     // Send the email
+//     let info = await transporter.sendMail({
+//         from: `"Sumnews.net App" <${process.env.EMAIL_USER}>`,  // Sender address
+//         to: `${process.env.EMAIL_USER}`,  // Your email address to receive the notification
+//         subject: subject,
+//         text: message
+//     });
+
+//     console.log('Error notification email sent:', info.response);
+// }
+
 // ----- INSTAGRAM STORY CREATION -----
 async function postToInstaStory(articles) {
     try {
-        console.log('Connecting to ' + IG_USERNAME + ' account...');
-        const ig = new IgApiClient();
-        ig.state.generateDevice(IG_USERNAME);
-        await ig.account.login(IG_USERNAME, IG_PASSWORD);
-
-        console.log('Connected...')
         for (const article of articles) {
+            // Sleep for a random time between 10 to 30 seconds
+            const randomDelay = Math.floor(Math.random() * (30000 - 10000 + 1)) + 10000;
+            console.log(`Waiting for ${randomDelay / 1000} seconds before uploading the next story...`);
+            await sleep(randomDelay);
+            
             console.log('Creating image')
             console.log(article.title, article.imageUrl)
             await createDailyRecapImage(article.genre, article.title, article.datePublished, article.summarizedContent, article.imageUrl, articles.length);
@@ -263,7 +291,22 @@ async function postToInstaStory(articles) {
                 console.log('Deleting image')
                 fs.unlinkSync(imagepath);
             } catch (error) {
-                console.error('Error posting story to Instagram:', error);
+                // Handle IgCheckpointError specifically
+                if (error.name === 'IgCheckpointError') {
+                    console.error('Instagram checkpoint challenge detected:', error);
+                    try {
+                        // Try to solve it automatically
+                        await ig.challenge.auto(true);
+                        console.log('Challenge solved automatically.');
+                    } catch (challengeError) {
+                        console.error('Failed to solve Instagram challenge:', challengeError);
+                        // Send email if the challenge cannot be resolved
+                        // await sendFailureEmail('Failed to solve Instagram challenge', challengeError.message);
+                    }
+                } else {
+                    console.error('Error posting story to Instagram:', error);
+                    // await sendFailureEmail('Failed to upload Instagram story', challengeError.message);
+                }
             }
         }
     } catch (error) {
@@ -275,12 +318,63 @@ module.exports = {
     postToInstaStory
 }
 
-// Example usage
-// createDailyRecapImage(
-//     ['NEWS', 'TECHNOLOGY', 'SPORTS'],
-//     'Basketball Hall of Famer Alvin Attles dies at 87',
-//     'September 13, 2024',
-//     'Golden State Warriors legend and Basketball Hall of Famer Alvin Attles has died at the age of 87. Attles did not just epitomize what it meant to be a Warrior -- he was Mr. Warrior, the team said in a statement announcing his death. Attles, who played for the Warriors in Philadelphia and Oakland, went on to coach the team and later became its general manager. He had been the longest-tenured employee in the Warriors organization. Attles was inducted into the Naismith Memorial Basketball Hall of Fame in 2019 as a contributor. He was known for his defensive prowess as a player and his ability to connect with players as a coach. Attles led the Warriors to their first championship in 1975, becoming the second Black head coach to win an NBA title.',
-//     7,
-//     'https://cdn.theathletic.com/app/uploads/2024/08/21125701/USATSI_18569373-scaled.jpg'
-// ).catch(console.error);
+const articles2 = [{
+    "title": "Opinion | North Carolinians need help. Trump is feeding them lies.",
+    "datePublished": {
+        "$date": "2024-10-03T16:36:59.000Z"
+    },
+    "genre": [
+        "Politics",
+        "Opinion"
+    ],
+    "summarizedContent": "Following Hurricane Helene's devastating impact on North Carolina, Donald Trump is spreading misinformation about the recovery efforts led by Democrats. Trump claims Biden was \"sleeping\" and that government officials were \"going out of their way to not help people in Republican areas.\" However, federal aid has been flowing in since Saturday, a day after the storm, and Biden visited North Carolina on Wednesday. <quote>\"At a time like this, when a crisis hits, when our fellow citizens cry out in need ... We are not talking about politics,\"</quote> Trump said Monday. <quote>\"Then he immediately made it about politics,\"</quote> the author writes. North Carolina needs more help, but it's not nothing. The author calls out Trump and his MAGA allies for their hypocrisy and using the disaster for political gain.",
+    "imageUrl": "https://media-cldnry.s-nbcnews.com/image/upload/t_nbcnews-fp-1024-512,f_auto,q_auto:best/rockcms/2024-10/241002-donald-trump-ew-557p-3ab8ec.jpg"
+},
+{
+    "title": "Israel Strikes Hezbollah as Biden Comments Send Oil Surging",
+    "datePublished": {
+        "$date": "2024-10-03T17:03:31.000Z"
+    },
+    "genre": [
+        "World",
+        "Politics",
+        "Business & Finance"
+    ],
+    "summarizedContent": "Israel continues its offensive against Hezbollah militants in Lebanon with clashes in the south and airstrikes targeting Beirut. President Biden's comments on the potential for US support of attacks on Iranian oil facilities fueled uncertainty about the scope of Israel's retaliation for an earlier Iranian missile strike.  The article details the ongoing conflict, highlighting the international focus on Israel's response to the Iranian attack and the potential for a wider regional war.",
+    "imageUrl": "https://media.zenfs.com/en/bloomberg_markets_842/c5d26207aef1f2962bd24df45fd130b0"
+},
+{
+    "title": "It's International Coffee Day and Breville's new bundle will make you...",
+    "datePublished": {
+        "$date": "2024-10-01T14:38:11.000Z"
+    },
+    "genre": [
+        "Shopping"
+    ],
+    "summarizedContent": "Breville has launched a new \"Fast-Track Barista Pack\" that includes an espresso or coffee machine, two bags of premium coffee beans, and access to video tutorials. The bundle is designed to help people create café-quality beverages at home. <quote>\"This isn't just about selling you a shiny new gadget; it's about transforming you, yes YOU, into a bona fide home barista.\"</quote>  The pack includes Breville's 4 Keys Formula for making the perfect cup of coffee. ",
+    "imageUrl": "https://nypost.com/wp-content/uploads/sites/2/2024/09/brevillefasttracklead.jpg?quality=75&strip=all&w=1024"
+},
+{
+    "title": "FIFA News - International Football Results, Fixtures, Scores, Stats, and Rumors - The Athletic",
+    "datePublished": {
+        "$date": "2024-10-03T13:43:43.000Z"
+    },
+    "genre": [
+        "Sports"
+    ],
+    "summarizedContent": "Kylian Mbappe has been ruled out of France's upcoming Nations League fixtures due to a thigh injury sustained during Real Madrid's 3-2 victory against Alaves in La Liga on September 24. While Mbappe made a quick recovery and appeared as a substitute in Madrid's Champions League defeat at Lille, he is expected to miss the international matches.",
+    "imageUrl": "https://theathletic.com/app/themes/athletic/assets/img/open-graph-asset.png"
+},
+{
+    "title": "Iran may be behind attacks on Israeli embassies, Sweden says",
+    "datePublished": {
+        "$date": "2024-10-03T17:26:42.000Z"
+    },
+    "genre": [
+        "World"
+    ],
+    "summarizedContent": "Sweden has accused Iran of being behind a series of attacks on Israeli embassies in the country. Two explosions were reported near the Israeli embassy in central Copenhagen in the early hours of Wednesday. Two Swedish teenagers aged 16 and 19 were arrested at the Copenhagen train station later that afternoon. They were charged with possessing hand grenades and denotating them near the embassy. This is not the first time that incidents of this kind take place near Israeli embassies in a Nordic capital. In January, a \"dangerous object\" was found outside the Israeli embassy in Stockholm and destroyed in what the Israeli ambassador called an \"attempted attack\".",
+    "imageUrl": "https://ichef.bbci.co.uk/news/1024/branded_news/e261/live/986ec910-81ac-11ef-b9cf-b3b8b58e312b.jpg"
+}]
+
+postToInstaStory(articles2);
