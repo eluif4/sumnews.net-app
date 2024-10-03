@@ -31,6 +31,8 @@ async function processQueue() {
                         if (!eventIsMoreThan1Article)
                             article.eventUri = null;
                     }
+
+                    // FUTURE CHANGE: Check if articles doesnt already exist in queue
                     bulkSendArticlesToGeminiQueue.enqueue(article)
                     console.log(`(${articleQueue.size() + 1}) (${bulkSendArticlesToGeminiQueue.size()}/${BULK_SEND_ARTICLE_QUEUE_SIZE}) -> ${article.url}`)
                 }

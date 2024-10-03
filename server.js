@@ -49,8 +49,16 @@ app.use(DBGETCOLLECTIONSROUTES);
 app.use(AUTH);
 app.use(USERINFO);
 
-app.listen(port, function () {
+app.listen(port, async function () {
     console.log(`Server is running on port ${port} in DEVELOPMENT mode`);
+
+    // FUTURE CHANGE: Place this on server start
+    console.log('Connecting to ' + IG_USERNAME + ' account...');
+    const ig = new IgApiClient();
+    ig.state.generateDevice(IG_USERNAME);
+    await ig.account.login(IG_USERNAME, IG_PASSWORD);
+
+    console.log('Connected...')
 
     // Execute code after server start
     cronTask().catch(err => console.log(err))
