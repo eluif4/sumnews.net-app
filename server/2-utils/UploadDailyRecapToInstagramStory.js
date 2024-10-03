@@ -248,26 +248,26 @@ function sleep(ms) {
 
 
 // Function to send email notification
-async function sendFailureEmail(subject, message) {
-    // Configure nodemailer (assuming Gmail, but you can use any email service)
-    let transporter = nodemailer.createTransport({
-        service: 'gmail',
-        auth: {
-            user: process.env.EMAIL_USER, // Your email
-            pass: process.env.EMAIL_PASS  // Your email password
-        }
-    });
+// async function sendFailureEmail(subject, message) {
+//     // Configure nodemailer (assuming Gmail, but you can use any email service)
+//     let transporter = nodemailer.createTransport({
+//         service: 'gmail',
+//         auth: {
+//             user: process.env.EMAIL_USER, // Your email
+//             pass: process.env.EMAIL_PASS  // Your email password
+//         }
+//     });
 
-    // Send the email
-    let info = await transporter.sendMail({
-        from: `"Sumnews.net App" <${process.env.EMAIL_USER}>`,  // Sender address
-        to: `${process.env.EMAIL_USER}`,  // Your email address to receive the notification
-        subject: subject,
-        text: message
-    });
+//     // Send the email
+//     let info = await transporter.sendMail({
+//         from: `"Sumnews.net App" <${process.env.EMAIL_USER}>`,  // Sender address
+//         to: `${process.env.EMAIL_USER}`,  // Your email address to receive the notification
+//         subject: subject,
+//         text: message
+//     });
 
-    console.log('Error notification email sent:', info.response);
-}
+//     console.log('Error notification email sent:', info.response);
+// }
 
 // ----- INSTAGRAM STORY CREATION -----
 async function postToInstaStory(articles) {
@@ -301,11 +301,11 @@ async function postToInstaStory(articles) {
                     } catch (challengeError) {
                         console.error('Failed to solve Instagram challenge:', challengeError);
                         // Send email if the challenge cannot be resolved
-                        await sendFailureEmail('Failed to solve Instagram challenge', challengeError.message);
+                        // await sendFailureEmail('Failed to solve Instagram challenge', challengeError.message);
                     }
                 } else {
                     console.error('Error posting story to Instagram:', error);
-                    await sendFailureEmail('Failed to upload Instagram story', challengeError.message);
+                    // await sendFailureEmail('Failed to upload Instagram story', challengeError.message);
                 }
             }
         }
