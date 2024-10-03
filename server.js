@@ -5,8 +5,9 @@ const kleur = require('kleur');
 const dotenv = require('dotenv');
 const express = require('express');
 const cors = require('cors');
-const { BSON } = require('mongodb')
-var cache = require('memory-cache')
+const { BSON } = require('mongodb');
+var cache = require('memory-cache');
+const { IgApiClient } = require('instagram-private-api');
 
 //---CONFIG---
 dotenv.config({ path: path.resolve(__dirname, './server/config/config.env') });
@@ -53,6 +54,9 @@ app.listen(port, async function () {
     console.log(`Server is running on port ${port} in PRODUCTION mode`);
 
     // FUTURE CHANGE: Place this on server start
+    const IG_USERNAME = process.env.IG_USERNAME;
+    const IG_PASSWORD = process.env.IG_PASSWORD;
+
     console.log('Connecting to ' + IG_USERNAME + ' account...');
     const ig = new IgApiClient();
     ig.state.generateDevice(IG_USERNAME);

@@ -1,10 +1,7 @@
 const { createCanvas, loadImage, registerFont } = require('canvas');
-const { IgApiClient } = require('instagram-private-api');
 const fs = require('fs');
 const nodemailer = require('nodemailer');  // Assuming you're using nodemailer for emails
 
-const IG_USERNAME = process.env.IG_USERNAME;
-const IG_PASSWORD = process.env.IG_PASSWORD;
 const imagepath = './story_output.png';
 
 registerFont('./server/fonts/Bitter-Regular.ttf', { family: 'Bitter' });
