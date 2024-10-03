@@ -49,7 +49,7 @@ app.use(DBGETCOLLECTIONSROUTES);
 app.use(AUTH);
 app.use(USERINFO);
 
-app.listen(port, async function () {
+app.listen(port, function () {
     console.log(`Server is running on port ${port} in PRODUCTION mode`);
 
     // Execute code after server start
