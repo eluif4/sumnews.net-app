@@ -7,7 +7,6 @@ const express = require('express');
 const cors = require('cors');
 const { BSON } = require('mongodb');
 var cache = require('memory-cache');
-const { IgApiClient } = require('instagram-private-api');
 
 //---CONFIG---
 dotenv.config({ path: path.resolve(__dirname, './server/config/config.env') });
@@ -52,17 +51,6 @@ app.use(USERINFO);
 
 app.listen(port, async function () {
     console.log(`Server is running on port ${port} in DEVELOPMENT mode`);
-
-    // FUTURE CHANGE: Place this on server start
-    const IG_USERNAME = process.env.IG_USERNAME;
-    const IG_PASSWORD = process.env.IG_PASSWORD;
-
-    console.log('Connecting to ' + IG_USERNAME + ' account...');
-    const ig = new IgApiClient();
-    ig.state.generateDevice(IG_USERNAME);
-    await ig.account.login(IG_USERNAME, IG_PASSWORD);
-
-    console.log('Connected...')
 
     // Execute code after server start
     cronTask().catch(err => console.log(err))

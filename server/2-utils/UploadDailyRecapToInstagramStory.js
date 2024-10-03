@@ -1,6 +1,6 @@
 const { createCanvas, loadImage, registerFont } = require('canvas');
 const fs = require('fs');
-const nodemailer = require('nodemailer');  // Assuming you're using nodemailer for emails
+const { IgApiClient } = require('instagram-private-api');
 
 const imagepath = './story_output.png';
 
@@ -268,13 +268,23 @@ function sleep(ms) {
 
 // ----- INSTAGRAM STORY CREATION -----
 async function postToInstaStory(articles) {
+    const IG_USERNAME = process.env.IG_USERNAME;
+    const IG_PASSWORD = process.env.IG_PASSWORD;
+
+    console.log('Connecting to ' + IG_USERNAME + ' account...');
+    const ig = new IgApiClient();
+    ig.state.generateDevice(IG_USERNAME);
+    await ig.account.login(IG_USERNAME, IG_PASSWORD);
+
+    console.log('Connected...')
+    
     try {
         for (const article of articles) {
             // Sleep for a random time between 10 to 30 seconds
             const randomDelay = Math.floor(Math.random() * (30000 - 10000 + 1)) + 10000;
             console.log(`Waiting for ${randomDelay / 1000} seconds before uploading the next story...`);
             await sleep(randomDelay);
-            
+
             console.log('Creating image')
             console.log(article.title, article.imageUrl)
             await createDailyRecapImage(article.genre, article.title, article.datePublished, article.summarizedContent, article.imageUrl, articles.length);
