@@ -67,6 +67,8 @@ function formatDate(isoDateString) {
 
 async function createDailyRecapImage(genres, title, date, summarizedContent, imageUrl, nSources) {
     try {
+        // Trim HTML tags from the summarizedContent before uploading to story
+        var cleanedSummarizedContent = summarizedContent.replace(/<\/?[^>]+(>|$)/g, '').trim();
         // Load the image
         const image = await loadImage(imageUrl);
         const { imageWidth, imageHeight } = await loadImageDimensions(imageUrl);
@@ -183,7 +185,7 @@ async function createDailyRecapImage(genres, title, date, summarizedContent, ima
         ctx.font = contentFont;
         const contentYStart = dateY + 70; // Push the content down below the date
         const contentMaxWidth = width - 80;
-        const contentLines = wrapText(ctx, summarizedContent, contentMaxWidth);
+        const contentLines = wrapText(ctx, cleanedSummarizedContent, contentMaxWidth);
         contentLines.forEach((line, index) => {
             ctx.fillText(line, 40, contentYStart + index * 54); // Adjusted line height to 50px
         });
@@ -260,7 +262,6 @@ async function postToInstaStory(articles) {
 
                 console.log('Deleting image')
                 fs.unlinkSync(imagepath);
-                console.log(result, "Story uploaded");
             } catch (error) {
                 console.error('Error posting story to Instagram:', error);
             }
@@ -269,20 +270,6 @@ async function postToInstaStory(articles) {
         console.error('Failed to upload image to instagram story', error)
     }
 };
-
-// async function uploadDailyRecapToInstagramStory(article, nSources) {
-//     console.log('Starting process')
-//     // Step 1. Create story images
-//     const image = await createDailyRecapImage(article.genre, article.title, article.datePublished, article.summarizedContent, article.imageUrl, nSources);
-
-//     // Step 4: Upload to Instagram
-//     console.log('posting to insta')
-//     await postToInstaStory(imagepath);
-
-//     // Step 5: Delete the image file
-//     console.log('deleting file')
-//     fs.unlinkSync(imagepath);
-// }
 
 module.exports = {
     postToInstaStory

@@ -44,21 +44,27 @@ app.use(cors({
     credentials: true // Include credentials like cookies in requests
 }));
 
-
-
 app.use(DBGETARTICLESROUTES);
 app.use(DBGETCOLLECTIONSROUTES);
 app.use(AUTH);
 app.use(USERINFO);
 
 app.listen(port, function () {
-    console.log(`Server is running on port ${port} in PRODUCTION mode`)
+    console.log(`Server is running on port ${port} in PRODUCTION mode`);
+
+    // Execute code after server start
+    cronTask().catch(err => console.log(err))
+    cronDailyRecap().catch(err => console.log(err))
+    cacheSourcesEvery24H().catch(err => console.log(err))
+    cacheGenresEvery24H().catch(err => console.log(err))
 })
 
 //---IMPORTS---
 const { articleQueue } = require('./server/2-utils/articleQueueHandler.js');
 
 //---RUN MAIN FUNCTION---
+// 0 = OFF, 1 = TESTING, 2 = RUNNING
+const state = 2;
 async function cronTask() {
     cron.schedule('*/20 * * * *', async () => {
         if (true) {
@@ -66,38 +72,38 @@ async function cronTask() {
                 const date = new Date()
                 console.log(kleur.bgBlue(`Task started @ ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`))
 
-                const cachedSources = cache.get('sources');
-                var allSources = cachedSources ? cachedSources : await getAllSources();
+            const cachedSources = cache.get('sources');
+            var allSources = cachedSources ? cachedSources : await getAllSources();
 
-                var sources = allSources.map(source => source.source)
+            var sources = allSources.map(source => source.source)
 
-                // FUTURE CHANGE: LOOK THROUGH ALL PAGES (IF THE API CALL IS QUICK AND I DONT HAVE TOO MANY SOURCES THEN I SHOULDNT WORRY ABOUT THIS)
+            // FUTURE CHANGE: LOOK THROUGH ALL PAGES (IF THE API CALL IS QUICK AND I DONT HAVE TOO MANY SOURCES THEN I SHOULDNT WORRY ABOUT THIS)
 
-                // Get most recent articles from 'sources' from Newsapi.ai
-                const apiresponse = await getArticlesUsingRecentActiviy(sources);
-                const articles = apiresponse.recentActivityArticles.activity;
+            // Get most recent articles from 'sources' from Newsapi.ai
+            const apiresponse = await getArticlesUsingRecentActiviy(sources);
+            const articles = apiresponse.recentActivityArticles.activity;
 
-                // Sort articles from oldest to newest
-                articles.sort((a, b) => {
-                    const dateA = new Date(a.dateTimePub);
-                    const dateB = new Date(b.dateTimePub);
-                    return dateA - dateB;
-                });
+            // Sort articles from oldest to newest
+            articles.sort((a, b) => {
+                const dateA = new Date(a.dateTimePub);
+                const dateB = new Date(b.dateTimePub);
+                return dateA - dateB;
+            });
 
-                // Loop over all articles from API response
-                for (const article of articles) {
-                    var articleExistsInDB = false;
-                    const articleExistInQueue = articleQueue.exist(article);
+            // Loop over all articles from API response
+            for (const article of articles) {
+                var articleExistsInDB = false;
+                const articleExistInQueue = articleQueue.exist(article);
 
-                    // FUTURE CHANGE: For further proof, check article too
-                    articleExistsInDB = await doesArticleExist(article);
+                // FUTURE CHANGE: For further proof, check article too
+                articleExistsInDB = await doesArticleExist(article);
 
-                    // If article isn't in DB or QUEUE
-                    if (!articleExistInQueue && !articleExistsInDB) {
-                        articleQueue.enqueue(article) // Adds article to queue
-                    }
+                // If article isn't in DB or QUEUE
+                if (!articleExistInQueue && !articleExistsInDB) {
+                    articleQueue.enqueue(article) // Adds article to queue
                 }
-                console.log(kleur.blue(`Queue size (${articleQueue.size()})`))
+            }
+            console.log(kleur.blue(`Queue size (${articleQueue.size()})`))
 
                 // Process 'articleQueue' if it isnt empty
                 if (!articleQueue.isEmpty()) {
@@ -135,6 +141,17 @@ function shuffleArray(array) {
     return array;
 }
 
+// app.get('/createDailyRecapCron', async (req, res) => {
+//     const cachedSources = cache.get('sources');
+//     response = cachedSources ? cachedSources : await getAllSources();
+//     const responseSources = response.map(source => source.source);
+//     const shuffledSources = shuffleArray(responseSources);
+//     const sources = ['sumnews.net', ...shuffledSources];
+//     for (const source of sources) {
+//         await createDailyRecap(source);
+//     }
+// })
+
 async function cacheSourcesEvery24H() {
     // Save all sources in cache at midnight
     cron.schedule('0 0 * * *', async () => {
@@ -154,8 +171,3 @@ async function cacheGenresEvery24H() {
         cache.put('genres', response)
     })
 }
-
-cronTask().catch(err => console.log(err))
-cronDailyRecap().catch(err => console.log(err))
-cacheSourcesEvery24H().catch(err => console.log(err))
-cacheGenresEvery24H().catch(err => console.log(err))

@@ -164,43 +164,60 @@ async function getArticlesUsingRecentActiviy(
 }
 
 async function getArticlesFromEvent(eventUri) {
-    var apiKey = process.env.NEWSAPIAI_KEY;
+    try {
+        var apiKey = process.env.NEWSAPIAI_KEY;
 
-    const endpoint = 'https://newsapi.ai/api/v1/event/getEvent'
-    const method = 'POST';
-    const headers = {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
+        const endpoint = 'https://newsapi.ai/api/v1/event/getEvent'
+        const method = 'POST';
+        const headers = {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+        }
+
+        const body = {
+            "eventUri": [
+                eventUri
+            ],
+            "resultType": "articles",
+            "articlesSortBy": "date",
+            "includeArticleSocialScore": true,
+            "includeArticleConcepts": true,
+            "includeArticleCategories": true,
+            "includeArticleLocation": true,
+            "includeArticleImage": true,
+            "includeArticleVideos": true,
+            "includeArticleLinks": true,
+            "includeArticleExtractedDates": true,
+            "includeArticleDuplicateList": true,
+            "includeArticleOriginalArticle": true,
+            "apiKey": apiKey
+        }
+
+        var response = await fetch(endpoint, {
+            method: method,
+            headers: headers,
+            body: JSON.stringify(body),
+        })
+
+        // Check if the response is okay (status 200)
+        if (!response.ok) {
+            throw new Error(`getArticlesFromEvent response isnt 200: ${response.status} - ${response.statusText}`);
+        }
+
+        const data = await response.json();
+
+        // Validate that articles exist in the response
+        if (!data) {
+            throw new Error("No articles found for the given event URI.");
+        }
+
+        // Return the valid data
+        return data;
+    } catch (error) {
+        console.error(`Failed to fetch articles: ${error.message}`);
+        // Return a meaningful error response for the parent function
+        return { error: error.message };
     }
-
-    const body = {
-        "eventUri": [
-            eventUri
-        ],
-        "resultType": "articles",
-        "articlesSortBy": "date",
-        "includeArticleSocialScore": true,
-        "includeArticleConcepts": true,
-        "includeArticleCategories": true,
-        "includeArticleLocation": true,
-        "includeArticleImage": true,
-        "includeArticleVideos": true,
-        "includeArticleLinks": true,
-        "includeArticleExtractedDates": true,
-        "includeArticleDuplicateList": true,
-        "includeArticleOriginalArticle": true,
-        "apiKey": apiKey
-    }
-
-    var response = await fetch(endpoint, {
-        method: method,
-        headers: headers,
-        body: JSON.stringify(body),
-    })
-
-    // No valid condition were provided in query part {}
-    var data = await response.json();
-    return data;
 }
 
 module.exports = {

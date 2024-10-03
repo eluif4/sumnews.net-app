@@ -228,7 +228,7 @@ const timeSaved = computed(() => {
 const formattedTimeSaved = computed(() => {
     return timeSaved.value > 60
         ? `${Math.round((timeSaved.value / 60) * 2) / 2} minute${Math.round(timeSaved.value * 2) / 2 > 1 ? 's' : ''}`
-        : `${timeSaved.value} second${timeSaved.value > 1 ? 's' : ''}`;
+        : `< 1 minute`;
 });
 </script>
 
