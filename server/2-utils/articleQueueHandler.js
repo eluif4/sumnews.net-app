@@ -58,7 +58,7 @@ async function processBulkSendArticlesToGeminiQueue() {
 
     try {
         const gemini_response = await assignAndSummarize(articles);
-        for (const [index, gemini_response_article] of gemini_response.entries()) {
+        for (const [index, gemini_response_article] of gemini_response.response.entries()) {
             const articleFromBulkQueue = articles[index]
             // If there is an article in the bulk queue and the response article from Gemini has the same url apply the changes
             if (articleFromBulkQueue && articleFromBulkQueue.url == gemini_response_article.url) {
