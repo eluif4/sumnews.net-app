@@ -44,6 +44,9 @@ async function createDailyRecap(source) {
                 }
             }
 
+            /* FUTURE CHANGE: IF THERE ARE ARTICLES IN THE EVENT BUT THEY ALL ALREADY HAVE DRURI PROPERTIES 
+            THAT ISNT THE CURRENT NONE WILL BE UPDATED AND CONNECTED TO THIS DREVENT BUT THE DREVENT WILL STILL BE SAVED
+            */
             if (articles.length > 0) { // If there are articles in event
                 drEvents.push(drUri) // Add drUri to array of drEvents (for the dailyRecap object)
                 instagramStoryArticles.push(articles[0])
@@ -57,8 +60,8 @@ async function createDailyRecap(source) {
                 await saveDocument(drEvent);
             }
         }
-        console.log(`Creating Instagram story with (${instagramStoryArticles.length}) ${instagramStoryArticles}`)
-        await postToInstaStory(instagramStoryArticles)
+        // console.log(`Creating Instagram story with (${instagramStoryArticles.length}) ${instagramStoryArticles}`)
+        // await postToInstaStory(instagramStoryArticles)
     } else { // If source !== sumnews.net
         var filter = {
             "source": source,
