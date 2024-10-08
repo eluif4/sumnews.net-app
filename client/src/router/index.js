@@ -244,6 +244,13 @@ const routes = [
         ]
     },
     {
+        path: '/terms-&-conditions',
+        component: ListItem,
+        children: [
+            { path: '', component: TermsAndConditions }
+        ]
+    },
+    {
         path: '/account/privacy-policy',
         component: ListItem,
         children: [
