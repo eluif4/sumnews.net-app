@@ -251,6 +251,13 @@ const routes = [
         ]
     },
     {
+        path: '/privacy-policy',
+        component: ListItem,
+        children: [
+            { path: '', component: PrivacyPolicy }
+        ]
+    },
+    {
         path: '/account/bookmarks',
         component: ListItem,
         children: [
