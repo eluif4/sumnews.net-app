@@ -21,20 +21,23 @@ function articleScore(article, userPreferences, weights) {
     const { genre: articleGenres, source: articleSource } = article;
     const { genres: userGenres, sources: userSources, totalGenreClicks, totalSourceClicks } = userPreferences;
 
-    // Helper function to get user preference score for a property
+    // Helper function to get user preference score for a property with logarithmic scaling
     const getUserPreferenceScore = (property, userPreferences) => {
-        return userPreferences.find(p => p.name.toLowerCase() === property.toLowerCase())?.clicks || 1;
+        const clicks = userPreferences.find(p => p.name.toLowerCase() === property.toLowerCase())?.clicks || 1;
+        return Math.log(1 + clicks);
     };
 
     // Calculate genre score
     let genreScore = 0;
     articleGenres.forEach(genre => {
-        const userGenreScore = getUserPreferenceScore(genre, userGenres);
-        genreScore += userGenreScore;
+        if (genre != 'World') { // Dont include 'World' genre       
+            const userGenreScore = getUserPreferenceScore(genre, userGenres);
+            genreScore += userGenreScore;
+        }
     });
     genreScore = totalGenreClicks > 0 ? genreScore / totalGenreClicks : 1;
 
-    // Calculate source score
+    // Calculate source score with normalization
     const sourceScore = getUserPreferenceScore(articleSource, userSources);
     const normalizedSourceScore = totalSourceClicks > 0 ? sourceScore / totalSourceClicks : 1;
 
