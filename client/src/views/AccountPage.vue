@@ -1,5 +1,9 @@
 <script setup>
-import { ref } from 'vue';
+// import { useStorage, StorageSerializers } from '@vueuse/core';
+import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
+import { Capacitor } from '@capacitor/core';
+
+import { computed, onMounted, ref } from 'vue';
 import AccountPageItem from '../components/AccountPage/AccountPageItem.vue';
 import PWA from '../components/PWA/PWA.vue';
 import SignInUsing from '../components/SignInUsing/SignInUsing.vue';
@@ -18,20 +22,67 @@ const googlePlatform = {
     signInFunction: signInWithGoogle
 }
 
-function signInWithGoogle() {
-    googleSdkLoaded(google => {
-        google.accounts.oauth2.initCodeClient({
-            client_id: "460348077182-hfarubd5kv9mhq03e4g1ugfcjeopeo4m.apps.googleusercontent.com",
-            scope: "email profile openid",
-            redirect_uri: `postmessage`, // Use your actual frontend URL
-            callback: response => {
-                if (response.code) {
-                    // Call sendCodeToBackend directly
-                    sendCodeToBackend(response.code);
-                }
+const isInitialized = ref(false);
+
+// Initialize Google Auth when the component is mounted
+onMounted(() => {
+    GoogleAuth.initialize({
+        clientId: "460348077182-hfarubd5kv9mhq03e4g1ugfcjeopeo4m.apps.googleusercontent.com", // Android OAuth2 Client ID
+        scopes: ["profile", "email"],
+        grantOfflineAccess: true,
+    })
+        .then(() => {
+            isInitialized.value = true;
+            console.log('Google OAuth has been initialized successfully')
+        })
+        .catch((error) => {
+            console.error(error);
+        });
+});
+
+// Use reactive storage for user profile
+// const session = useStorage < { user: User } > ('capacitor-google-auth', null, undefined, {
+//     serializer: StorageSerializers.object,
+//     mergeDefaults: true,
+// });
+
+async function signInWithGoogle() {
+    // Check if the app is running on a Cordova platform (Android, iOS)
+    if (Capacitor.isNativePlatform()) {
+        try {
+            console.log('Trying to sign in using Google');
+            const googleUser = await GoogleAuth.signIn();
+            const { idToken } = googleUser.authentication;
+            // Use idToken for backend authentication
+            if (idToken) {
+                await nativeSendCodeToBackend(idToken);
+            } else {
+                console.error('No serverAuthCode received');
             }
-        }).requestCode(); // Ensure this is called to trigger the OAuth flow
-    });
+        }
+        catch (error) {
+            console.error('Google sign-in ( Using Capacitor ) failed: ', error);
+        }
+    } else {
+        // Google sign-in using web-based OAuth2 flow
+        try {
+            googleSdkLoaded(google => {
+                google.accounts.oauth2.initCodeClient({
+                    client_id: "460348077182-hfarubd5kv9mhq03e4g1ugfcjeopeo4m.apps.googleusercontent.com", // Web OAuth2 Client ID
+                    scope: "email profile openid",
+                    redirect_uri: `postmessage`, // Use your actual frontend URL
+                    callback: response => {
+                        if (response.code) {
+                            // Send authorization code to backend for token exchange
+                            sendCodeToBackend(response.code);
+                        }
+                    }
+                }).requestCode(); // Trigger OAuth flow
+            });
+        } catch (error) {
+            console.error('Google sign-in ( using googleSdkLoaded ) failed')
+        }
+    }
 }
 
 async function sendCodeToBackend(code) {
@@ -39,7 +90,7 @@ async function sendCodeToBackend(code) {
         const headers = {
             'Content-Type': 'application/json' // Ensure the Content-Type is set
         };
-        const url = `${BACKEND_URL}auth/google`; // Set your backend URL
+        var url = `${BACKEND_URL}auth/google`; // Set your backend URL
 
         const response = await fetch(url, {
             method: 'POST',
@@ -47,26 +98,64 @@ async function sendCodeToBackend(code) {
             body: JSON.stringify({ code }) // Send the authorization code in the request body
         });
 
+        console.log('Response status:', response.status);
+        console.log('Response data:', response.data);
         // Handle the response properly
         if (!response.ok) {
             throw new Error('Network response was not ok');
         }
 
         const result = await response.json(); // Parse the response as JSON
+        console.log(`result: ${result}`);
         const { token } = result; // Extract the JWT token and user details
-
+        console.log(`token: ${token}`);
         localStorage.setItem('authToken', token);
 
         // Set user to reactive value in vue
+        console.log(`user: ${result.user}`);
         userProfile.user = result.user;
     } catch (error) {
         console.error('Failed to send authorization code: ', error);
     }
 }
 
+async function nativeSendCodeToBackend(idToken) {
+    try {
+    console.log('nativeSendCodeToBackend');
+
+    // Send the idToken to your backend
+    const response = await fetch(`${BACKEND_URL}/auth/nativeGoogle`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ idToken }),
+    });
+
+    if (!response.ok) {
+        throw new Error('Failed to authenticate');
+    }
+
+    const result = await response.json();
+    console.log('Auth successful: ', result);
+    localStorage.setItem('authToken', result.token);
+    }
+    catch (error) {
+        console.error('Failed to sign in with Google (Native): ', error);
+    }
+}
+
 async function logout() {
-    localStorage.removeItem('authToken');
-    userProfile.user = null;
+    if (Capacitor.isNativePlatform()) { // Native
+        await GoogleAuth.signOut()
+            .then(() => {
+                // session.value = null;
+            })
+            .catch((error) => {
+                console.error(error);
+            });
+    } else { // Web
+        localStorage.removeItem('authToken');
+        userProfile.user = null;
+    }
 }
 
 const aboutUsPage = {
@@ -356,6 +445,8 @@ const bookmarksPage = {
     width: 100%;
     display: flex;
     flex-direction: row;
+    align-items: center;
+    /* flex-wrap: wrap; */
     background-color: var(--main-color);
     border-radius: var(--border-radius);
     padding: 10px;

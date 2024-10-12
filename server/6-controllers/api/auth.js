@@ -1,6 +1,8 @@
 const path = require("path")
 const DBUTILS = path.join(__dirname, '../../2-utils/db')
 const DatabaseAccess = path.join(DBUTILS, "/databaseAccess.js")
+const { OAuth2Client } = require('google-auth-library');
+const client = new OAuth2Client('460348077182-hfarubd5kv9mhq03e4g1ugfcjeopeo4m.apps.googleusercontent.com');
 const { processUser } = require(DatabaseAccess)
 
 const jwt = require('jsonwebtoken');
@@ -77,6 +79,36 @@ async function googleAuth(req, res) {
     }
 }
 
+async function nativeGoogleAuth(req, res) {
+    const { code } = req.body;
+    console.log(code)
+
+    try {
+        const { tokens } = await client.getToken({
+            code,
+            client_id: '460348077182-hfarubd5kv9mhq03e4g1ugfcjeopeo4m.apps.googleusercontent.com',
+            client_secret: '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',
+            redirect_uri: 'postmessage',
+        });
+
+        const ticket = await client.verifyIdToken({
+            idToken: tokens.id_token,
+            audience: '460348077182-hfarubd5kv9mhq03e4g1ugfcjeopeo4m.apps.googleusercontent.com',
+        });
+
+        const payload = ticket.getPayload();
+        const user = await processUser(payload); // Save/retrieve user
+
+        const token = generateJWT(user);
+        res.status(200).json({ user, token });
+        console.log(user)
+    } catch (error) {
+        console.error('Web Auth Error: ', error);
+        res.status(500).json({ message: 'Web authentication failed' });
+    }
+}
+
 module.exports = {
-    googleAuth
+    googleAuth,
+    nativeGoogleAuth,
 }
