@@ -52,16 +52,16 @@ async function signInWithGoogle() {
         try {
             console.log('Trying to sign in using Google');
             const googleUser = await GoogleAuth.signIn();
-            const { idToken } = googleUser.authentication;
-            // Use idToken for backend authentication
-            if (idToken) {
-                await nativeSendCodeToBackend(idToken);
+            const { idToken, serverAuthCode } = googleUser.authentication; // Get both idToken and serverAuthCode
+
+            // Use serverAuthCode for backend authentication
+            if (serverAuthCode) {
+                await nativeSendCodeToBackend(serverAuthCode); // Send the serverAuthCode instead of idToken
             } else {
                 console.error('No serverAuthCode received');
             }
-        }
-        catch (error) {
-            console.error('Google sign-in ( Using Capacitor ) failed: ', error);
+        } catch (error) {
+            console.error('Google sign-in (Using Capacitor) failed: ', error);
         }
     } else {
         // Google sign-in using web-based OAuth2 flow
@@ -119,24 +119,24 @@ async function sendCodeToBackend(code) {
     }
 }
 
-async function nativeSendCodeToBackend(idToken) {
+async function nativeSendCodeToBackend(code) {
     try {
-    console.log('nativeSendCodeToBackend');
+        console.log('nativeSendCodeToBackend');
 
-    // Send the idToken to your backend
-    const response = await fetch(`${BACKEND_URL}auth/nativeGoogle`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ idToken }),
-    });
+        // Send the idToken to your backend
+        const response = await fetch(`${BACKEND_URL}auth/nativeGoogle`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ code }),
+        });
 
-    if (!response.ok) {
-        throw new Error('Failed to authenticate');
-    }
+        if (!response.ok) {
+            throw new Error('Failed to authenticate');
+        }
 
-    const result = await response.json();
-    console.log('Auth successful: ', result);
-    localStorage.setItem('authToken', result.token);
+        const result = await response.json();
+        console.log('Auth successful: ', result);
+        localStorage.setItem('authToken', result.token);
     }
     catch (error) {
         console.error('Failed to sign in with Google (Native): ', error);
