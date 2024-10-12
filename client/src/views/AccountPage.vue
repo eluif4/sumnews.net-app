@@ -124,7 +124,7 @@ async function nativeSendCodeToBackend(idToken) {
     console.log('nativeSendCodeToBackend');
 
     // Send the idToken to your backend
-    const response = await fetch(`${BACKEND_URL}/auth/nativeGoogle`, {
+    const response = await fetch(`${BACKEND_URL}auth/nativeGoogle`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ idToken }),

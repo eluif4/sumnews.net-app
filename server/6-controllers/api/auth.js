@@ -80,12 +80,12 @@ async function googleAuth(req, res) {
 }
 
 async function nativeGoogleAuth(req, res) {
-    const { code } = req.body;
-    console.log(code)
+    const { idToken } = req.body;
+    console.log(idToken)
 
     try {
         const { tokens } = await client.getToken({
-            code,
+            idToken,
             client_id: '460348077182-hfarubd5kv9mhq03e4g1ugfcjeopeo4m.apps.googleusercontent.com',
             client_secret: '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',
             redirect_uri: 'postmessage',
