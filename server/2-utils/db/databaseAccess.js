@@ -245,7 +245,7 @@ async function getUserFeed(googleId, articlesInFeed = []) {
         GENRES: 1.5,
         SOURCE: 1,
         SMOOTHNESS: 1,
-        EXPLORATION: 0.2,
+        EXPLORATION: 0.1,
         ENGAGEMENT: 0.5,
     }
 
@@ -298,9 +298,14 @@ async function getUserFeed(googleId, articlesInFeed = []) {
         const articleIds = top10Articles.map(article => article.uuid);
 
         // Find all articles from the database where the article ID is in `articleIds`
-        const returnArticles = await Article.find({ uuid: { $in: articleIds } }).select(['-concepts', '-links', '-sentiment']);
-        // Return the sorted articles to the frontend
-        return returnArticles;
+        const returnArticles = await Article.find({ uuid: { $in: articleIds } })
+            .select(['-concepts', '-links', '-sentiment'])
+            .lean(); // Use lean to return plain JavaScript objects, making sorting easier
+
+        // Sort the articles to match the order of articleIds
+        const sortedArticles = articleIds.map(id => returnArticles.find(article => article.uuid === id));
+
+        return sortedArticles;
 
     } catch (error) {
         console.log('Failed to fetch personalized feed', error)
@@ -508,6 +513,8 @@ async function getDailyRecap(id) {
 }
 
 async function getDailyRecapButtons() {
+    // Get DailyRecapButton where first articles are sorted in chronological order 
+    // ( Fix dissonance between first DailyRecapButton article and first DailyRecap article )
     const pipeline = [
         {
             $lookup: {
@@ -518,11 +525,13 @@ async function getDailyRecapButtons() {
             }
         },
         {
-            $lookup:
-            {
+            $lookup: {
                 from: "articles",
-                localField: "drEvents.0",
-                foreignField: "drUri",
+                let: { eventUri: { $arrayElemAt: ["$drEvents", 0] } },
+                pipeline: [
+                    { $match: { $expr: { $eq: ["$drUri", "$$eventUri"] } } },
+                    { $sort: { datePublished: -1 } } // Sort by datePublished
+                ],
                 as: "article"
             }
         },

@@ -64,7 +64,7 @@ const { articleQueue } = require('./server/2-utils/articleQueueHandler.js');
 
 //---RUN MAIN FUNCTION---
 // 0 = OFF, 1 = TESTING, 2 = RUNNING
-const state = 2;
+const state = 0;
 async function cronTask() {
     cron.schedule('*/20 * * * *', async () => {
         if (true) {
