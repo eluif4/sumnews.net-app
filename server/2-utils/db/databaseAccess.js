@@ -245,7 +245,7 @@ async function getUserFeed(googleId, articlesInFeed = []) {
         GENRES: 1.5,
         SOURCE: 1,
         SMOOTHNESS: 1,
-        EXPLORATION: 0.2,
+        EXPLORATION: 0.1,
         ENGAGEMENT: 0.5,
     }
 
@@ -298,9 +298,14 @@ async function getUserFeed(googleId, articlesInFeed = []) {
         const articleIds = top10Articles.map(article => article.uuid);
 
         // Find all articles from the database where the article ID is in `articleIds`
-        const returnArticles = await Article.find({ uuid: { $in: articleIds } }).select(['-concepts', '-links', '-sentiment']);
-        // Return the sorted articles to the frontend
-        return returnArticles;
+        const returnArticles = await Article.find({ uuid: { $in: articleIds } })
+            .select(['-concepts', '-links', '-sentiment'])
+            .lean(); // Use lean to return plain JavaScript objects, making sorting easier
+
+        // Sort the articles to match the order of articleIds
+        const sortedArticles = articleIds.map(id => returnArticles.find(article => article.uuid === id));
+
+        return sortedArticles;
 
     } catch (error) {
         console.log('Failed to fetch personalized feed', error)
