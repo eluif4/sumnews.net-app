@@ -508,6 +508,8 @@ async function getDailyRecap(id) {
 }
 
 async function getDailyRecapButtons() {
+    // Get DailyRecapButton where first articles are sorted in chronological order 
+    // ( Fix dissonance between first DailyRecapButton article and first DailyRecap article )
     const pipeline = [
         {
             $lookup: {
@@ -518,11 +520,13 @@ async function getDailyRecapButtons() {
             }
         },
         {
-            $lookup:
-            {
+            $lookup: {
                 from: "articles",
-                localField: "drEvents.0",
-                foreignField: "drUri",
+                let: { eventUri: { $arrayElemAt: ["$drEvents", 0] } },
+                pipeline: [
+                    { $match: { $expr: { $eq: ["$drUri", "$$eventUri"] } } },
+                    { $sort: { datePublished: -1 } } // Sort by datePublished
+                ],
                 as: "article"
             }
         },
