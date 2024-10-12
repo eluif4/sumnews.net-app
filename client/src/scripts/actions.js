@@ -1,3 +1,5 @@
+import { Share } from '@capacitor/share'; // Import Capacitor Share API
+
 import router from '../router'
 import { config } from '../constants';
 import { goBack, showPopup, addArticleToBookmarks, removeArticleFromBookmarks, updateArticleEngagement } from './utility';
@@ -18,7 +20,24 @@ const OPENARTICLE_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="24" heig
 // Functions
 export async function actionShareFunction(article) {
     try {
-        if (navigator.canShare) {
+        // Check if the app is running on a Capactiro platform
+        console.log(Capacitor.isNativePlatform())
+        if (Capacitor.isNativePlatform()) {
+            try {
+                await Share.share({
+                    title: `Check out this summarized article on Sumnews`,
+                    text: `${article.title}`,
+                    url: `${FRONTEND_URL}article/${article.uuid}`,
+                })
+
+                await updateArticleEngagement(article, 'shares');
+            }
+            catch (error) {
+                console.error('Error sharing:', error.message);
+                showPopup(2, "Oops, something went wrong...")
+            }
+        }
+        else if (navigator.canShare) {
             try {
                 await navigator.share({
                     title: `Check out this summarized article on Sumnews`,

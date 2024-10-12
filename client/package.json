@@ -5,9 +5,22 @@
   "scripts": {
     "dev": "vite --host",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "ionic:build": "npm run build",
+    "ionic:serve": "npm run dev"
   },
   "dependencies": {
+    "@capacitor/android": "6.1.2",
+    "@capacitor/app": "6.0.1",
+    "@capacitor/cli": "6.1.2",
+    "@capacitor/core": "6.1.2",
+    "@capacitor/haptics": "6.0.1",
+    "@capacitor/ios": "6.1.2",
+    "@capacitor/keyboard": "6.0.2",
+    "@capacitor/share": "^6.0.2",
+    "@capacitor/status-bar": "6.0.1",
+    "@codetrix-studio/capacitor-google-auth": "^3.4.0-rc.4",
+    "@vueuse/core": "^11.1.0",
     "dompurify": "^3.1.2",
     "vue": "^3.4.21",
     "vue-google-oauth2": "^1.5.10",
