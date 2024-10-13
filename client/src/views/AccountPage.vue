@@ -52,13 +52,14 @@ async function signInWithGoogle() {
         try {
             console.log('Trying to sign in using Google');
             const googleUser = await GoogleAuth.signIn();
-            const { idToken, serverAuthCode } = googleUser.authentication; // Get both idToken and serverAuthCode
+            const { idToken, accessToken } = googleUser.authentication; // Get both idToken and serverAuthCode
 
-            // Use serverAuthCode for backend authentication
-            if (serverAuthCode) {
-                await nativeSendCodeToBackend(serverAuthCode); // Send the serverAuthCode instead of idToken
+            // Use accessToken for backend authentication
+            if (idToken) {
+                console.log('idToken: ' + idToken);
+                await nativeSendCodeToBackend(idToken); // Send the serverAuthCode instead of idToken
             } else {
-                console.error('No serverAuthCode received');
+                console.error('No idToken received');
             }
         } catch (error) {
             console.error('Google sign-in (Using Capacitor) failed: ', error);
@@ -119,7 +120,7 @@ async function sendCodeToBackend(code) {
     }
 }
 
-async function nativeSendCodeToBackend(code) {
+async function nativeSendCodeToBackend(idToken) {
     try {
         console.log('nativeSendCodeToBackend');
 
@@ -127,7 +128,7 @@ async function nativeSendCodeToBackend(code) {
         const response = await fetch(`${BACKEND_URL}auth/nativeGoogle`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ code }),
+            body: JSON.stringify({ idToken }),
         });
 
         if (!response.ok) {
