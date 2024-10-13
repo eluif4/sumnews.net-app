@@ -1,6 +1,6 @@
 <template>
     <div>
-        <p>
+        <div>
         <!-- <p class="text-3xl">Reporting bugs at <span class="domain">Sumnews.net</span></p> -->
         At <span class="domain">Sumnews.net</span>, we strive to provide a seamless and bug-free experience for our users.
         However, we understand that issues may arise, and your feedback is crucial in helping us improve our service.
@@ -11,7 +11,7 @@
         <br>
         <p class="text-xl">How to Report a Bug:</p>
         Send a detailed bug report to our support team at
-        <a href="mailto:info@sumnew.net?subject=Bug Report - &" style="color: var(--main-color)">support@sumnews.net</a>
+        <a href="mailto:info@sumnew.net?subject=Bug Report - &" class="mailto">support@sumnews.net</a>
         following the steps
         and guidelines below.
         <br>
@@ -51,6 +51,6 @@
         Thank you for being an integral part of our community and for helping us make <span
             class="domain">Sumnews.net</span>
         even better!
-        </p>
+        </div>
     </div>
 </template>

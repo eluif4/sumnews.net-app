@@ -1,6 +1,6 @@
 <template>
     <div>
-        <p>
+        <div>
         <p class="text-xl">Our Mission</p>
         At <span class="domain">Sumnews.net</span>, we believe in making information more accessible and convenient for
         everyone. Our mission is
@@ -52,7 +52,7 @@
 
         <p class="text-xl">Connect With Us</p>
         We value open communication with our users. If you have questions, suggestions, or feedback, don't hesitate to reach
-        out with us <router-link to="/account/contact" style="color: var(--main-color)">here</router-link>.
+        out with us <router-link to="/account/contact-us" class="mailto">here</router-link>.
         Connect with us by dropping
         <!-- on social media or drop -->
         us an email – we'd love to hear from you!
@@ -64,6 +64,6 @@
         journey to
         transform the
         way we consume news. Together, let's make information more accessible, concise, and impactful.
-        </p>
+        </div>
     </div>
 </template>
