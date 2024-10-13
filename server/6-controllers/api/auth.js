@@ -80,17 +80,20 @@ async function googleAuth(req, res) {
 }
 
 async function nativeGoogleAuth(req, res) {
-    const { idToken } = req.body;
-    console.log(idToken)
+    const { code } = req.body; // Change 'idToken' to 'code'
+    console.log(code);
 
     try {
+        // Exchange the authorization code for tokens
         const { tokens } = await client.getToken({
-            idToken,
+            code, // Use the authorization code here
             client_id: '460348077182-hfarubd5kv9mhq03e4g1ugfcjeopeo4m.apps.googleusercontent.com',
             client_secret: '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',
-            redirect_uri: 'postmessage',
+            redirect_uri: 'postmessage', // Make sure this matches your redirect URI
+            grant_type: 'authorization_code', // Specify the grant type
         });
 
+        // Verify the ID token
         const ticket = await client.verifyIdToken({
             idToken: tokens.id_token,
             audience: '460348077182-hfarubd5kv9mhq03e4g1ugfcjeopeo4m.apps.googleusercontent.com',
@@ -101,7 +104,7 @@ async function nativeGoogleAuth(req, res) {
 
         const token = generateJWT(user);
         res.status(200).json({ user, token });
-        console.log(user)
+        console.log(user);
     } catch (error) {
         console.error('Web Auth Error: ', error);
         res.status(500).json({ message: 'Web authentication failed' });
