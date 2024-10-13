@@ -1,7 +1,7 @@
 <template>
     <div>
         <!-- <p class="text-3xl"><span class="domain">Sumnews.net</span> Terms and Conditions</p> -->
-        <p>
+        <div>
         <h3>Last updated: 2024-01-03</h3>
         <p class="text-xl">1. Introduction</p>
         Welcome to sumnews.net (“Company”, “we”, “our”, “us”)!
@@ -379,7 +379,7 @@
         <p class="text-xs">These Terms of Service were created for sumnews.net by <a
                 href="https://www.policyMaker.io">PolicyMaker.io</a> on
             2024-01-03.</p>
-        </p>
+        </div>
     </div>
 </template>
 

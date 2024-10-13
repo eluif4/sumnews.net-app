@@ -8,9 +8,11 @@ const prod = {
 
 const dev = {
     url: {
-        // BACKEND_URL: 'http://localhost:3000/',
-        // FRONTEND_URL: 'http://localhost:5173/',
+        BACKEND_URL: 'http://localhost:3000/',
+        FRONTEND_URL: 'http://localhost:5173/',
+        // BACKEND_URL: 'http://192.168.20:3000/',
+        // FRONTEND_URL: 'http://192.168.20:5173/',
     },
 };
 
-export const config = prod; 
+export const config = dev; 

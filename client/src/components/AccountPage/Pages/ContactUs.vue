@@ -1,25 +1,27 @@
 <template>
     <div>
-        <p>
+        <div>
             We're Here to Hear From You!
             <br>
             <br>
-        <p class="text-xl">General Inquiries</p>
-        Have questions, feedback, or just want to say hello? We'd love to hear from you! You can reach us via email at
-        <a href="mailto:info@sumnews.net" style="color: var(--main-color)">info@sumnews.net</a>
-        </p>
+            <p class="text-xl">General Inquiries</p>
+            Have questions, feedback, or just want to say hello? We'd love to hear from you! You can reach us via email
+            at
+            <a href="mailto:support@sumnews.net" class="mailto">support@sumnews.net</a>
+        </div>
 
         <!-- <div class="social-media">twitter, instagram, email, whatsapp</div> -->
         <br>
-        <p>
-        <p class="text-xl">Customer Support</p>
-        If you require assistance or have specific queries related to the <span class="domain">Sumnews.net</span> platform,
-        our customer support team is here to help. Please email us at
-        <a href="mailto:support@sumnews.net" style="color: var(--main-color)">support@sumnews.net</a>,
-        and we'll get back to you as soon as possible.
-        <br>
-        <br>
-        <!-- <h3>Media and Press</h3>
+        <div>
+            <p class="text-xl">Customer Support</p>
+            If you require assistance or have specific queries related to the <span class="domain">Sumnews.net</span>
+            platform,
+            our customer support team is here to help. Please email us at
+            <a href="mailto:support@sumnews.net" class="mailto">support@sumnews.net</a>,
+            and we'll get back to you as soon as possible.
+            <br>
+            <br>
+            <!-- <h3>Media and Press</h3>
     For media inquiries or press-related matters, please contact our press team:
     <br>
     <br>
@@ -42,11 +44,13 @@
     </p>
     <div class="social-media"></div>
     <p> -->
-        <p class=text-xl>We Value Your Feedback</p>
-        Your feedback is essential to us. Whether it's a suggestion for improvement or a positive experience you'd like to
-        share, we appreciate your input. Together, let's make <span class="domain">Sumnews.net</span> even better!
+            <p class=text-xl>We Value Your Feedback</p>
+            Your feedback is essential to us. Whether it's a suggestion for improvement or a positive experience you'd
+            like
+            to
+            share, we appreciate your input. Together, let's make <span class="domain">Sumnews.net</span> even better!
 
-        Thank you for being a part of our community.
-        </p>
+            Thank you for being a part of our community.
+        </div>
     </div>
 </template>

@@ -56,5 +56,15 @@ body {
 }
 
 .text-xl {
-    color: var(--main-color)
+    color: #284b28;
+    font-weight: bold;
+    /* color: var(--main-color); */
+    /* color: black; */
+    /* background: var(--main-color); */
+}
+
+.mailto {
+    background-color: var(--main-color);
+    padding: 0 5px;
+    border-radius: 4px;
 }

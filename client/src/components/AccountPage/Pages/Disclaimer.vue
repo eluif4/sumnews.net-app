@@ -1,7 +1,7 @@
 <template>
     <div>
         <!-- <p class="text-3xl"><span class="domain">Sumnews.net</span> Disclaimer</p> -->
-        <p>
+        <div>
         <h3>Last updated: 2024-01-03</h3>
         <br>
         <p class="text-xl">WEBSITE DISCLAIMER</p>
@@ -75,11 +75,11 @@
 
         Should you have any feedback, comments, requests for technical support or other inquiries, please contact us by
         email:
-        <a href="mailto:support@sumnews.net" style="color: var(--main-color)">support@sumnews.net</a>
+        <a href="mailto:support@sumnews.net" class="mailto">support@sumnews.net</a>
 
         <br>
         <br>
         <p class="text-xs">This Disclaimer was created for sumnews.net by PolicyMaker.io on 2024-01-03.</p>
-        </p>
+        </div>
     </div>
 </template>
