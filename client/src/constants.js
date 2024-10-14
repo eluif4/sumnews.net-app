@@ -6,7 +6,7 @@ const prod = {
     },
 };
 
-const dev = {
+const dev = { 
     url: {
         BACKEND_URL: 'http://localhost:3000/',
         FRONTEND_URL: 'http://localhost:5173/',
