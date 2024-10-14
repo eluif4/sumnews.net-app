@@ -3,11 +3,11 @@
   "private": true,
   "version": "0.0.0",
   "scripts": {
-    "dev": "vite --host",
+    "prod": "vite --host",
     "build": "vite build",
     "preview": "vite preview",
     "ionic:build": "npm run build",
-    "ionic:serve": "npm run dev"
+    "ionic:serve": "npm run prod"
   },
   "dependencies": {
     "@capacitor/android": "6.1.2",

@@ -5,8 +5,8 @@
   "main": "server.js",
   "scripts": {
     "start": "nodemon server.js",
-    "dev": "concurrently \"npm run start\" \"npm run client\"",
-    "client": "npm run dev --prefix ./client",
+    "prod": "concurrently \"npm run start\" \"npm run client\"",
+    "client": "npm run prod --prefix ./client",
     "debug": "concurrently \"nodemon --inspect server.js\" \"npm run client\""
   },
   "author": "",
