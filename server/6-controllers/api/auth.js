@@ -21,49 +21,22 @@ function generateJWT(user) {
 }
 
 async function googleAuth(req, res) {
-    const { code } = req.body;
-
-    const url = 'https://oauth2.googleapis.com/token';
-    const data = {
-        code,
-        client_id: '460348077182-hfarubd5kv9mhq03e4g1ugfcjeopeo4m.apps.googleusercontent.com',
-        client_secret: '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',
-        redirect_uri: 'postmessage',
-        grant_type: 'authorization_code'
-    };
+    const { idToken } = req.body;
 
     try {
-        const response = await fetch(url, {
-            method: 'POST',
-            body: JSON.stringify(data), // Convert the data to JSON string format
-            headers: { 'Content-Type': 'application/json' } // WORKS WITHOUT THIS
+        const ticket = await client.verifyIdToken({
+            idToken,
+            audience: '460348077182-hfarubd5kv9mhq03e4g1ugfcjeopeo4m.apps.googleusercontent.com'
         });
 
-
-        if (!response.ok) {
-            const errorResult = await response.json(); // Parse error response
-            throw new Error(errorResult.error_description || 'Failed to exchange authorization code');
-        }
-
-        const result = await response.json(); // Convert the response to JSON
-        const accessToken = result.access_token;
-
-        const userResponse = await fetch(
-            'https://www.googleapis.com/oauth2/v3/userinfo',
-            {
-                method: "GET",
-                headers: {
-                    Authorization: `Bearer ${accessToken}`
-                }
-            }
-        );
-
-        const userDetails = await userResponse.json();
-        let user = await processUser(userDetails); // Process user info (save or retrieve from DB)
+        const payload = ticket.getPayload();
+        let user = await processUser(payload); // Process user info (save or retrieve from DB)
 
         if (user) {
+            // Generate JWT
             const token = generateJWT(user);
-            // Send token and user info to the frontend
+
+            // Send the token and user info to the frontend
             res.status(200).json({
                 message: 'Authentication successful',
                 user: user,
@@ -73,38 +46,13 @@ async function googleAuth(req, res) {
         else {
             res.status(500).json({ message: 'Athentication failed', user: null });
         }
+
     } catch (error) {
-        console.error('Error saving code:', error);
-        res.status(500).json({ message: 'Failed to save code' });
-    }
-}
-
-async function nativeGoogleAuth(req, res) {
-    const { idToken } = req.body; // Change 'idToken' to 'code'
-    console.log('nativeGoogleAuth');
-
-    try {
-        // Verify the ID token
-        const ticket = await client.verifyIdToken({
-            idToken: idToken,
-            audience: '460348077182-hfarubd5kv9mhq03e4g1ugfcjeopeo4m.apps.googleusercontent.com',
-        });
-
-        const payload = ticket.getPayload();
-        console.log(`userDetails: ${userDetails}`);
-        console.log(`user details: ${userDetails.email ? userDetails.email : 'no email'}, ${userDetails.picture ? userDetails.picture : 'no picture'}`)
-        const user = await processUser(payload); // Save/retrieve user
-        
-        const token = generateJWT(user);
-        console.log(user);
-        res.status(200).json({ user, token });
-    } catch (error) {
-        console.error('Web Auth Error: ', error);
-        res.status(500).json({ message: 'Web authentication failed' });
+        console.error('Error verifying ID token:', error);
+        res.status(500).json({ message: 'Failed to authenticate user' });
     }
 }
 
 module.exports = {
     googleAuth,
-    nativeGoogleAuth,
 }

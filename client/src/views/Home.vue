@@ -1,22 +1,15 @@
 <script setup>
-import { ref, watch, computed, onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
 import {
-    fetchFeed,
-    fetchUserFeed,
     front_getArticlesFromDB,
     updateArticleEngagement
 } from '../scripts/utility'
 import { List, userProfile } from '../main'
 import { useRoute, useRouter } from 'vue-router';
 import { config } from '../constants.js'
-import { GoogleLogin } from 'vue3-google-login';
 
 const BACKEND_URL = config.url.BACKEND_URL
 const route = useRoute();
-const router = useRouter();
-
-import SumnewsLogo from '../assets/icons/sumnews.net.png'
-
 import Popup from '../components/Popups/Popup.vue'
 import Cookies from '../components/Popups/Cookies.vue'
 import ArticleSkeleton from '../components/Article/ArticleSkeleton.vue'
