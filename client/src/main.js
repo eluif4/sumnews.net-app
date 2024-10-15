@@ -21,12 +21,6 @@ export const List = reactive({
   articles: [],
 })
 
-watch(List.articles, (newArticleList, oldArticlList) => {
-  for (const article of newArticleList) {
-    // check if article already exists
-  }
-})
-
 // ----- GET ALL SOURCES FROM DB -----
 export const Sources = reactive({ list: [] })
 const allSourcesInLocalStorage = JSON.parse(localStorage.getItem('allSources'));

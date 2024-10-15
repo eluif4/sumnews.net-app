@@ -50,7 +50,7 @@ app.use(AUTH);
 app.use(USERINFO);
  
 app.listen(port, function () {
-    console.log(`Server is running on port ${port} in PRODUCTION mode`);
+    console.log(`Server is running on port ${port} in DEVELOPMENT mode`);
 
     // Execute code after server start
     cronTask().catch(err => console.log(err))
