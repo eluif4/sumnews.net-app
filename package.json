@@ -12,7 +12,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@google/generative-ai": "^0.8.0",
+    "@google/generative-ai": "^0.21.0",
     "bottleneck": "^2.19.5",
     "buffer": "^6.0.3",
     "canvas": "^2.11.2",
