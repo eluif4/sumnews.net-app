@@ -10,9 +10,8 @@ const isDesktop = computed(() => {
 
 <template>
   <div id="app">
-    <!-- <DesktopPage v-if="isDesktop"></DesktopPage> -->
-    <!-- <MobilePage v-else></MobilePage> -->
-     <MobilePage></MobilePage>
+    <DesktopPage v-if="isDesktop"></DesktopPage>
+    <MobilePage v-else></MobilePage>
   </div>
 </template>
 

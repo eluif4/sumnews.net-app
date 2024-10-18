@@ -114,11 +114,11 @@ function backClick() {
         </div>
         <div class="options" id="options">
             <!-- FUTURE CHANGE: animate the list of options. have the options slide between options -->
-            <FilterOption v-if="selectedOption == 'source'" v-for="option in Sources.list" :key="option.id"
+            <FilterOption v-if="selectedOption == 'source'" v-for="option in Object.values(Sources.list).sort((a, b) => a.source.localeCompare(b.source))" :key="option.id"
                 :option="option" class="filter-option">
             </FilterOption>
 
-            <FilterOption v-if="selectedOption == 'genre'" v-for="option in Genres.list" :key="option.id"
+            <FilterOption v-if="selectedOption == 'genre'" v-for="option in Object.values(Genres.list).sort((a, b) => a.genre.localeCompare(b.genre))" :key="option.id"
                 :option="option" class="filter-option">
             </FilterOption>
         </div>

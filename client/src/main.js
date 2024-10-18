@@ -1,10 +1,9 @@
 import './global.css';
 import { ref, reactive, createApp, watch } from 'vue';
 import { config } from './constants'
-import { fetchProtectedResource } from './scripts/utility';
 import App from './App.vue';
 import router from './router';
-import vue3GoogleLogin from 'vue3-google-login';
+import { getAuthToken } from './scripts/utility';
 
 const FRONTEND_URL = config.url.FRONTEND_URL
 const BACKEND_URL = config.url.BACKEND_URL
@@ -20,12 +19,6 @@ export const List = reactive({
   loading: false,
   infiniteScrollCallCount: 0,
   articles: [],
-})
-
-watch(List.articles, (newArticleList, oldArticlList) => {
-  for (const article of newArticleList) {
-    // check if article already exists
-  }
 })
 
 // ----- GET ALL SOURCES FROM DB -----
@@ -78,7 +71,7 @@ else if (!allSourcesInLocalStorage || genresDiffInDays > 1) {
 
 // Get loggin user information from DB. If no user / fault token is found return null
 async function getUser() {
-  var authToken = localStorage.getItem('authToken');
+  var authToken = await getAuthToken();
   if (authToken) {
     var response = await fetch(`${BACKEND_URL}user`, {
       method: 'GET',
@@ -152,8 +145,5 @@ window.addEventListener("beforeinstallprompt", (event) => {
   showPWA.value = true
 });
 
-app.use(vue3GoogleLogin, {
-  clientId: "460348077182-hfarubd5kv9mhq03e4g1ugfcjeopeo4m.apps.googleusercontent.com"
-});
 app.use(router);
 app.mount('#app');

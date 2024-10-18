@@ -56,10 +56,10 @@ const routes = [
                 List.articles = [];
                 var token = localStorage.getItem('authToken');
                 if (token) {
-                    fetchUserFeed()
+                    await fetchUserFeed()
                 }
                 else {
-                    fetchFeed()
+                    await fetchFeed()
                 }
             } else {
                 // Logic to execute if use is coming from other paths into home

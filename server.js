@@ -50,7 +50,7 @@ app.use(AUTH);
 app.use(USERINFO);
  
 app.listen(port, function () {
-    console.log(`Server is running on port ${port} in PRODUCTION mode`);
+    console.log(`Server is running on port ${port} in DEVELOPMENT mode`);
 
     // Execute code after server start
     cronTask().catch(err => console.log(err))
@@ -67,7 +67,7 @@ const { articleQueue } = require('./server/2-utils/articleQueueHandler.js');
 const state = 0;
 async function cronTask() {
     cron.schedule('*/20 * * * *', async () => {
-        if (true) {
+        if (false) {
             try {
                 const date = new Date()
                 console.log(kleur.bgBlue(`Task started @ ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`))

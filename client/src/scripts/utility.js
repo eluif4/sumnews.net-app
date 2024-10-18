@@ -2,6 +2,7 @@ import router from '../router'
 import { config } from '../constants';
 import { PopupAttributes, userProfile } from '../main';
 import { List } from '../main';
+import { useStorage, StorageSerializers } from '@vueuse/core';
 
 const FRONTEND_URL = config.url.FRONTEND_URL
 const BACKEND_URL = config.url.BACKEND_URL
@@ -219,4 +220,27 @@ export async function fetchProtectedResource(path) {
 
     var data = await response.json();
     return data;
+}
+
+// Function to store token based on platform
+export async function storeAuthToken(token) {
+    if (Capacitor.getPlatform() === 'web') {
+        // Store token in an HTTP-only cookie
+        document.cookie = `authToken=${token}; Secure; SameSite=Strict; path=/`;
+    } else if (Capacitor.getPlatform() === 'android' || Capacitor.getPlatform() === 'ios') {
+        // Store token in secure storage for native
+        await Storage.set({ key: 'authToken', value: token });
+    }
+}
+
+// Function to retrieve token based on platform
+export async function getAuthToken() {
+    if (Capacitor.getPlatform() === 'web') {
+        const match = document.cookie.match(/(^|;\s*)authToken=([^;]*)/);
+        return match ? match[2] : null; // Retrieve token from cookie
+    } else if (Capacitor.getPlatform() === 'android' || Capacitor.getPlatform() === 'ios') {
+        const { value } = await Storage.get({ key: 'authToken' });
+        return value; // Retrieve token from secure storage
+    }
+    return null; // Return null if no token is found
 }
