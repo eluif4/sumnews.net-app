@@ -91,7 +91,7 @@ export async function fetchUserFeed() {
         method: 'POST',
         headers: {
             "Content-type": "application/json",
-            "Authorization": `Bearer ${localStorage.getItem('authToken')}`
+            "Authorization": `Bearer ${await getAuthToken()}`
         },
         body: JSON.stringify({
             articlesInFeed: List.articles.map(article => article.uuid)
@@ -122,7 +122,7 @@ export async function addArticleToBookmarks(articleuuid) {
                 method: 'POST',
                 headers: {
                     'Content-type': 'application/json',
-                    'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+                    'Authorization': `Bearer ${await getAuthToken()}`
                 },
                 body: JSON.stringify(data)
             })
@@ -144,7 +144,7 @@ export async function removeArticleFromBookmarks(articleuuid) {
                 method: 'POST',
                 headers: {
                     'Content-type': 'application/json',
-                    'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+                    'Authorization': `Bearer ${await getAuthToken()}`
                 },
                 body: JSON.stringify(data)
             })
@@ -204,7 +204,7 @@ export async function fetchProtectedResource(path) {
         method: 'POST',
         headers: {
             "Content-type": "application/json",
-            "Authorization": `Bearer ${localStorage.getItem('authToken')}`
+            "Authorization": `Bearer ${await getAuthToken()}`
         },
         body: JSON.stringify({
             articlesInFeed: List.articles.map(article => article.uuid)

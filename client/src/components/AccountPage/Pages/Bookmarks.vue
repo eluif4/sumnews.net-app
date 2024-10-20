@@ -4,6 +4,7 @@ import ArticleInstance from '../../Article/ArticleInstance.vue';
 import { config } from '../../../constants';
 import { bookmarkAction } from '../../../scripts/actions';
 import ArticleSkeleton from '../../Article/ArticleSkeleton.vue';
+import { getAuthToken } from '../../../scripts/utility';
 
 const BACKEND_URL = config.url.BACKEND_URL;
 const userBookmarks = ref([]); // Reactive variable to store bookmarks
@@ -15,7 +16,7 @@ onMounted(async () => {
         const response = await fetch(`${BACKEND_URL}user/bookmarks`, {
             method: 'GET',
             headers: {
-                "Authorization": `Bearer ${localStorage.getItem('authToken')}`,
+                "Authorization": `Bearer ${await getAuthToken()}`,
                 "Content-Type": "application/json"
             }
         });
