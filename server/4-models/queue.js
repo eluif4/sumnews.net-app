@@ -21,7 +21,7 @@ class Queue {
 
     exist(article) {
         for (const item of this.items) {
-            if (article.url === item.url)
+            if (article.url === item.url || article.title === item.title)
                 return true
         }
         return false

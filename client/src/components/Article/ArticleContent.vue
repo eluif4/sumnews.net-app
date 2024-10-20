@@ -5,7 +5,8 @@ import {
     goBack,
     showPopup,
     front_getArticlesFromDB,
-    updateArticleEngagement
+    updateArticleEngagement,
+    getAuthToken
 } from '../../scripts/utility.js';
 import {
     shareAction,
@@ -203,7 +204,7 @@ async function updateUserPreferences() {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+            'Authorization': `Bearer ${await getAuthToken()}`
         },
         body: JSON.stringify(data)
     })

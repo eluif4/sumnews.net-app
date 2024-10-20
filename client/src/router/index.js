@@ -2,7 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import { front_getArticlesFromDB, showPopup, fetchFeed } from '../scripts/utility'
 import { List, userProfile } from '../main'
 import { config } from '../constants'
-import { fetchUserFeed } from '../scripts/utility'
+import { fetchUserFeed, getAuthToken } from '../scripts/utility'
 
 import Home from '../views/Home.vue'
 import AccountPage from '../views/AccountPage.vue'
@@ -54,7 +54,7 @@ const routes = [
                 (isFromEventPage && List.articles.length === 0)
             ) {
                 List.articles = [];
-                var token = localStorage.getItem('authToken');
+                var token = await getAuthToken();
                 if (token) {
                     await fetchUserFeed()
                 }

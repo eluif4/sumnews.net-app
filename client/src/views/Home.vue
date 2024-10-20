@@ -2,7 +2,8 @@
 import { ref, onMounted } from 'vue'
 import {
     front_getArticlesFromDB,
-    updateArticleEngagement
+    updateArticleEngagement,
+    getAuthToken
 } from '../scripts/utility'
 import { List, userProfile } from '../main'
 import { useRoute, useRouter } from 'vue-router';
@@ -81,7 +82,7 @@ async function scrollHandler(event) {
                     method: 'POST',
                     headers: {
                         "Content-type": "application/json",
-                        "Authorization": `Bearer ${localStorage.getItem('authToken')}`
+                        "Authorization": `Bearer ${await getAuthToken()}`
                     },
                     body: JSON.stringify({
                         articlesInFeed: List.articles.map(article => article.uuid)
