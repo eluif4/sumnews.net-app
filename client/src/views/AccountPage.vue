@@ -1,9 +1,7 @@
 <script setup>
-// import { useStorage, StorageSerializers } from '@vueuse/core';
 import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
 import { Capacitor } from '@capacitor/core';
-import { useStorage, StorageSerializers } from '@vueuse/core';
-import { storeAuthToken } from '../scripts/utility';
+import { storeAuthToken, removeAuthToken } from '../scripts/utility';
 
 import { onMounted, ref } from 'vue';
 import AccountPageItem from '../components/AccountPage/AccountPageItem.vue';
@@ -25,9 +23,9 @@ const googlePlatform = {
 }
 
 // Global reactive storage for user session
-const userToken = useStorage('user-auth-token', null, undefined, {
-    serializer: StorageSerializers.object,
-});
+// const userToken = useStorage('user-auth-token', null, undefined, {
+//     serializer: StorageSerializers.object,
+// });
 
 onMounted(() => {
     try {
@@ -39,7 +37,6 @@ onMounted(() => {
 });
 
 async function signInWithGoogle() {
-    // Check if the app is running on a Cordova platform (Android, iOS)
     try {
         const googleUser = await GoogleAuth.signIn();
 
@@ -89,15 +86,14 @@ async function logout() {
     if (Capacitor.isNativePlatform()) { // Native
         try {
             await GoogleAuth.signOut(); // Sign out from Google
-            userToken.value = null; // Clear user token from storage
+            await removeAuthToken();
             userProfile.user = null; // Reset user profile
             console.log("Successfully logged out from native platform.");
         } catch (error) {
             console.error("Failed to sign out from Google:", error);
         }
     } else { // Web
-        document.cookie = "authToken=; Secure; SameSite=Strict; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;"; // Expire the cookie
-        userToken.value = null; // Clear user token from storage
+        await removeAuthToken();
         userProfile.user = null; // Reset user profile
         console.log("Successfully logged out from web platform.");
     }

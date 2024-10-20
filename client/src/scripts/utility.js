@@ -2,7 +2,7 @@ import router from '../router'
 import { config } from '../constants';
 import { PopupAttributes, userProfile } from '../main';
 import { List } from '../main';
-import { useStorage, StorageSerializers } from '@vueuse/core';
+import { Preferences } from '@capacitor/preferences'
 
 const FRONTEND_URL = config.url.FRONTEND_URL
 const BACKEND_URL = config.url.BACKEND_URL
@@ -229,7 +229,7 @@ export async function storeAuthToken(token) {
         document.cookie = `authToken=${token}; Secure; SameSite=Strict; path=/`;
     } else if (Capacitor.getPlatform() === 'android' || Capacitor.getPlatform() === 'ios') {
         // Store token in secure storage for native
-        await Storage.set({ key: 'authToken', value: token });
+        await Preferences.set({ key: 'authToken', value: token });
     }
 }
 
@@ -239,8 +239,19 @@ export async function getAuthToken() {
         const match = document.cookie.match(/(^|;\s*)authToken=([^;]*)/);
         return match ? match[2] : null; // Retrieve token from cookie
     } else if (Capacitor.getPlatform() === 'android' || Capacitor.getPlatform() === 'ios') {
-        const { value } = await Storage.get({ key: 'authToken' });
+        const { value } = await Preferences.get({ key: 'authToken' });
         return value; // Retrieve token from secure storage
     }
     return null; // Return null if no token is found
+}
+
+// Function to remove the auth token based on the platform
+export async function removeAuthToken() {
+    if (Capacitor.getPlatform() === 'web') {
+        // Remove token from cookie
+        document.cookie = `authToken=; Max-Age=0; Secure; SameSite=Strict; path=/`;
+    } else if (Capacitor.getPlatform() === 'android' || Capacitor.getPlatform() === 'ios') {
+        // Remove token from secure storage for native
+        await Preferences.remove({ key: 'authToken' });
+    }
 }

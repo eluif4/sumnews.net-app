@@ -40,7 +40,7 @@ onMounted(async () => {
         <p>You have {{ userBookmarks.length }} article{{ userBookmarks.length > 1 ? "s" : "" }} bookmarked</p>
         <!-- Loop through bookmarks and display -->
         <router-link v-for="(article, index) in userBookmarks" :key="article.uuid" style="min-width: 100%"
-            :to="{ name: 'article', params: { uuid: article.uuid }, query: { index: index } }">
+            :to="{ name: 'article', params: { uuid: article.uuid } }">
             <ArticleInstance :article="article" />
         </router-link>
     </div>
