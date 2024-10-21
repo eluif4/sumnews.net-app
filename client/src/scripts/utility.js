@@ -45,7 +45,8 @@ export async function front_getArticlesFromDB(
             method: 'POST',
             headers: {
                 'Accept': 'application/json',
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                "Cache-Control": 'no-cache'
             },
             body: JSON.stringify({
                 filter: updatedFilter,
@@ -86,32 +87,38 @@ export async function fetchFeed(skip = 0) {
 }
 
 export async function fetchUserFeed() {
-    console.log('fetching user feed')
-    var response = await fetch(`${BACKEND_URL}user/feed`, {
+    console.log('fetching user feed');
+    const token = await getAuthToken();
+
+    fetch(`${BACKEND_URL}user/feed`, {
         method: 'POST',
         headers: {
             "Content-type": "application/json",
-            "Authorization": `Bearer ${await getAuthToken()}`
+            "Authorization": `Bearer ${token}`,
+            "Cache-Control": 'no-cache'
         },
         body: JSON.stringify({
             articlesInFeed: List.articles.map(article => article.uuid)
         })
-    });
-
-    // Check if the response is forbidden (status 403)
-    if (response.status === 403) {
-        console.error("User isnt logged in");
-        // Handle the forbidden case, e.g., return an error message or redirect the user
-        var response = await front_getArticlesFromDB();
-        List.articles = response
-    }
-
-    else {
-        var data = await response.json();
-        for (const article of data.articles) {
-            List.articles.push(article);
-        }
-    }
+    })
+        .then(async response => {
+            if (response.status === 403) {
+                console.error("User isn't logged in");
+                // Fall back to default article fetching if the user isn't logged in
+                return await front_getArticlesFromDB();
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.articles) {
+                for (const article of data.articles) {
+                    List.articles.push(article); // Incrementally add articles
+                }
+            }
+        })
+        .catch(error => {
+            console.error("Error in fetchUserFeed:", error);
+        });
 }
 
 export async function addArticleToBookmarks(articleuuid) {

@@ -27,14 +27,14 @@ const googlePlatform = {
 //     serializer: StorageSerializers.object,
 // });
 
-onMounted(() => {
-    try {
-        GoogleAuth.initialize();
-        console.log('Google Auth Initialized');
-    } catch (error) {
-        console.error('Faile to Initialize Google Auth', error)
-    }
-});
+// onMounted(() => {
+//     try {
+//         GoogleAuth.initialize();
+//         console.log('Google Auth Initialized');
+//     } catch (error) {
+//         console.error('Faile to Initialize Google Auth', error)
+//     }
+// });
 
 async function signInWithGoogle() {
     try {
