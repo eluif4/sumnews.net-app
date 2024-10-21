@@ -4,6 +4,7 @@ import { config } from './constants'
 import App from './App.vue';
 import router from './router';
 import { getAuthToken } from './scripts/utility';
+import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
 
 const FRONTEND_URL = config.url.FRONTEND_URL
 const BACKEND_URL = config.url.BACKEND_URL
@@ -12,6 +13,15 @@ const app = createApp(App)
 // ----- RESET LOCAL STORAGE -----
 localStorage.setItem('genres', JSON.stringify([]))
 localStorage.setItem('sources', JSON.stringify([]))
+
+// onMounted(() => {
+  try {
+    GoogleAuth.initialize();
+    console.log('Google Auth Initialized');
+  } catch (error) {
+    console.error('Faile to Initialize Google Auth', error)
+  }
+// });
 
 // ----- GLOBAL VARIABLES -----
 // FUTURE CHANGE: watch List and remove duplicate articles (using url)
