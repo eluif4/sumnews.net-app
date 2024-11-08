@@ -179,8 +179,14 @@ async function getDailyRecapByIdController(req, res) {
     res.send(dr)
 }
 
-async function getDailyRecapsController(req, res) {
+async function postDailyRecapsController(req, res) {
     const uuid = req.body.uuid;
+    var drs = await getDailyRecap(uuid);
+    res.send(drs);
+}
+
+async function getDailyRecapsController(req, res) {
+    const uuid = req.params.uuid;
     var drs = await getDailyRecap(uuid);
     res.send(drs);
 }
@@ -225,6 +231,7 @@ module.exports = {
     createDailyRecapController,
     getDailyRecapButtonsController,
     getDailyRecapByIdController,
+    postDailyRecapsController,
     getDailyRecapsController,
     getSourcesLogoController,
     updateArticleEngagementController
