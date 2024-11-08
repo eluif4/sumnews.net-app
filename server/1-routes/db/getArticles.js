@@ -8,6 +8,7 @@ const { getArticlesController,
     getArticlesFromEventController,
     getArticlesFromDrEventController,
     createDailyRecapController,
+    postDailyRecapsController,
     getDailyRecapsController,
     getDailyRecapButtonsController,
     getDailyRecapByIdController,
@@ -29,7 +30,8 @@ app.post('/db/getArticlesFromDrEvent', getArticlesFromDrEventController)
 app.get('/db/createDailyRecap', createDailyRecapController)
 app.post('/db/getDailyRecapById', getDailyRecapByIdController)
 app.post('/db/getEventByEventUri', getEventByEventUriController)
-app.post('/db/getDailyRecaps', getDailyRecapsController)
+app.post('/db/getDailyRecaps', postDailyRecapsController)
+app.get('/db/dailyrecap/:uuid', getDailyRecapsController)
 app.get('/db/getDailyRecapButtons', getDailyRecapButtonsController)
 app.post('/db/getSourcesLogo', getSourcesLogoController)
 app.post('/db/updateArticleEngagement', updateArticleEngagementController)

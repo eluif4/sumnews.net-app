@@ -26,10 +26,11 @@ const DBGETARTICLESROUTES = require('./server/1-routes/db/getCollections.js');
 const DBGETCOLLECTIONSROUTES = require('./server/1-routes/db/getArticles.js');
 const AUTH = require('./server/1-routes/api/auth.js');
 const USERINFO = require('./server/1-routes/db/userInfo.js');
+// const GOOGLEDRIVE = require('./server/1-routes/api/googleDrive.js')
 
 //---FUNCTIONS---
 const { getArticlesUsingRecentActiviy } = require('./server/2-utils/api/getArticlesFromAPI.js');
-const { getAllSources, articlesSinceYesterday, doesArticleExist } = require('./server/2-utils/db/databaseAccess.js')
+const { getAllSources, articlesSinceYesterday, getExistingArticles } = require('./server/2-utils/db/databaseAccess.js')
 const { processQueue } = require('./server/2-utils/articleQueueHandler.js')
 const { createDailyRecap } = require('./server/2-utils/dailyRecaps.js')
 
@@ -48,7 +49,8 @@ app.use(DBGETARTICLESROUTES);
 app.use(DBGETCOLLECTIONSROUTES);
 app.use(AUTH);
 app.use(USERINFO);
- 
+// app.use(GOOGLEDRIVE);
+
 app.listen(port, function () {
     console.log(`Server is running on port ${port} in DEVELOPMENT mode`);
 
@@ -66,44 +68,66 @@ const { articleQueue } = require('./server/2-utils/articleQueueHandler.js');
 // 0 = OFF, 1 = TESTING, 2 = RUNNING
 const state = 0;
 async function cronTask() {
-    cron.schedule('*/20 * * * *', async () => {
+    cron.schedule('*/10 * * * *', async () => {
         if (false) {
             try {
                 const date = new Date()
                 console.log(kleur.bgBlue(`Task started @ ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`))
 
-            const cachedSources = cache.get('sources');
-            var allSources = cachedSources ? cachedSources : await getAllSources();
+                const cachedSources = cache.get('sources');
+                var allSources = cachedSources ? cachedSources : await getAllSources();
 
-            var sources = allSources.map(source => source.source)
+                var sources = allSources.map(source => source.source)
 
-            // FUTURE CHANGE: LOOK THROUGH ALL PAGES (IF THE API CALL IS QUICK AND I DONT HAVE TOO MANY SOURCES THEN I SHOULDNT WORRY ABOUT THIS)
+                // Get most recent articles from 'sources' from Newsapi.ai
+                const apiresponse = await getArticlesUsingRecentActiviy(sources);
+                const articles = apiresponse.recentActivityArticles.activity;
 
-            // Get most recent articles from 'sources' from Newsapi.ai
-            const apiresponse = await getArticlesUsingRecentActiviy(sources);
-            const articles = apiresponse.recentActivityArticles.activity;
+                // Sort articles from oldest to newest
+                articles.sort((a, b) => {
+                    const dateA = new Date(a.dateTimePub);
+                    const dateB = new Date(b.dateTimePub);
+                    return dateA - dateB;
+                });
 
-            // Sort articles from oldest to newest
-            articles.sort((a, b) => {
-                const dateA = new Date(a.dateTimePub);
-                const dateB = new Date(b.dateTimePub);
-                return dateA - dateB;
-            });
+                // Add articles from API response to Article Queue for processing. 
+                // The code below is to make sure they dont already exist in the queue or the DB
 
-            // Loop over all articles from API response
-            for (const article of articles) {
-                var articleExistsInDB = false;
-                const articleExistInQueue = articleQueue.exist(article);
+                // Step 1: Collect all URLs and titles from the articles
+                const urls = articles.map(article => article.url);
+                const titles = articles.map(article => article.title);
 
-                // FUTURE CHANGE: For further proof, check article too
-                articleExistsInDB = await doesArticleExist(article);
+                // Step 2: Get sets of URLs and titles that exist in the database
+                const { existingUrls, existingTitles } = await getExistingArticles(urls, titles);
 
-                // If article isn't in DB or QUEUE
-                if (!articleExistInQueue && !articleExistsInDB) {
-                    articleQueue.enqueue(article) // Adds article to queue
+                // Step 3: Track URLs and titles already in the queue
+                const queueUrls = new Set(articleQueue.toArray().map(a => a.url));
+                const queueTitles = new Set(articleQueue.toArray().map(a => a.title));
+                for (const article of articles) {
+                    const { url, title } = article;
+                    const articleExistInQueue = queueUrls.has(url) || queueTitles.has(title);
+                    const articleExistsInDB = existingUrls.has(url) || existingTitles.has(title);
+
+                    // If article isn't in DB or QUEUE
+                    if (!articleExistInQueue && !articleExistsInDB) {
+                        articleQueue.enqueue(article); // Adds article to queue
+
+                        // Update the Sets for future checks
+                        queueUrls.add(url);
+                        queueTitles.add(title);
+                    }
+                    // var articleExistsInDB = false;
+                    // const articleExistInQueue = articleQueue.exist(article);
+
+                    // // FUTURE CHANGE: Check if articles exists in DB once by passing all articles in MongoDB query
+                    // articleExistsInDB = await doesArticleExist(article);
+
+                    // // If article isn't in DB or QUEUE
+                    // if (!articleExistInQueue && !articleExistsInDB) {
+                    //     articleQueue.enqueue(article) // Adds article to queue
+                    // }
                 }
-            }
-            console.log(kleur.blue(`Queue size (${articleQueue.size()})`))
+                console.log(kleur.blue(`Queue size (${articleQueue.size()})`))
 
                 // Process 'articleQueue' if it isnt empty
                 if (!articleQueue.isEmpty()) {
@@ -141,16 +165,17 @@ function shuffleArray(array) {
     return array;
 }
 
-// app.get('/createDailyRecapCron', async (req, res) => {
-//     const cachedSources = cache.get('sources');
-//     response = cachedSources ? cachedSources : await getAllSources();
-//     const responseSources = response.map(source => source.source);
-//     const shuffledSources = shuffleArray(responseSources);
-//     const sources = ['sumnews.net', ...shuffledSources];
-//     for (const source of sources) {
-//         await createDailyRecap(source);
-//     }
-// })
+app.get('/createDailyRecapCron', async (req, res) => {
+    const cachedSources = cache.get('sources');
+    response = cachedSources ? cachedSources : await getAllSources();
+    const responseSources = response.map(source => source.source);
+    const shuffledSources = shuffleArray(responseSources);
+    const sources = ['sumnews.net', ...shuffledSources];
+    for (const source of sources) {
+        await createDailyRecap(source);
+    }
+    res.send('Process Complete')
+})
 
 async function cacheSourcesEvery24H() {
     // Save all sources in cache at midnight
