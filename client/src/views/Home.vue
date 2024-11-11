@@ -238,8 +238,8 @@ const callback = (response) => {
                     @click="updateArticleEngagement(article, 'clicks')"></ArticleInstance>
             </router-link>
         </div>
-        <Cookies></Cookies>
     </div>
+    <Cookies></Cookies>
     <Popup></Popup>
     <!-- Google One Tap -->
 
