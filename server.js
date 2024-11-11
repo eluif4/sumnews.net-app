@@ -7,6 +7,8 @@ const express = require('express');
 const cors = require('cors');
 const { BSON } = require('mongodb');
 var cache = require('memory-cache');
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
 
 //---CONFIG---
 dotenv.config({ path: path.resolve(__dirname, './server/config/config.env') });
@@ -40,9 +42,22 @@ const port = process.env.PORT || 3000;
 
 app.use(express.json());
 
+// Use the 'helmet' package to set HTTP headers that enhance security
+app.use(helmet());
+
+const limiter = rateLimit({
+    windowMs: 10 * 60 * 1000, // 10 minutes
+    max: 200, // Limit each IP to 30 requests per 10 minutes
+    message: 'Resource exhausted. Please try again later'
+})
+
+app.use(limiter);
+
 app.use(cors({
-    origin: '*', // Allow requests from any origin
-    credentials: true // Include credentials like cookies in requests
+    origin: ['http://localhost:5173'],
+    credentials: true, // Allows cookies to be included in requests (if necessary)
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Cache-Control'], // Include 'Cache-Control' here
 }));
 
 app.use(DBGETARTICLESROUTES);
@@ -69,7 +84,7 @@ const { articleQueue } = require('./server/2-utils/articleQueueHandler.js');
 const state = 0;
 async function cronTask() {
     cron.schedule('*/10 * * * *', async () => {
-        if (false) {
+        if (true) {
             try {
                 const date = new Date()
                 console.log(kleur.bgBlue(`Task started @ ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`))
@@ -173,6 +188,9 @@ app.get('/createDailyRecapCron', async (req, res) => {
     const sources = ['sumnews.net', ...shuffledSources];
     for (const source of sources) {
         await createDailyRecap(source);
+
+        // Wait 4 seconds before sending the next request
+        await new Promise(resolve => setTimeout(resolve, 4000));
     }
     res.send('Process Complete')
 })
