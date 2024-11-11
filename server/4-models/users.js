@@ -9,6 +9,7 @@ const userSchema = new mongoose.Schema({
     picture: String,
     createdDate: Date,
     bookmarks: Array,
+    fcmToken: String,
 
     // User preferences
     preferences: {

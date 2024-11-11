@@ -230,6 +230,43 @@ async function processUser(userDetails) {
     }
 }
 
+async function saveUserNotificationToken(fcmtoken, userid) {
+    try {
+        const updatedUser = await User.findOneAndUpdate(
+            { googleId: userid },      // Search for user by googleId
+            { $set: { fcmToken: fcmtoken } }, // Set the new fcmToken
+            { new: true } // Return the updated document, no upsert (no new document if not found)
+        );
+
+        if (updatedUser) {
+            console.log('FCMTokem Saved:', updatedUser);
+            return updatedUser;
+        } else {
+            console.log('User not found');
+            return null;  // User wasn't found and no new user is created
+        }
+    } catch (error) {
+        console.error('Error saving FCM token:', error);
+        throw error;  // Propagate the error
+    }
+}
+
+async function getUserNotificationToken(userid) {
+    try {
+        const user = await User.findOne({ googleId: userId });
+        if (user) {
+            console.log('FCM Token received')
+            return user.fcmToken
+        }
+        else {
+            console.log('Failed to retrieve FCM Token. User not found')
+            return null;
+        }
+    } catch (error) {
+        console.log('Error when retrieving user FCM Token', error);
+    }
+}
+
 async function getUserBookmarks(googleId) {
     try {
         const user = await User.findOne({ googleId: googleId }, { bookmarks: 1, _id: 0 });
@@ -699,6 +736,8 @@ module.exports = {
     getUser,
     saveUserToDB,
     processUser,
+    saveUserNotificationToken,
+    getUserNotificationToken,
     getUserBookmarks,
     addArticleToBookmarks,
     removeArticleToBookmarks,

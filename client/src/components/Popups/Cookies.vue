@@ -37,7 +37,7 @@ function decision(bool) {
 <style scoped>
 .cookie {
     position: absolute;
-    bottom: calc(20px + 2%);
+    bottom: 0;
     width: 92%;
     z-index: 9999;
     margin: 2% 4%;
