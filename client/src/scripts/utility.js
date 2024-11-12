@@ -233,7 +233,9 @@ export async function fetchProtectedResource(path) {
 export async function storeAuthToken(token) {
     if (Capacitor.getPlatform() === 'web') {
         // Store token in an HTTP-only cookie
-        document.cookie = `authToken=${token}; Secure; SameSite=Strict; path=/`;
+        const date = new Date();
+        const maxAge = 5 * 365 * 24 * 60 * 60; // 5 years in seconds
+        document.cookie = `authToken=${token}; Max-Age=${maxAge}; Secure; SameSite=Strict; path=/`;
     } else if (Capacitor.getPlatform() === 'android' || Capacitor.getPlatform() === 'ios') {
         // Store token in secure storage for native
         await Preferences.set({ key: 'authToken', value: token });
