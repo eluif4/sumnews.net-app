@@ -95,7 +95,7 @@ export async function fetchUserFeed() {
         headers: {
             "Content-type": "application/json",
             "Authorization": `Bearer ${token}`,
-            "Cache-Control": 'no-cache'
+            "Cache-Control": 'no-store'
         },
         body: JSON.stringify({
             articlesInFeed: List.articles.map(article => article.uuid)
@@ -211,7 +211,8 @@ export async function fetchProtectedResource(path) {
         method: 'POST',
         headers: {
             "Content-type": "application/json",
-            "Authorization": `Bearer ${await getAuthToken()}`
+            "Authorization": `Bearer ${await getAuthToken()}`,
+            "Cache-Control": 'no-store'
         },
         body: JSON.stringify({
             articlesInFeed: List.articles.map(article => article.uuid)

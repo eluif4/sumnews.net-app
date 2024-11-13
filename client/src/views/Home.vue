@@ -3,7 +3,8 @@ import { ref, onMounted } from 'vue'
 import {
     front_getArticlesFromDB,
     updateArticleEngagement,
-    getAuthToken
+    getAuthToken,
+    showPopup
 } from '../scripts/utility'
 import { List, userProfile } from '../main'
 import { useRoute, useRouter } from 'vue-router';
@@ -82,7 +83,8 @@ async function scrollHandler(event) {
                     method: 'POST',
                     headers: {
                         "Content-type": "application/json",
-                        "Authorization": `Bearer ${await getAuthToken()}`
+                        "Authorization": `Bearer ${await getAuthToken()}`,
+                        "Cache-Control": 'no-store'
                     },
                     body: JSON.stringify({
                         articlesInFeed: List.articles.map(article => article.uuid)
@@ -128,40 +130,45 @@ async function setDailyRecapButtons() {
         }
         else {
             var response = await fetch(`${BACKEND_URL}db/getDailyRecapButtons`);
-            var dailyRecaps = await response.json();
-
-            // If now is before 1805 UTCC, set lastUpdate to yesterday at 1805 UTC
-            // Step 1: Get the current time in UTC
-            const now = new Date();
-
-            // Step 2: Create a target time for 18:05 UTC
-            const targetTime = new Date();
-            targetTime.setUTCHours(18, 5, 0, 0); // Set time to 18:05:00.000 UTC
-
-            // Compare the current time with the target time
-            const isBefore1805UTC = now < targetTime;
-
-            var lastUpdate = new Date();
-
-            if (isBefore1805UTC) {
-                const yesterday1805UTC = new Date();
-                yesterday1805UTC.setUTCDate(now.getUTCDate() - 1); // Move the date back by one day
-                yesterday1805UTC.setUTCHours(18, 5, 0, 0); // Set the time to 18:05:00.000 UTC
-                lastUpdate = yesterday1805UTC;
+            if (!response.status == 200) { // If request isnt successful
+                hasFetchedDailyRecapFinished.value = true;
+                showPopup(2, 'Sorry, something went wrong with the Daily Recaps. Please try again later');
             } else {
-                var UTC1805 = new Date(Date.UTC(
-                    new Date().getUTCFullYear(),  // Current year
-                    new Date().getUTCMonth(),     // Current month
-                    new Date().getUTCDate(),      // Current date
-                    18,                           // Hours in UTC (18:05 UTC)
-                    5                             // Minutes in UTC
-                ));
-                lastUpdate = UTC1805
-            }
+                var dailyRecaps = await response.json();
 
-            localStorage.setItem('dailyRecaps', JSON.stringify({ "lastUpdate": lastUpdate, "dailyRecapButtons": dailyRecaps }));
-            dailyRecapButtons.value = dailyRecaps;
-            hasFetchedDailyRecapFinished.value = true;
+                // If now is before 1805 UTCC, set lastUpdate to yesterday at 1805 UTC
+                // Step 1: Get the current time in UTC
+                const now = new Date();
+
+                // Step 2: Create a target time for 18:05 UTC
+                const targetTime = new Date();
+                targetTime.setUTCHours(18, 5, 0, 0); // Set time to 18:05:00.000 UTC
+
+                // Compare the current time with the target time
+                const isBefore1805UTC = now < targetTime;
+
+                var lastUpdate = new Date();
+
+                if (isBefore1805UTC) {
+                    const yesterday1805UTC = new Date();
+                    yesterday1805UTC.setUTCDate(now.getUTCDate() - 1); // Move the date back by one day
+                    yesterday1805UTC.setUTCHours(18, 5, 0, 0); // Set the time to 18:05:00.000 UTC
+                    lastUpdate = yesterday1805UTC;
+                } else {
+                    var UTC1805 = new Date(Date.UTC(
+                        new Date().getUTCFullYear(),  // Current year
+                        new Date().getUTCMonth(),     // Current month
+                        new Date().getUTCDate(),      // Current date
+                        18,                           // Hours in UTC (18:05 UTC)
+                        5                             // Minutes in UTC
+                    ));
+                    lastUpdate = UTC1805
+                }
+
+                localStorage.setItem('dailyRecaps', JSON.stringify({ "lastUpdate": lastUpdate, "dailyRecapButtons": dailyRecaps }));
+                dailyRecapButtons.value = dailyRecaps;
+                hasFetchedDailyRecapFinished.value = true;
+            }
         }
     } catch (error) {
         console.error(`Failed to fetch Daily Recaps`, error)
