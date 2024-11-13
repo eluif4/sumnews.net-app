@@ -2,14 +2,12 @@
 import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
 import { Capacitor } from '@capacitor/core';
 import { storeAuthToken, removeAuthToken } from '../scripts/utility';
-
-import { onMounted, ref } from 'vue';
 import AccountPageItem from '../components/AccountPage/AccountPageItem.vue';
 import PWA from '../components/PWA/PWA.vue';
 import SignInUsing from '../components/SignInUsing/SignInUsing.vue';
 import { config } from '../constants';
 import router from '../router';
-import { userProfile } from '../main';
+import { userProfile, registerPushNotificationsIfNeeded } from '../main';
 import { INSTAGRAM, LINKEDIN, X } from '../scripts/socials';
 import { showPopup } from '../scripts/utility';
 
@@ -22,27 +20,17 @@ const googlePlatform = {
     signInFunction: signInWithGoogle
 }
 
-// Global reactive storage for user session
-// const userToken = useStorage('user-auth-token', null, undefined, {
-//     serializer: StorageSerializers.object,
-// });
-
-// onMounted(() => {
-//     try {
-//         GoogleAuth.initialize();
-//         console.log('Google Auth Initialized');
-//     } catch (error) {
-//         console.error('Faile to Initialize Google Auth', error)
-//     }
-// });
-
 async function signInWithGoogle() {
     try {
         const googleUser = await GoogleAuth.signIn();
 
         const { idToken } = googleUser.authentication;
 
-        await authenticateUser(idToken);
+        const response = await authenticateUser(idToken);
+        // If user successfully registered
+        if (response.success) {
+            await registerPushNotificationsIfNeeded();
+        }
     } catch (error) {
         console.error('Failed to sign-in User', error);
     }
@@ -73,12 +61,15 @@ async function authenticateUser(idToken) {
             await storeAuthToken(token) // Securely store the token
 
             userProfile.user = user;
+            return { success: true };
         } else {
             showPopup(2, "Failed to authenticate user")
+            return { success: false };
         }
 
     } catch (error) {
         console.error('Failed to send authorization code: ', error);
+        return { success: false };
     }
 }
 

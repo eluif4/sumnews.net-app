@@ -6,7 +6,7 @@ const Event = require('../4-models/events.js')
 const cache = require('memory-cache')
 
 const uuid = require('uuid');
-const { saveDocument, getAllSources, getEventByEventUri } = require('./db/databaseAccess.js')
+const { saveDocument, getAllSources, getEventByEventUri, getEvents } = require('./db/databaseAccess.js')
 const { assignAndSummarize } = require('../2-utils/api/geminiRequests')
 const { getArticlesFromEvent } = require('../2-utils/api/getArticlesFromAPI')
 const { getAllGenres } = require('../2-utils/db/getCollections')
@@ -21,15 +21,21 @@ async function processQueue() {
         isProcessing = true
         while (!articleQueue.isEmpty()) {
             var now = new Date();
-            // Add 10 articles ( without counting events into 'bulkSendArticlesToGeminiQueue' )
+            var articlesInEventCountObject = {};
             while (bulkSendArticlesToGeminiQueue.size() < BULK_SEND_ARTICLE_QUEUE_SIZE && !articleQueue.isEmpty()) {
+                // Clear articlesInEventCountSet
+
                 const article = articleQueue.dequeue();
                 if (article.url) { // If is a real article
                     // Check for an english event, adds all articles in event to queue and save event to DB
                     if (article.eventUri && article.eventUri.includes('eng-')) {
-                        const eventIsMoreThan1Article = await processEvent(article)
-                        if (!eventIsMoreThan1Article)
-                            article.eventUri = null;
+                        // Current: Gets all articles from the event and if there is more than 1 article save the event to DB. This is incorrect because the gemini request can crash or return a faulty summary and therefor articles from the event wont be saved to the DB at all while the event will be.
+                        const doesEventExist = await queueArticlesFromEvents(article)
+                        if (doesEventExist != true) {
+                            articlesInEventCountObject[article.eventUri] = doesEventExist.articlesCount;
+                        }
+                        // if (!eventIsMoreThan1Article)
+                        //     article.eventUri = null;
                     }
 
                     // FUTURE CHANGE: Check if articles doesnt already exist in queue
@@ -37,77 +43,114 @@ async function processQueue() {
                     console.log(`(${articleQueue.size() + 1}) (${bulkSendArticlesToGeminiQueue.size()}/${BULK_SEND_ARTICLE_QUEUE_SIZE}) -> ${article.url}`)
                 }
             }
-
-            await processBulkSendArticlesToGeminiQueue();
+            await processBulkSendArticlesToGeminiQueue(articlesInEventCountObject);
         }
         isProcessing = false
     }
 }
 
-async function processBulkSendArticlesToGeminiQueue() {
+async function processBulkSendArticlesToGeminiQueue(articlesInEventCountObject) {
     /* 
     Goes over all articles in 'bulkSendArticlesToGeminiQueue', 
     adds any events articles to the queue, 
     sends them to Gemini for summarizing and assigning genres and lastly saves each one to DB
     */
     console.log("Processing 'bulkSendArticlesToGeminiQueue'...")
-    // Get all articles in event ( should always be 10 )
+    // Get articles from the queue and clear it - articles[index] contains all the article information from the API response
     const articles = bulkSendArticlesToGeminiQueue.toArray();
     bulkSendArticlesToGeminiQueue.clear();
+
     const cachedGenres = cache.get('genres');
     var allGenres = cachedGenres ? cachedGenres : await getAllGenres();
     var possibleGenres = allGenres.map(genre => genre.genre)
 
+    // A Set to store unique event URIs and a Map to track valid articles per event URI
+    const eventUris = new Set();
+    const eventArticlesSavedMap = new Map();
+
     try {
-        const gemini_response = await assignAndSummarize(articles);
-        for (const [index, gemini_response_article] of gemini_response.response.entries()) {
-            const articleFromBulkQueue = articles[index]
-            // If there is an article in the bulk queue and the response article from Gemini has the same url apply the changes
-            if (articleFromBulkQueue && articleFromBulkQueue.url == gemini_response_article.url) {
+        const geminiResponse = await assignAndSummarize(articles);
 
-                // Save the assigned genres to article
-                var chosenGenres = gemini_response_article.genres.map(item => item.trim())
+        // Process each article response from Gemini
+        console.log(geminiResponse.response.length);
+        for (const [index, originalArticle] of articles.entries()) {
+            // Find the matching Gemini article by URL
+            const geminiArticle = geminiResponse.response.find(
+                (article) => article.url === originalArticle.url
+            );
 
-                var validGenres = [];
-                for (const genre of chosenGenres) {
-                    if (genreExistsInPossibleGenres(genre, possibleGenres))
-                        validGenres.push(genre)
-                }
+            // If a matching Gemini article is found, proceed
+            if (geminiArticle) {
+                // Assign and validate genres
+                const chosenGenres = geminiArticle.genres.map(item => item.trim());
+                const validGenres = chosenGenres.filter(genre => possibleGenres.includes(genre));
 
-                var canSaveArticle = false;
-                const summary = gemini_response_article.summary;
+                // Assign and validate summary
+                const summary = geminiArticle.summary;
+                const hasValidGenres = validGenres.length > 0;
+                const hasValidSummary = summary && summary !== "undefined" && summary.trim() !== "";
 
-                // If genres is more than 1 and summary is correct ( not undefined or empty)
-                canSaveArticle = (validGenres?.length) > 0 && (summary && summary != "undefined" && summary != undefined && summary != "");
-
-                if (canSaveArticle) {
-                    // Save the summarized content to article
-                    articleFromBulkQueue.summarizedContent = summary
-                    articleFromBulkQueue.genre = validGenres;
+                // Only save if article has valid summary and genres
+                if (hasValidGenres && hasValidSummary) {
+                    originalArticle.summarizedContent = summary;
+                    originalArticle.genre = validGenres;
 
                     // Save article to DB
                     try {
-                        await saveArticle(articleFromBulkQueue);
+                        await saveArticle(originalArticle);
+
+                        // Check for eventUri and add to eventUris and eventArticlesSavedMap if criteria are met
+                        if (originalArticle.eventUri && originalArticle.eventUri.includes('eng-')) {
+                            eventUris.add(originalArticle.eventUri);
+                            eventArticlesSavedMap.set(
+                                originalArticle.eventUri,
+                                (eventArticlesSavedMap.get(originalArticle.eventUri) || 0) + 1
+                            );
+                        }
                     } catch (error) {
-                        console.error(`Saving failed for article -> ${articleFromBulkQueue.url}`, error)
+                        console.error(`Saving failed for article -> ${originalArticle.url}`, error);
                     }
-                }
-                else {
-                    console.log('FAILED to assign and summarize articles')
+                } else {
+                    console.log('FAILED to assign and summarize articles', originalArticle.url);
                 }
             } else {
-                console.log(`${articleFromBulkQueue.url} doesnt match its original url`)
+                console.log(`${originalArticle.url} does not match any Gemini response URL`);
             }
         }
+
+        // After processing all articles, check and save unique events with their article counts
+        if (eventUris.size > 0) {
+            const existingEvents = await getEvents({ eventUri: { $in: Array.from(eventUris) } });
+            const existingEventUris = new Set(existingEvents.map(event => event.eventUri));
+            // Save only new events iwth accurate article counts
+            for (const eventUri of eventUris) {
+                if (!existingEventUris.has(eventUri) && eventArticlesSavedMap.get(eventUri) > 1) {
+                    try {
+                        const event = new Event({
+                            eventUri,
+                            articlesCount: articlesInEventCountObject[eventUri] || eventArticlesSavedMap.get(eventUri),
+                            articlesSaved: eventArticlesSavedMap.get(eventUri) || 0,
+                            dateCreated: new Date(),
+                        })
+
+                        await saveDocument(event);
+                    } catch (error) {
+                        console.error(`FAILED to save event -> ${eventUri}`, error);
+                    }
+                }
+            }
+        }
+
+        console.log("Complete precessing batch of 'bulkSendArticleToGeminiQueue")
     } catch (err) {
         console.error('FAILED to assign and summarize articles', err)
     }
 }
 
 // Goes over given eventUri, get articles, filters them by source and language and add the relevant articles to articleQueue
-async function processEvent(article) {
+async function queueArticlesFromEvents(article) {
     var doesEventExist = await getEventByEventUri(article.eventUri) // Returns value of event ( is no event return null )
-
+    var eventArticles = [];
     if (!doesEventExist) {
 
         const cachedSources = cache.get('sources');
@@ -127,9 +170,9 @@ async function processEvent(article) {
             // I need to call POST https://eventregistry.org/api/v1/event/getEvent to get information about the event. Usefule for when saving an event
 
             if (!response.error) {
-                var eventArticles = response[eventUri].articles.results;
+                eventArticles = response[eventUri].articles.results;
                 // Remove the current url from the eventArticles array
-                eventArticles = eventArticles.filter(item => item.url !== article.url);
+                // eventArticles = eventArticles.filter(item => item.url !== article.url);
                 // Loop over articles from event to see if they are from a source in my DB
                 for (const articleEvent of eventArticles) {
                     // If articleEvent is from source in DB add the articleEvent to articleQueue
@@ -145,26 +188,21 @@ async function processEvent(article) {
                 throw new Error(`Failed to get articles from event: ${response.error}`);
             }
 
-            const e = new Event({
-                eventUri: eventUri,
-                articlesCount: response[eventUri].articles.totalResults ? response[eventUri].articles.totalResults : -1,
-                // FUTURE CHANGE: THE NUMBER BELOW ISNT CORRECT. SOME ARTICLES ARENT SAVE TO DB
-                articlesSaved: articleEventsAddedToQueueCount,
-                dateCreated: new Date(),
-                // socialScore: response[eventUri].socialScore,
-                // sentiment: response[eventUri].sentiment,
-                // summary: response[eventUri].summary,
-                // concepts: response[eventUri].concepts,
-            })
+            // const e = new Event({
+            //     eventUri: eventUri,
+            //     articlesCount: response[eventUri].articles.totalResults ? response[eventUri].articles.totalResults : -1,
+            //     articlesSaved: articleEventsAddedToQueueCount,
+            //     dateCreated: new Date(),
+            // })
 
-            // Save event (e) to DB if there are more than 1 articles in the full coverage
-            if (articleEventsAddedToQueueCount >= 1)
-                await saveDocument(e);
+            // // Save event (e) to DB if there are more than 1 articles in the full coverage
+            // if (articleEventsAddedToQueueCount >= 1)
+            //     await saveDocument(e);
 
-            return articleEventsAddedToQueueCount >= 1;
+            return { success: true, articlesCount: response[eventUri].articles.totalResults || 0 };
         } catch (error) {
-            console.error(`Error processing event`, error)
-            return false;
+            console.error(`Error processing event`, error);
+            return { success: false, articlesCount: -1 };
         }
     } else {
         return true

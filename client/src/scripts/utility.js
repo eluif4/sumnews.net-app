@@ -95,7 +95,7 @@ export async function fetchUserFeed() {
         headers: {
             "Content-type": "application/json",
             "Authorization": `Bearer ${token}`,
-            "Cache-Control": 'no-cache'
+            "Cache-Control": 'no-store'
         },
         body: JSON.stringify({
             articlesInFeed: List.articles.map(article => article.uuid)
@@ -211,7 +211,8 @@ export async function fetchProtectedResource(path) {
         method: 'POST',
         headers: {
             "Content-type": "application/json",
-            "Authorization": `Bearer ${await getAuthToken()}`
+            "Authorization": `Bearer ${await getAuthToken()}`,
+            "Cache-Control": 'no-store'
         },
         body: JSON.stringify({
             articlesInFeed: List.articles.map(article => article.uuid)
@@ -233,7 +234,9 @@ export async function fetchProtectedResource(path) {
 export async function storeAuthToken(token) {
     if (Capacitor.getPlatform() === 'web') {
         // Store token in an HTTP-only cookie
-        document.cookie = `authToken=${token}; Secure; SameSite=Strict; path=/`;
+        const date = new Date();
+        const maxAge = 5 * 365 * 24 * 60 * 60; // 5 years in seconds
+        document.cookie = `authToken=${token}; Max-Age=${maxAge}; Secure; SameSite=Strict; path=/`;
     } else if (Capacitor.getPlatform() === 'android' || Capacitor.getPlatform() === 'ios') {
         // Store token in secure storage for native
         await Preferences.set({ key: 'authToken', value: token });

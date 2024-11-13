@@ -1,11 +1,17 @@
 <script setup>
-import { computed } from 'vue'
+import { computed, onMounted } from 'vue'
 import DesktopPage from './views/DesktopPage.vue'
 import MobilePage from './views/MobilePage.vue'
+// import { registerPushNotifications } from './main';
 
 const isDesktop = computed(() => {
   return window.innerWidth > 768
 })
+
+// onMounted(async () => {
+//   await registerPushNotifications();
+//   console.log('onMounted finished');
+// })
 </script>
 
 <template>

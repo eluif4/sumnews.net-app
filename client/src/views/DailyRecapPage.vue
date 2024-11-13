@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, computed, watch, onUnmounted } from 'vue';
+import { ref, onMounted, computed, watch, onUnmounted, watchEffect } from 'vue';
 import { config } from '../constants';
 import { useRoute } from 'vue-router';
 import router from '../router';
@@ -8,33 +8,109 @@ import DailyRecapItemSkeleton from '../components/DailyRecap/DailyRecapItemSkele
 
 const BACKEND_URL = config.url.BACKEND_URL;
 const route = useRoute();
-const currentEventIndex = ref(0);
-const currentArticleIndex = ref(0);
 
-const props = defineProps({
-    dailyrecapUUID: String,
-    drUri: String,
-    articleUUID: String,
+// Props from route
+const dailyrecapUUID = ref(route.params.dailyrecapUUID);
+const drEvent = ref(route.params.drEvent);
+const visitedDailyRecaps = ref([dailyrecapUUID.value]);
+
+// Watch for changes in the dailyrecapUUID route parameter
+watch(() => route.params.dailyrecapUUID, (newUUID, oldUUID) => {
+    dailyrecapUUID.value = newUUID;
+
+    // Add dailyrecap to wasVisited array
+    if (!visitedDailyRecaps.value.includes(newUUID)) {
+        visitedDailyRecaps.value.push(newUUID);
+    }
+
+    updateDailyRecapsRef();
 });
 
-const dailyrecap = ref();
-const drUriRef = ref(props.drUri);
-const articleUUIDRef = ref(props.articleUUID);
-const currentArticle = ref(null) // Current article with relation to the uuid in the URL
+watch(() => route.params.drEvent, (newDrEvent, oldDrEvent) => {
+    drEvent.value = newDrEvent;
+});
+
+// State for managing Daily Recaps and the current DailyRecap index
+// Computed value for the previous, current, and next daily recaps
+const dailyrecaps = ref([]);
+// const storedDailyRecaps = ref([]);
+const currentDailyRecapIndex = ref(0);
+const currentDrEventIndex = ref(0);
+
+// Use watchEffect to set initial value of currentDrEventIndex
+// watchEffect(() => {
+//     currentDrEventIndex.value = dailyrecaps.value[currentDailyRecapIndex.value]?.drEvents.findIndex(drevent => drevent.id === drEvent.value) || 0;
+// });
+
+const fetchDailyRecap = async (dailyrecapUUID) => {
+    try {
+        const response = await fetch(`${config.url.BACKEND_URL}db/dailyrecap/${dailyrecapUUID}`);
+
+        if (response.ok) {
+            const dr = await response.json();
+            return dr[0] || null;  // Ensure it always returns an object or null
+        } else {
+            throw new Error('Failed to fetch Daily Recap');
+        }
+    } catch (error) {
+        console.error('Error fetching events:', error);
+        return null;  // Return null in case of an error
+    }
+}
+
+const updateDailyRecapsRef = async () => {
+    dailyrecaps.value = JSON.parse(localStorage.getItem('dailyRecaps')).dailyRecapButtons || [];
+
+    // Find the current recap index from the stored daily recaps
+    const currentIndex = dailyrecaps.value.findIndex(recap => recap.id === dailyrecapUUID.value);
+
+    if (currentIndex !== -1) {
+        // currentDailyRecapIndex.value = currentIndex;
+        // Fetch the previous, current, and next recaps
+        const prevRecap = currentIndex > 0 ? await fetchDailyRecap(dailyrecaps.value[currentIndex - 1].id) : null;
+        const currentRecap = await fetchDailyRecap(dailyrecaps.value[currentIndex].id);
+        const nextRecap = currentIndex < dailyrecaps.value.length - 1 ? await fetchDailyRecap(dailyrecaps.value[currentIndex + 1].id) : null;
+
+        // Update the dailyrecaps array
+        dailyrecaps.value = [prevRecap, currentRecap, nextRecap].filter(recap => recap != null);
+
+        // currentDailyRecapIndex can have values of 0, 1, 2 because the dailyrecaps.value array will have a maximum length of 3
+        currentDailyRecapIndex.value = dailyrecaps.value.findIndex(dailyrecap => dailyrecap.id == currentRecap.id);
+        currentDrEventIndex.value = dailyrecaps.value[currentDailyRecapIndex.value]?.drEvents.findIndex(drevent => drevent.id === drEvent.value) || 0;
+    }
+}
+
+// Connect carousel positioning to dailyrecaps computed array property
+const carouselRef = ref(null);
+
+onMounted(async () => {
+    // Wait to updateDailyRecaps ref
+    await updateDailyRecapsRef();
+
+    // Connect the carousel value to the dailyrecap in the url
+    getCurrentCarouselIndex();
+
+    // Scroll the carousel 'scrollPercentage' amount to match the dailyrecap in the url to the dailyrecap displayed
+    // const scrollPercentage = (currentDailyRecapIndex.value) / dailyrecaps.value[currentDailyRecapIndex.value].drEvents.length;
+
+    // dailyrecaps.value is an array with a maximum length of 3
+    const scrollPercentage = (currentDailyRecapIndex.value) / 3;
+    if (carouselRef.value) {
+        carouselRef.value.addEventListener('scroll', handleSlide);
+        carouselRef.value.scrollTo({
+            left: scrollPercentage * carouselRef.value.scrollWidth,
+            behavior: 'instant'
+        });
+    }
+});
 
 const dynamicGap = computed(() => {
-    const articleCount = dailyrecap.value?.drEvents[currentEventIndex.value].articles.length;
+    const articleCount = dailyrecaps.value?.currentRecap?.drEvents?.length || 0;
     const maxGap = 10; // Maximum gap in pixels
     const minGap = 3;  // Minimum gap in pixels
     const gap = Math.max(minGap, maxGap - (articleCount - 1));
-    return gap
+    return gap;
 });
-
-// Scrolling
-const startX = ref(0)
-const endX = ref(0);
-
-const carouselRef = ref(null);
 
 function getCurrentCarouselIndex() {
     if (!carouselRef.value) return 0;
@@ -44,101 +120,43 @@ function getCurrentCarouselIndex() {
     const itemWidth = carouselWidth;
 
     const index = Math.round(scrollPosition / itemWidth);
-    return Math.max(0, Math.min(index, dailyrecap.value?.drEvents.length));
+    return Math.max(0, Math.min(index, dailyrecaps.value.length));
 }
-
-// Fetch dailyrecap item
-const setDailyRecap = async (dailyrecapUUID) => {
-    try {
-        var response = await fetch(`${BACKEND_URL}db/getDailyRecaps`, {
-            method: 'POST',
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                "uuid": dailyrecapUUID
-            })
-        });
-
-        if (response.ok) {
-            var dr = await response.json();
-            dailyrecap.value = dr;
-        } else {
-            throw new Error('Failed to fetch Daily Recap');
-        }
-    } catch (error) {
-        console.error('Error fetching events:', error);
-    }
-};
 
 async function handleClick() {
     const screenWidth = window.innerWidth;
     const clickPosition = event.clientX
     if (clickPosition < screenWidth / 2) { // if left
-        if (currentArticleIndex.value != 0)
-            currentArticleIndex.value--;
+        if (currentDrEventIndex.value != 0)
+            currentDrEventIndex.value--;
     } else { // else right
-        if (currentArticleIndex.value != dailyrecap.value.drEvents[currentEventIndex.value].articles.length - 1)
-            currentArticleIndex.value++
+        if (currentDrEventIndex.value != dailyrecaps.value[currentDailyRecapIndex.value].drEvents.length - 1)
+            currentDrEventIndex.value++
     }
 
     router.push({
         name: 'dailyrecap', params: {
-            dailyrecapUUID: props.dailyrecapUUID,
-            drUri: dailyrecap.value.drEvents[currentEventIndex.value].drUri,
-            articleUUID: dailyrecap.value.drEvents[currentEventIndex.value].articles[currentArticleIndex.value].uuid,
+            dailyrecapUUID: dailyrecapUUID.value,
+            // drUri: dailyrecap.value.drEvents[currentDrEventIndex.value].drUri,
+            drEvent: dailyrecaps.value[currentDailyRecapIndex.value].drEvents[currentDrEventIndex.value].id,
         }
     });
 }
 
 async function handleSlide() {
     var eventIndex = getCurrentCarouselIndex();
-    currentEventIndex.value = dailyrecap.value?.drEvents.findIndex(event => event.drUri === drUriRef.value);
 
-    if (eventIndex != currentEventIndex.value) { // Reroute only if event switched
-        drUriRef.value = dailyrecap.value.drEvents[eventIndex].drUri;
-        articleUUIDRef.value = dailyrecap.value.drEvents[eventIndex].articles[0].uuid;
+    if (eventIndex != currentDailyRecapIndex.value) { // Reroute only if Daily Recap switched
+        currentDailyRecapIndex.value = eventIndex;
+        currentDrEventIndex.value = 0;
         router.push({
             name: 'dailyrecap', params: {
-                dailyrecapUUID: props.dailyrecapUUID,
-                drUri: drUriRef.value,
-                articleUUID: articleUUIDRef.value,
+                dailyrecapUUID: dailyrecaps.value[eventIndex].id,
+                drEvent: dailyrecaps.value[eventIndex].drEvents[0].id,
             }
         });
     }
 }
-
-onMounted(async () => {
-    await setDailyRecap(props.dailyrecapUUID);
-
-    // Calculate 'currentEventIndex'
-    try {
-        currentEventIndex.value = dailyrecap.value?.drEvents.findIndex(event => event.drUri === drUriRef.value);
-    } catch (err) {
-        console.log(`FAILED to connect carousel position to event counter`, err);
-    }
-
-    // Calculate 'currentArticleIndex'
-    try {
-        currentArticleIndex.value = dailyrecap.value?.drEvents[currentEventIndex.value].articles.findIndex(article => article.uuid === props.articleUUID);
-    } catch (err) {
-        console.log(`FAILED to connect article to uuid in link`, err);
-    }
-
-    // Sync 'carouselRef' and scroll position to event in dailyrecap
-    const scrollPercentage = (currentEventIndex.value) / dailyrecap.value?.drEvents.length
-    if (carouselRef.value) {
-        carouselRef.value.addEventListener('scroll', handleSlide);
-        carouselRef.value.scrollTo({
-            left: scrollPercentage * carouselRef.value.scrollWidth,
-            behavior: 'instant'
-        });
-    }
-
-    var article = dailyrecap?.value.drEvents[currentEventIndex.value].articles[currentArticleIndex.value]
-    currentArticle.value = article;
-});
 
 onUnmounted(() => {
     if (carouselRef.value) {
@@ -146,83 +164,83 @@ onUnmounted(() => {
     }
 });
 
-watch(
-    () => route.params.articleUUID,
-    async (newuuid) => {
-        if (newuuid) {
-            var article = dailyrecap?.value.drEvents[currentEventIndex.value].articles[currentArticleIndex.value]
-            if (article) {
-                // Setup inital dailyrecap values
-                drUriRef.value = route.params.drUri;
-                articleUUIDRef.value = route.params.articleUUID;
-                currentArticle.value = article;
-            } else {
-                route.push('/error')
-            }
-        }
-    })
+function updateWasVisitedDailyRecapButtons() {
+    const dailyRecapInLocalStorage = JSON.parse(localStorage.getItem('dailyRecaps'));
+    const dailyRecapButtonsArray = dailyRecapInLocalStorage.dailyRecapButtons;
+    const lastUpdate = dailyRecapInLocalStorage.lastUpdate;
 
-watch(() => route.params.drUri, (newDrUri, oldDrUri) => {
-    currentArticleIndex.value = 0;
-})
+    // Loop over each visited recap in visitedDailyRecaps array
+    visitedDailyRecaps.value.forEach(dailyrecapUUID => {
+        const dailyRecapButton = dailyRecapButtonsArray.find(button => button.id === dailyrecapUUID);
+
+        if (dailyRecapButton) {
+            // Update wasVisited flag to true
+            dailyRecapButton.wasVisited = true;
+
+            // Move this recap button to the end of the array if it's not already there
+            // Remove the current recap button from its current position
+            const index = dailyRecapButtonsArray.indexOf(dailyRecapButton);
+            if (index !== -1) {
+                dailyRecapButtonsArray.splice(index, 1);
+            }
+
+            // Push it to the end of the array
+            dailyRecapButtonsArray.push(dailyRecapButton);
+        }
+    });
+
+    // Save the updated array into local storage
+    localStorage.setItem('dailyRecaps', JSON.stringify({
+        "lastUpdate": lastUpdate,
+        "dailyRecapButtons": dailyRecapButtonsArray
+    }));
+
+    console.log('Visited recaps updated and pushed to the end of the array');
+
+    router.push({
+        name: 'home'
+    });
+}
 </script>
 
 <template>
     <div class="dailyrecap-container">
         <!-- HEADER SECTION WITH ALL THE INFORMATION AND BACK BUTTON -->
         <div class="info-header">
-            <div class="first">
-                <div class="left">
-                    <p class="title" v-if="dailyrecap">{{ dailyrecap.source == 'sumnews.net' ? 'Your Daily Recap' :
-                        `${dailyrecap.source}'s Daily Recap` }}</p>
-                    <p class="title skeleton h-4 w-48" v-else></p>
-                </div>
-                <div class="right">
-                    <p class="article-count" v-if="dailyrecap">{{ currentArticleIndex + 1 }} / {{
-                        dailyrecap.drEvents[currentEventIndex].articles.length }} Articles
-                    </p>
-                    <p class="article-count skeleton h-4 w-16" v-else></p>
-                    <router-link to="/">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 19 19" fill="none">
-                            <path
-                                d="M15.2638 14.4237C15.319 14.4788 15.3627 14.5443 15.3926 14.6164C15.4224 14.6885 15.4378 14.7657 15.4378 14.8437C15.4378 14.9218 15.4224 14.999 15.3926 15.0711C15.3627 15.1432 15.319 15.2087 15.2638 15.2638C15.2086 15.319 15.1431 15.3627 15.0711 15.3926C14.999 15.4225 14.9217 15.4378 14.8437 15.4378C14.7657 15.4378 14.6884 15.4225 14.6164 15.3926C14.5443 15.3627 14.4788 15.319 14.4236 15.2638L9.49996 10.3394L4.57629 15.2638C4.46488 15.3752 4.31377 15.4378 4.15621 15.4378C3.99865 15.4378 3.84755 15.3752 3.73614 15.2638C3.62472 15.1524 3.56213 15.0013 3.56213 14.8437C3.56213 14.6862 3.62472 14.5351 3.73614 14.4237L8.66055 9.49999L3.73614 4.57632C3.62472 4.46491 3.56213 4.3138 3.56213 4.15624C3.56213 3.99868 3.62472 3.84758 3.73614 3.73617C3.84755 3.62475 3.99865 3.56216 4.15621 3.56216C4.31377 3.56216 4.46488 3.62475 4.57629 3.73617L9.49996 8.66058L14.4236 3.73617C14.535 3.62475 14.6862 3.56216 14.8437 3.56216C15.0013 3.56216 15.1524 3.62475 15.2638 3.73617C15.3752 3.84758 15.4378 3.99868 15.4378 4.15624C15.4378 4.3138 15.3752 4.46491 15.2638 4.57632L10.3394 9.49999L15.2638 14.4237Z"
-                                fill="white" />
-                        </svg>
-                    </router-link>
+
+            <div class="second count" :style="{ 'gap': dynamicGap + 'px' }">
+                <div class="bubble" v-if="dailyrecaps[currentDailyRecapIndex]"
+                    v-for="(drEvent, index) in dailyrecaps[currentDailyRecapIndex].drEvents.length" :key="index"
+                    :class="{ 'active': index <= currentDrEventIndex }">
                 </div>
             </div>
-            <div class="second count" :style="{ 'gap': dynamicGap + 'px' }">
-                <div class="bubble" v-for="(_, index) in dailyrecap.drEvents[currentEventIndex].articles.length"
-                    :key="index" :class="{ 'active': index <= currentArticleIndex }" v-if="dailyrecap">
+
+            <div class="first">
+                <div class="right" @click="updateWasVisitedDailyRecapButtons">
+                    <!-- <router-link to="/"> -->
+                    <svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 19 19" fill="none">
+                        <path
+                            d="M15.2638 14.4237C15.319 14.4788 15.3627 14.5443 15.3926 14.6164C15.4224 14.6885 15.4378 14.7657 15.4378 14.8437C15.4378 14.9218 15.4224 14.999 15.3926 15.0711C15.3627 15.1432 15.319 15.2087 15.2638 15.2638C15.2086 15.319 15.1431 15.3627 15.0711 15.3926C14.999 15.4225 14.9217 15.4378 14.8437 15.4378C14.7657 15.4378 14.6884 15.4225 14.6164 15.3926C14.5443 15.3627 14.4788 15.319 14.4236 15.2638L9.49996 10.3394L4.57629 15.2638C4.46488 15.3752 4.31377 15.4378 4.15621 15.4378C3.99865 15.4378 3.84755 15.3752 3.73614 15.2638C3.62472 15.1524 3.56213 15.0013 3.56213 14.8437C3.56213 14.6862 3.62472 14.5351 3.73614 14.4237L8.66055 9.49999L3.73614 4.57632C3.62472 4.46491 3.56213 4.3138 3.56213 4.15624C3.56213 3.99868 3.62472 3.84758 3.73614 3.73617C3.84755 3.62475 3.99865 3.56216 4.15621 3.56216C4.31377 3.56216 4.46488 3.62475 4.57629 3.73617L9.49996 8.66058L14.4236 3.73617C14.535 3.62475 14.6862 3.56216 14.8437 3.56216C15.0013 3.56216 15.1524 3.62475 15.2638 3.73617C15.3752 3.84758 15.4378 3.99868 15.4378 4.15624C15.4378 4.3138 15.3752 4.46491 15.2638 4.57632L10.3394 9.49999L15.2638 14.4237Z"
+                            fill="white" />
+                    </svg>
+                    <!-- </router-link> -->
                 </div>
             </div>
         </div>
 
         <!-- EVENTS AND ARTICLES -->
-        <div ref="carouselRef" class="event-list carousel carousel-center rounded-box w-full snap-x snap-mandatory">
-            <div class="event carousel-item w-full snap-center" v-for="(drEvent, index) in dailyrecap.drEvents"
-                :key="drEvent.drUri" v-if="dailyrecap" @click="handleClick()">
-                <DailyRecapItem :article="drEvent.articles[currentArticleIndex]" :dailyrecap="dailyrecap" />
+        <div ref="carouselRef" class="dailyrecap-list carousel carousel-center w-full snap-x snap-mandatory">
+            <div class="dailyrecap carousel-item w-full snap-center" v-for="(dailyrecap, key) in dailyrecaps"
+                :key="dailyrecap.id" v-if="dailyrecaps" @click="handleClick(dailyrecap.id)">
+
+                <DailyRecapItem :dailyrecap="dailyrecap"></DailyRecapItem>
+                <!-- <DailyRecapItem :article="drEvent.articles[currentArticleIndex]" :dailyrecap="dailyrecap" /> -->
             </div>
-            <div class="event" v-else>
+            <div class="dailyrecap" v-else>
                 <div class="article-list">
                     <div class="article">
-                        <DailyRecapItemSkeleton v-if="!dailyrecap"></DailyRecapItemSkeleton>
+                        <DailyRecapItemSkeleton v-if="!dailyrecaps"></DailyRecapItemSkeleton>
                     </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- FOOTER SECTION -->
-        <div class="myfooter">
-            <div class="count-container">
-                <p class="event-count" v-if="dailyrecap">{{ currentEventIndex + 1 }} / {{ dailyrecap.drEvents.length }}
-                    Events</p>
-                <p class="event-count skeleton h-4 w-32" v-else></p>
-            </div>
-            <div class="bubble-container" v-if="dailyrecap">
-                <div class="event-counter dot" v-for="(event, index) in dailyrecap.drEvents"
-                    :class="{ 'active-dot': index == currentEventIndex }">
                 </div>
             </div>
         </div>
@@ -257,7 +275,7 @@ watch(() => route.params.drUri, (newDrUri, oldDrUri) => {
 .first {
     display: flex;
     flex-direction: row;
-    justify-content: space-between;
+    justify-content: flex-end;
     align-items: flex-start;
     gap: 10px;
 }
@@ -276,7 +294,7 @@ watch(() => route.params.drUri, (newDrUri, oldDrUri) => {
     height: 6px;
 }
 
-.event-list {
+.dailyrecap-list {
     height: 100%;
     scroll-snap-type: x mandatory;
     overflow-x: auto;
@@ -286,7 +304,7 @@ watch(() => route.params.drUri, (newDrUri, oldDrUri) => {
     gap: 20px;
 }
 
-.event {
+.dailyrecap {
     height: 100%;
     width: 100%;
     scroll-snap-align: center;

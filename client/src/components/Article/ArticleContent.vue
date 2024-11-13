@@ -1,6 +1,8 @@
 <script setup>
 import { ref, computed, watch } from 'vue';
 import { useRoute } from 'vue-router';
+import { userProfile } from '../../main';
+
 import {
     goBack,
     showPopup,
@@ -13,7 +15,8 @@ import {
     bookmarkAction,
     fullCoverageAction,
     backAction,
-    dailyRecapAction
+    dailyRecapAction,
+    removeBookmarkAction
 } from '../../scripts/actions'
 import { config } from '../../constants'
 import ActionItem from '../Action/ActionItem.vue';
@@ -243,6 +246,10 @@ const formattedTimeSaved = computed(() => {
             <div class="actions">
                 <ActionItem :action="shareAction" :article="articleRef"></ActionItem>
                 <ActionItem :action="fullCoverageAction" :article="articleRef" v-if="articleRef.eventUri"></ActionItem>
+                <ActionItem :action="bookmarkAction" :article="article"
+                    v-if="!userProfile.user?.bookmarks.includes(article.uuid)"></ActionItem>
+                <ActionItem :action="removeBookmarkAction" :article="article"
+                    v-else-if="userProfile.user.bookmarks.includes(article.uuid)"></ActionItem>
                 <ActionItem :action="backAction" :article="articleRef" class="backAction"></ActionItem>
             </div>
 

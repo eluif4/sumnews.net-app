@@ -168,12 +168,19 @@ const safetySettings = [
     },
 ]
 
-const model = genAI.getGenerativeModel({
-    model: "gemini-1.5-flash",
-    systemInstruction: "For each article in the users input of articles do the following:\nAs a professional summarizer, create a concise and comprehensive summary of the provided text while adhering to these guidelines:\n\n1. Craft a summary that is detailed, thorough, and complex, while maintaining clarity, conciseness and a summary length of around 140 tokens. IT IS ESSENTIAL THAT YOU KEEP YOUR SUMMARIES, SHORT, CONCISE, AND UNDER 140 TOKENS, ROUGHLY 100 WORDS.\n2. Incorporate main ideas and essential information, eliminating extraneous language and focusing on critical aspects.\n3. Rely strictly on the provided text, without including external information.\n4. Format the summary in a coherent, flowing paragraph for easy understanding.\n\nAssign the most relevant genres from the list below to each article. Make sure to assign at least 1 genre per article.\n\nGENRE LIST: [Features,Opinion,How-to Guides,Reviews,Interviews,Listicles,Profiles,Tutorials,Research,Editorials,Analysis,Travel,Human Interest,Satire,Historical,Technology,Health and Wellness,Entertainment,Politics,Business & Finance,World,Environment,Science,Education,Sports,Lifestyle,Personal Finance,Science Fiction and Fantasy,Parenting & Family,Food and Cooking,History and Archaeology,Weather,Recreation,Art,Shopping,Home,Agriculture,Animals & Wildlife,Vacation,Fashion,Music,Film & TV,Gaming,Literature,Cultural,Social,Fitness & Exercise,DIY and Home Improvement,Mental Health,Automotive,Photography,Religion,Career & Work,Social Media,Crime]",
+const articleSummarizerModel = genAI.getGenerativeModel({
+    model: MODEL_NAME,
+    safetySettings: safetySettings,
+    systemInstruction: "For each article in the users input of articles do the following:\nAs a professional summarizer, create a concise and comprehensive summary of the provided text while adhering to these guidelines:\n\n1. Craft a summary that is detailed, thorough, and complex, while maintaining clarity and conciseness. Start you summary by answering the question on the title or the answer the readers seeks to find when reading the title.\n2. Each articles summary should be no more than 150 tokens. Summaries longer than the expected length are unacceptable.\n3. Incorporate main ideas and essential information, eliminating extraneous language and focusing on critical aspects.\n4. Rely strictly on the provided text, without including external information.\n5. Format the summary in a coherent, flowing paragraph for easy understanding. \n6. Make sure to create a full summary for each article. Make sure not to miss any article or cut any summary short. \n\nIt is paramount to output and return all the input articles provided in the same order. If you have troubles with this requirement output an article with the original title and url values and leave the summary and genres values undefined. Never return an array output that is different in length and order than the input array of articles.\n\nAssign the most relevant genres from the list below to each article. Make sure to assign at least 1 genre per article.\n\nGENRE LIST: [Features,Opinion,How-to Guides,Reviews,Interviews,Listicles,Profiles,Tutorials,Research,Editorials,Analysis,Travel,Human Interest,Satire,Historical,Technology,Health and Wellness,Entertainment,Politics,Business & Finance,World,Environment,Science,Education,Sports,Lifestyle,Personal Finance,Science Fiction and Fantasy,Parenting & Family,Food and Cooking,History and Archaeology,Weather,Recreation,Art,Shopping,Home,Agriculture,Animals & Wildlife,Vacation,Fashion,Music,Film & TV,Gaming,Literature,Cultural,Social,Fitness & Exercise,DIY and Home Improvement,Mental Health,Automotive,Photography,Religion,Career & Work,Social Media,Crime]",
 });
 
-const generationConfig = {
+const dailyRecapSummarizerModel = genAI.getGenerativeModel({
+    model: MODEL_NAME,
+    safetySettings: safetySettings,
+    systemInstruction: "You are an expert article writer. \n\n**INPUT:**\nAn array of articles in JSON format, where each article object has:\ntitle: string,\nsummarizedContent: string,\n\n**TASK:**\n1. Write a brief, concise paragraph that captures only the most important events or facts, without redundancy. Limit your answer strictly to 80 tokens or 60 words, using two sentences at most. Brevity is crucial.\n\n2. Suggest an adequate, compelling title that is relevant",
+})
+
+const articleSummarizerModel_generationConfig = {
     temperature: 0.65,
     topP: 0.95,
     topK: 64,
@@ -218,6 +225,29 @@ const generationConfig = {
     },
 };
 
+const dailyRecapSummarizerModel_generationConfig = {
+    temperature: 0.7,
+    topP: 1,
+    topK: 40,
+    maxOutputTokens: 8192,
+    responseMimeType: "application/json",
+    responseSchema: {
+        type: "object",
+        properties: {
+            title: {
+                type: "string"
+            },
+            summary: {
+                type: "string"
+            }
+        },
+        required: [
+            "title",
+            "summary"
+        ]
+    },
+};
+
 async function assignAndSummarize(articlesArray) {
     // MESSAGE consits of all the articles in an array with props: title, url, content
     var MESSAGE = `${JSON.stringify(articlesArray.map(article => ({
@@ -227,8 +257,30 @@ async function assignAndSummarize(articlesArray) {
     })), null, 4)}`
 
     try {
-        const chatSession = model.startChat({
-            generationConfig,
+        const chatSession = articleSummarizerModel.startChat({
+            generationConfig: articleSummarizerModel_generationConfig,
+            history: []
+        });
+
+        const gemini_response = await chatSession.sendMessage(MESSAGE)
+        const result = JSON.parse(gemini_response.response.text())
+        return result;
+    } catch (error) {
+        console.error(error);
+        return null;
+    }
+}
+
+async function createDailyRecapSummaryAndTitle(articlesArray) {
+    // MESSAGE consits of all the articles in an array with props: title, url, content
+    var MESSAGE = `${JSON.stringify(articlesArray.map(article => ({
+        title: article.title,
+        summarizedContent: article.summarizedContent
+    })), null, 4)}`;
+
+    try {
+        const chatSession = dailyRecapSummarizerModel.startChat({
+            generationConfig: dailyRecapSummarizerModel_generationConfig,
             // safetySettings,
             history: [
             ],
@@ -238,10 +290,12 @@ async function assignAndSummarize(articlesArray) {
         const result = JSON.parse(gemini_response.response.text())
         return result;
     } catch (error) {
-        console.error(error)
+        console.error(error);
+        return null;
     }
 }
 
 module.exports = {
-    assignAndSummarize
+    assignAndSummarize,
+    createDailyRecapSummaryAndTitle
 }

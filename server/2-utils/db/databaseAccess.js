@@ -28,10 +28,15 @@ async function saveToDB(article) { //SAVES THE GIVEN ARTICLE TO DB WITH ALL RELE
 }
 
 async function saveDocument(document) {
-    // await client.connect();
-    const collection = db.collection(document.collection.name);
-    await collection.insertOne(document);
-    console.log(`Document saved to '${document.collection.name}' collection`)
+    try {
+        const collection = db.collection(document.collection.name);
+        await collection.insertOne(document);
+        console.log(`Document saved to '${document.collection.name}' collection`)
+        return { success: true }
+    } catch (error) {
+        console.error('Failed to save document', error);;
+        return { success: false };
+    }
 }
 
 async function getArticlesFromDB(filter, project, sort, /*collation,*/ skip, limit, select = []) {
@@ -61,6 +66,27 @@ async function doesArticleExist(article) {
     } catch (error) {
         console.error("Error checking if article exists:", error);
         return false;
+    }
+}
+
+async function getExistingArticles(urls, titles) {
+    try {
+        // Check if any articles with matching URLs or titles already exist in the DB
+        const existingArticles = await Article.find({
+            $or: [
+                { url: { $in: urls } },
+                { title: { $in: titles } }
+            ]
+        });
+
+        // Build sets of existing URLs and titles for quick lookups
+        const existingUrls = new Set(existingArticles.map(article => article.url));
+        const existingTitles = new Set(existingArticles.map(article => article.title));
+
+        return { existingUrls, existingTitles };
+    } catch (error) {
+        console.error("Error checking for existing articles in the database:", error);
+        return { existingUrls: new Set(), existingTitles: new Set() };
     }
 }
 
@@ -201,6 +227,43 @@ async function processUser(userDetails) {
     } catch (error) {
         console.error('Error handling Google authentication:', error);
         return null;
+    }
+}
+
+async function saveUserNotificationToken(fcmtoken, userid) {
+    try {
+        const updatedUser = await User.findOneAndUpdate(
+            { googleId: userid },      // Search for user by googleId
+            { $set: { fcmToken: fcmtoken } }, // Set the new fcmToken
+            { new: true } // Return the updated document, no upsert (no new document if not found)
+        );
+
+        if (updatedUser) {
+            console.log('FCMTokem Saved:', updatedUser);
+            return updatedUser;
+        } else {
+            console.log('User not found');
+            return null;  // User wasn't found and no new user is created
+        }
+    } catch (error) {
+        console.error('Error saving FCM token:', error);
+        throw error;  // Propagate the error
+    }
+}
+
+async function getUserNotificationToken(userid) {
+    try {
+        const user = await User.findOne({ googleId: userId });
+        if (user) {
+            console.log('FCM Token received')
+            return user.fcmToken
+        }
+        else {
+            console.log('Failed to retrieve FCM Token. User not found')
+            return null;
+        }
+    } catch (error) {
+        console.log('Error when retrieving user FCM Token', error);
     }
 }
 
@@ -432,70 +495,119 @@ async function getDailyRecap(id) {
         }
     }
 
+    // const pipeline = [
+    //     {
+    //         "$unwind": {
+    //             "path": "$drEvents",
+    //             "preserveNullAndEmptyArrays": false
+    //         }
+    //     },
+    //     {
+    //         "$lookup": {
+    //             "from": "articles",
+    //             "localField": "drEvents",
+    //             "foreignField": "drUri",
+    //             "as": "eventArticles"
+    //         }
+    //     },
+    //     {
+    //         "$lookup": {
+    //             "from": "sources",
+    //             "localField": "source",
+    //             "foreignField": "source",
+    //             "as": "sourceDetails"
+    //         }
+    //     },
+    //     {
+    //         "$unwind": {
+    //             "path": "$sourceDetails",
+    //             "preserveNullAndEmptyArrays": true
+    //         }
+    //     },
+    //     {
+    //         "$group": {
+    //             "_id": "$_id",
+    //             "id": { "$first": "$id" },
+    //             "source": { "$first": "$source" },
+    //             "sourceLogo": { "$first": "$sourceDetails.logo" },
+    //             "dateCreated": { "$first": "$dateCreated" },
+    //             "drEvents": {
+    //                 "$push": {
+    //                     "drUri": "$drEvents",
+    //                     "articles": {
+    //                         "$let": {
+    //                             "vars": {
+    //                                 "sortedArticles": {
+    //                                     "$sortArray": {
+    //                                         "input": "$eventArticles",
+    //                                         "sortBy": { "datePublished": -1 }
+    //                                     }
+    //                                 }
+    //                             },
+    //                             "in": "$$sortedArticles"
+    //                         }
+    //                     }
+    //                 }
+    //             }
+    //         }
+    //     },
+    //     {
+    //         "$project": {
+    //             "_id": 1,
+    //             "id": 1,
+    //             "source": 1,
+    //             "dateCreated": 1,
+    //             "drEvents": 1,
+    //             "sourceLogo": 1
+    //         }
+    //     }
+    // ];
+
     const pipeline = [
         {
-            "$unwind": {
-                "path": "$drEvents",
-                "preserveNullAndEmptyArrays": false
+            $lookup: {
+                from: "sources",
+                localField: "source",
+                foreignField: "source",
+                pipeline: [
+                    { $project: { _id: 0, logo: 1 } } // Only fetch the logo field
+                ],
+                as: "sourceDetails"
             }
         },
         {
-            "$lookup": {
-                "from": "articles",
-                "localField": "drEvents",
-                "foreignField": "drUri",
-                "as": "eventArticles"
+            $unwind: "$drEvents" // Unwind the drEvents array to handle individual IDs
+        },
+        {
+            $lookup: {
+                from: "drEvents", // The collection for drEvents
+                localField: "drEvents", // The unwound ID
+                foreignField: "id", // Assuming drEvent has an "id" field
+                as: "drEvents" // Output array of matching drEvents
             }
         },
         {
-            "$lookup": {
-                "from": "sources",
-                "localField": "source",
-                "foreignField": "source",
-                "as": "sourceDetails"
+            $set: {
+                drEvents: { $arrayElemAt: ["$drEvents", 0] }, // Get first (only) element from the array
+                sourceLogo: { $arrayElemAt: ["$sourceDetails.logo", 0] } // Get the source logo from sourceDetails
             }
         },
         {
-            "$unwind": {
-                "path": "$sourceDetails",
-                "preserveNullAndEmptyArrays": true
+            $group: {
+                _id: "$_id",
+                id: { $first: "$id" },
+                source: { $first: "$source" },
+                sourceLogo: { $first: "$sourceLogo" },
+                drEvents: { $push: "$drEvents" } // Collect all matching drEvents into an array
             }
         },
         {
-            "$group": {
-                "_id": "$_id",
-                "id": { "$first": "$id" },
-                "source": { "$first": "$source" },
-                "sourceLogo": { "$first": "$sourceDetails.logo" },
-                "dateCreated": { "$first": "$dateCreated" },
-                "drEvents": {
-                    "$push": {
-                        "drUri": "$drEvents",
-                        "articles": {
-                            "$let": {
-                                "vars": {
-                                    "sortedArticles": {
-                                        "$sortArray": {
-                                            "input": "$eventArticles",
-                                            "sortBy": { "datePublished": -1 }
-                                        }
-                                    }
-                                },
-                                "in": "$$sortedArticles"
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        {
-            "$project": {
-                "_id": 1,
-                "id": 1,
-                "source": 1,
-                "dateCreated": 1,
-                "drEvents": 1,
-                "sourceLogo": 1
+            $project: {
+                _id: 0, // Exclude the daily recap _id if not needed
+                id: 1,
+                source: 1,
+                sourceLogo: 1,
+                drEvents: 1 // Include the matched drEvent documents
             }
         }
     ];
@@ -505,7 +617,7 @@ async function getDailyRecap(id) {
     }
     try {
         var dailyrecap = await DailyRecap.aggregate(pipeline);
-        return dailyrecap[0];
+        return dailyrecap;
     } catch (error) {
         console.error('ERROR: Fetching DailyRecaps: ', error)
         throw error;
@@ -514,48 +626,87 @@ async function getDailyRecap(id) {
 
 async function getDailyRecapButtons() {
     // Get DailyRecapButton where first articles are sorted in chronological order 
-    // ( Fix dissonance between first DailyRecapButton article and first DailyRecap article )
+    /* 1. 8.5s
+        2. 13.5s
+        3. 9s
+        4. 9.5s
+    */
+    // const pipeline = [
+    //     {
+    //         $lookup: {
+    //             from: "sources",
+    //             localField: "source",
+    //             foreignField: "source",
+    //             as: "sourceDetails"
+    //         }
+    //     },
+    //     {
+    //         $lookup: {
+    //             from: "articles",
+    //             let: { eventUri: { $arrayElemAt: ["$drEvents", 0] } },
+    //             pipeline: [
+    //                 { $match: { $expr: { $eq: ["$drUri", "$$eventUri"] } } },
+    //                 { $sort: { datePublished: -1 } } // Sort by datePublished
+    //             ],
+    //             as: "article"
+    //         }
+    //     },
+    //     {
+    //         $project: {
+    //             _id: 1,
+    //             id: 1,
+    //             source: 1,
+    //             sourceLogo: {
+    //                 $arrayElemAt: ["$sourceDetails.logo", 0]
+    //             },
+    //             drUri: {
+    //                 $arrayElemAt: ["$article.drUri", 0]
+    //             },
+    //             articleuuid: {
+    //                 $arrayElemAt: ["$article.uuid", 0]
+    //             },
+    //             dateCreated: 1
+    //         }
+    //     }
+    // ]
+
+    /*
+    1. 3s
+    2. 2.2s
+    3. 2.5s
+    4. 2s
+    */
     const pipeline = [
         {
             $lookup: {
                 from: "sources",
                 localField: "source",
                 foreignField: "source",
+                pipeline: [
+                    { $project: { _id: 0, logo: 1 } }  // Only fetch the logo field
+                ],
                 as: "sourceDetails"
             }
         },
         {
-            $lookup: {
-                from: "articles",
-                let: { eventUri: { $arrayElemAt: ["$drEvents", 0] } },
-                pipeline: [
-                    { $match: { $expr: { $eq: ["$drUri", "$$eventUri"] } } },
-                    { $sort: { datePublished: -1 } } // Sort by datePublished
-                ],
-                as: "article"
+            $set: {
+                sourceLogo: { $arrayElemAt: ["$sourceDetails.logo", 0] },
+                drEvent: { $arrayElemAt: ["$drEvents", 0] }  // Get the first string in drEvents array
             }
         },
         {
             $project: {
-                _id: 1,
                 id: 1,
-                source: 1,
-                sourceLogo: {
-                    $arrayElemAt: ["$sourceDetails.logo", 0]
-                },
-                drUri: {
-                    $arrayElemAt: ["$article.drUri", 0]
-                },
-                articleuuid: {
-                    $arrayElemAt: ["$article.uuid", 0]
-                },
-                dateCreated: 1
+                sourceLogo: 1,
+                drEvent: 1,
+                source: 1
             }
         }
     ]
 
     try {
-        return await DailyRecap.aggregate(pipeline);
+        const dailyRecapButtons = await DailyRecap.aggregate(pipeline);
+        return dailyRecapButtons;
     } catch (error) {
         console.error('ERROR: Fetching DailyRecapButtons: ', error)
         throw error;
@@ -576,6 +727,7 @@ module.exports = {
     saveToDB,
     saveDocument,
     doesArticleExist,
+    getExistingArticles,
     articlesSinceYesterday,
     updateArticleByID,
     eventsSinceYesterdayByPopularity,
@@ -584,6 +736,8 @@ module.exports = {
     getUser,
     saveUserToDB,
     processUser,
+    saveUserNotificationToken,
+    getUserNotificationToken,
     getUserBookmarks,
     addArticleToBookmarks,
     removeArticleToBookmarks,

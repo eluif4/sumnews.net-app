@@ -5,6 +5,7 @@ import App from './App.vue';
 import router from './router';
 import { getAuthToken } from './scripts/utility';
 import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
+import { PushNotifications } from '@capacitor/push-notifications';
 
 const FRONTEND_URL = config.url.FRONTEND_URL
 const BACKEND_URL = config.url.BACKEND_URL
@@ -15,12 +16,12 @@ localStorage.setItem('genres', JSON.stringify([]))
 localStorage.setItem('sources', JSON.stringify([]))
 
 // onMounted(() => {
-  try {
-    GoogleAuth.initialize();
-    console.log('Google Auth Initialized');
-  } catch (error) {
-    console.error('Faile to Initialize Google Auth', error)
-  }
+try {
+  GoogleAuth.initialize();
+  console.log('Google Auth Initialized');
+} catch (error) {
+  console.error('Faile to Initialize Google Auth', error)
+}
 // });
 
 // ----- GLOBAL VARIABLES -----
@@ -154,6 +155,66 @@ window.addEventListener("beforeinstallprompt", (event) => {
   installPrompt.value = event
   showPWA.value = true
 });
+
+/* Android App Notifications */
+export async function registerPushNotificationsIfNeeded() {
+  // Check if permission is already granted
+  const permissionStatus = await PushNotifications.checkPermissions();
+
+  // If permission has not been granted, prompt the user
+  if (permissionStatus.receive !== 'granted') {
+    const permissionRequest = await PushNotifications.requestPermissions();
+
+    if (permissionRequest.receive === 'granted') {
+      // Permission granted, proceed to register for notifications
+      await registerPushNotifications();
+    } else {
+      console.log('Push notifications permission denied');
+    }
+  } else {
+    // Permission was already granted
+    await registerPushNotifications();
+  }
+}
+
+async function registerPushNotifications() {
+  try {
+    // Register for push notifications
+    await PushNotifications.register();
+
+    // Listen for the registration event to get the FCM token
+    PushNotifications.addListener('registration', async (token) => {
+      console.log('Push registration success, token: ', token.value);
+
+      // Send the token to your backend to store with the user's account
+      const response = await saveUserNotificationToken(token.value, userProfile.user.id);
+    });
+
+    PushNotifications.addListener('registrationError', (error) => {
+      console.error('Push registration error: ', error);
+    });
+  } catch (error) {
+    console.error('Failed to register push notifications:', error);
+  }
+}
+
+async function saveUserNotificationToken(token, userid) {
+  try {
+    await fetch(`${BACKEND_URL}db/saveNotificationToken`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        // Include any authentication headers if necessary
+      },
+      body: JSON.stringify({ token, userid }),
+    });
+    console.log('Token saved to backend successfully.');
+    return { success: true };
+  } catch (error) {
+    console.error('Failed to save token:', error);
+    return { success: false };
+  }
+}
 
 app.use(router);
 app.mount('#app');
