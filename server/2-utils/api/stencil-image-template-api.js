@@ -56,24 +56,62 @@ async function generateDaiyRecapImage(drEvent) {
     }
 }
 
+async function generateArticleInstagramPostImage(article) {
+    // Determine authors string based on the number of authors
+    const articleAuthors = article.author.length === 0
+        ? undefined
+        : article.author.length === 1
+            ? article.author[0]
+            : article.author.join(', ');
 
-/*
-const dailyRecap = {
-    dateCreated: ISODate,
-    source: string ( 'the source of the daily recap' )
-    drEvent: Object ( 'housing all the properties of a singular event in a daily recap)
-}
+    try {
+        const raw = JSON.stringify({
+            "template": "551a319b-7ada-4f41-bd82-1a1371b95721",
+            "modifications": [
+                {
+                    "name": "image",
+                    "src": article.imageUrl
+                },
+                {
+                    "name": "gradient"
+                },
+                {
+                    "name": "source_time",
+                    "text": `${article.source}${articleAuthors ? ", By: " + articleAuthors : ""}`
+                },
+                {
+                    "name": "title",
+                    "text": article.title
+                },
+                {
+                    "name": "genre1",
+                    "text": article.genre[0] || 'World'
+                }
+            ]
+        });
 
-const drEvent = {
-imageUrl: string ( 'image from an article in the event' ),
-    title: string ( 'the title that best portrays the event' ),
-    summary: string ( 'the summarized part of all articles in the event' )
-    articleCount: int ( 'amount of sources that wrote on the event' )
-    genre: string ( 'the most relevant genre of the event' )
-    minutesSaved: Int ( 'number of minutes saved from reading the summary instead of reading different articles: average of all minutes saved from articles in event)
+        const response = await fetch('https://api.usestencil.com/v1/images/sync', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                "Authorization": `Bearer ${STENCIL_API_KEY}`
+            },
+            body: raw
+        });
+
+        const data = await response.json();
+        if (!response.ok) {
+            throw new Error(`Internal server error. Failed to fetch image`);
+        } else {
+            return data.image_url_jpg;
+        }
+    } catch (error) {
+        console.error('Failed to generate Instagram image post', error);
+        return null;
+    }
 }
-*/
 
 module.exports = {
-    generateDaiyRecapImage
+    generateDaiyRecapImage,
+    generateArticleInstagramPostImage
 }
