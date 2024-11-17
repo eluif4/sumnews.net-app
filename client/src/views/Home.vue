@@ -78,7 +78,7 @@ async function scrollHandler(event) {
         // If scrolling in feed
         else {
             if (userProfile.user) {
-                console.log('fetching user feed')
+                console.log('fetching user feed in scroll from', new Date());
                 var response = await fetch(`${BACKEND_URL}user/feed`, {
                     method: 'POST',
                     headers: {
