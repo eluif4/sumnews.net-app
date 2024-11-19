@@ -65,17 +65,17 @@ const fetchDailyRecap = async (dailyrecapUUID) => {
 const updateDailyRecapsRef = async () => {
     // isDailyRecapFetchFinished.value = false;
     console.log(`isDailyRecapFetchFinished -> ${isDailyRecapFetchFinished.value}`)
-    dailyrecaps.value = JSON.parse(localStorage.getItem('dailyRecaps')).dailyRecapButtons || [];
+    var dailyrecapbuttons = JSON.parse(localStorage.getItem('dailyRecaps')).dailyRecapButtons || [];
 
     // Find the current recap index from the stored daily recaps
-    const currentIndex = dailyrecaps.value.findIndex(recap => recap.id === dailyrecapUUID.value);
+    const currentIndex = dailyrecapbuttons.findIndex(recap => recap.id === dailyrecapUUID.value);
 
     if (currentIndex !== -1) {
         // currentDailyRecapIndex.value = currentIndex;
         // Fetch the previous, current, and next recaps
-        const prevRecap = currentIndex > 0 ? await fetchDailyRecap(dailyrecaps.value[currentIndex - 1].id) : null;
-        const currentRecap = await fetchDailyRecap(dailyrecaps.value[currentIndex].id);
-        const nextRecap = currentIndex < dailyrecaps.value.length - 1 ? await fetchDailyRecap(dailyrecaps.value[currentIndex + 1].id) : null;
+        const prevRecap = currentIndex > 0 ? await fetchDailyRecap(dailyrecapbuttons[currentIndex - 1].id) : null;
+        const currentRecap = await fetchDailyRecap(dailyrecapbuttons[currentIndex].id);
+        const nextRecap = currentIndex < dailyrecapbuttons.length - 1 ? await fetchDailyRecap(dailyrecapbuttons[currentIndex + 1].id) : null;
 
         // Update the dailyrecaps array
         dailyrecaps.value = [prevRecap, currentRecap, nextRecap].filter(recap => recap != null);
