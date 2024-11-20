@@ -92,20 +92,29 @@ async function processBulkSendArticlesToGeminiQueue(articlesInEventCountObject) 
         console.log(`${geminiResponse.response.length} / ${uniqueArticles.length}`);
         geminiResponse.response = uniqueArticles;
 
-        for (const [index, originalArticle] of articles.entries()) {
-            // Find the matching Gemini article by URL
-            const geminiArticle = geminiResponse.response.find(
-                (article) => article.url === originalArticle.url
-            );
+        for (const uniqueArticle of uniqueArticles) {
+            const originalArticle = articles.find(
+                (article) => article.url === uniqueArticle.url
+            )
 
-            // If a matching Gemini article is found, proceed
-            if (geminiArticle) {
+            if (originalArticle) {
+
+                //     }
+                // }
+                // for (const [index, originalArticle] of articles.entries()) {
+                //     // Find the matching Gemini article by URL
+                //     const geminiArticle = geminiResponse.response.find(
+                //         (article) => article.url === originalArticle.url
+                //     );
+
+                //     // If a matching Gemini article is found, proceed
+                //     if (geminiArticle) {
                 // Assign and validate genres
-                const chosenGenres = geminiArticle.genres.map(item => item.trim());
+                const chosenGenres = uniqueArticle.genres.map(item => item.trim());
                 const validGenres = chosenGenres.filter(genre => possibleGenres.includes(genre));
 
                 // Assign and validate summary
-                const summary = geminiArticle.summary;
+                const summary = uniqueArticle.summary;
                 const hasValidGenres = validGenres.length > 0;
                 const hasValidSummary = summary && summary !== "undefined" && summary.trim() !== "";
 

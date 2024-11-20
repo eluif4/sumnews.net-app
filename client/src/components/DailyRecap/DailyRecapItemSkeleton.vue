@@ -1,12 +1,12 @@
 <template>
     <div class=" flex flex-col gap-4 w-full h-full">
-        <div class="skeleton h-60 w-full image-container"></div>
+        <div class="skeleton w-full image-container"></div>
         <div class="content-container" id="content-container">
-            <div class="genre-list skeleton w-32 h-8"></div>
             <div class="article-title skeleton w-full h-16"></div>
-            <div class="skeleton w-48 h-16"></div>
+            <div class="genre-list skeleton w-32 h-8"></div>
+            <!-- <div class="skeleton w-48 h-16"></div> -->
             <p class="first-paragraph skeleton w-full h-48"></p>
-            <p class="second-paragraph skeleton w-full h-32"></p>
+            <!-- <p class="second-paragraph skeleton w-full h-32"></p> -->
         </div>
     </div>
 </template>
@@ -43,7 +43,7 @@
 
 .image-container {
     width: 100%;
-    height: 200px;
+    height: 400px;
     overflow: hidden;
 }
 

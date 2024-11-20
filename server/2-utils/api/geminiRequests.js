@@ -263,8 +263,13 @@ async function assignAndSummarize(articlesArray) {
         });
 
         const gemini_response = await chatSession.sendMessage(MESSAGE)
+        while (gemini_response.status != 200) {
+            gemini_response = await chatSession.sendMessage(MESSAGE)
+        }
+        
         const result = JSON.parse(gemini_response.response.text())
         return result;
+
     } catch (error) {
         console.error(error);
         return null;
