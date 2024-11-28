@@ -26,6 +26,7 @@ import errorImage from '../../assets/icons/sumnews.net_banner.png'
 const route = useRoute();
 const props = defineProps({ article: Object });
 const articleRef = ref(props.article || {});
+const postToInstagramModal = ref(null);
 
 const FRONTEND_URL = config.url.FRONTEND_URL
 const BACKEND_URL = config.url.BACKEND_URL
@@ -240,9 +241,9 @@ async function postArticleToInstagram() {
     try {
         const response = await fetch(`${BACKEND_URL}api/postArticleToInstagram`, {
             method: 'POST',
-            headers: { 
-                'Content-Type': 'application/json', 
-                'Authorization': `${authToken}` 
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `${authToken}`
             },
             body: JSON.stringify({
                 authToken: authToken,
@@ -259,9 +260,29 @@ async function postArticleToInstagram() {
         console.error(error);
     }
 }
+
+const openModal = () => {
+    my_modal_5.showModal();
+}
 </script>
 
 <template>
+    <!-- <button class="btn" onclick="">open modal</button> -->
+    <dialog id="my_modal_5" class="modal">
+        <div class="modal-box">
+            <h3 class="text-lg font-bold">Hello!</h3>
+            <p class="py-4">Press ESC key or click the button below to close</p>
+            <div class="modal-action">
+                <form method="dialog">
+                    <!-- if there is a button in form, it will close the modal -->
+                    <button class="btn">Close</button>
+                </form>
+                <form method="dialog2">
+                    <button class="btn" @click="postArticleToInstagram">Post Article</button>
+                </form>
+            </div>
+        </div>
+    </dialog>
     <!-- FUTURE CHANGE: add animation into routes -->
     <div class="article-container" id="article-container" :style="{ transform: `translateY(${translateY}px)` }"
         @transitionend="handleTransitionEnd">
@@ -271,7 +292,7 @@ async function postArticleToInstagram() {
             <div class="actions">
 
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
-                    v-if="userProfile?.user?.googleId == '112280303368541696842'" @click="postArticleToInstagram">
+                    v-if="userProfile?.user?.googleId == '112280303368541696842'" @click="openModal">
                     <path fill-rule="evenodd" clip-rule="evenodd"
                         d="M12 18C15.3137 18 18 15.3137 18 12C18 8.68629 15.3137 6 12 6C8.68629 6 6 8.68629 6 12C6 15.3137 8.68629 18 12 18ZM12 16C14.2091 16 16 14.2091 16 12C16 9.79086 14.2091 8 12 8C9.79086 8 8 9.79086 8 12C8 14.2091 9.79086 16 12 16Z"
                         fill="#FFFFFF" />
@@ -572,5 +593,9 @@ ul,
     list-style: auto;
     margin: auto;
     padding: 0 0 0 20px;
+}
+
+.modal {
+    color: white;
 }
 </style>
