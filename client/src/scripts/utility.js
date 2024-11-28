@@ -87,7 +87,6 @@ export async function fetchFeed(skip = 0) {
 }
 
 export async function fetchUserFeed() {
-    console.log('fetching user feed');
     const token = await getAuthToken();
 
     fetch(`${BACKEND_URL}user/feed`, {

@@ -78,7 +78,6 @@ async function scrollHandler(event) {
         // If scrolling in feed
         else {
             if (userProfile.user) {
-                console.log('fetching user feed')
                 var response = await fetch(`${BACKEND_URL}user/feed`, {
                     method: 'POST',
                     headers: {
@@ -222,7 +221,7 @@ const callback = (response) => {
     // This callback will be triggered when user click on the One Tap prompt
     // This callback will be also triggered when user click on login button 
     // and selects or login to his Google account from the popup
-    console.log("Handle the response", response)
+    // console.log("Handle the response", response)
 }
 </script>
 

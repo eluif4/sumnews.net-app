@@ -30,7 +30,6 @@ const FRONTEND_URL = config.url.FRONTEND_URL
 const BACKEND_URL = config.url.BACKEND_URL
 
 async function initiateOAuth2() {
-    console.log('initiating')
     const redirectLink = `${BACKEND_URL}auth/google`
     window.location.href = redirectLink;
 }

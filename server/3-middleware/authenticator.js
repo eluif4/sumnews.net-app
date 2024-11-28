@@ -1,6 +1,7 @@
 const jwt = require('jsonwebtoken');
 
-// Middleware to verify JWT
+// This function is middleware for verifying that an incoming request includes a valid JWT in the 
+// Authorization header, structured as Bearer <token>
 function authenticateToken(req, res, next) {
     const authHeader = req.headers['authorization'];
     const token = authHeader && authHeader.split(' ')[1];

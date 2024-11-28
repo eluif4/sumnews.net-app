@@ -26,6 +26,8 @@ import errorImage from '../../assets/icons/sumnews.net_banner.png'
 const route = useRoute();
 const props = defineProps({ article: Object });
 const articleRef = ref(props.article || {});
+const postToInstagramModal = ref(null);
+const displayModalLoader = ref(false);
 
 const FRONTEND_URL = config.url.FRONTEND_URL
 const BACKEND_URL = config.url.BACKEND_URL
@@ -180,7 +182,6 @@ const handleTransitionEnd = () => {
 }
 
 async function updateUserPreferences() {
-    console.log('updating user preferences');
     var data = {
         genres: [],
         source: {}
@@ -234,9 +235,60 @@ const formattedTimeSaved = computed(() => {
         ? `${Math.round((timeSaved.value / 60) * 2) / 2} minute${Math.round(timeSaved.value * 2) / 2 > 1 ? 's' : ''}`
         : `< 1 minute`;
 });
+
+async function postArticleToInstagram() {
+    displayModalLoader.value = true;
+    const authToken = await getAuthToken();
+    try {
+        const response = await fetch(`${BACKEND_URL}api/postArticleToInstagram`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `${authToken}`
+            },
+            body: JSON.stringify({
+                authToken: authToken,
+                articleUUID: articleRef.value.uuid,
+            }),
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to fetch data');
+        } else {
+            displayModalLoader.value = false;
+            my_modal_5.close();
+            showPopup(1, 'Post Uploaded Successfully');
+        }
+    } catch (error) {
+        console.error(error);
+    }
+}
+
+const openModal = () => {
+    my_modal_5.showModal();
+}
 </script>
 
 <template>
+    <!-- <button class="btn" onclick="">open modal</button> -->
+    <dialog id="my_modal_5" class="modal">
+        <div class="modal-box">
+            <h3 class="text-lg font-bold">Hello!</h3>
+            <p class="py-4">Press ESC key or click the button below to close</p>
+            <div class="loader" v-if="displayModalLoader">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="50" height="50"><radialGradient id="a10" cx=".66" fx=".66" cy=".3125" fy=".3125" gradientTransform="scale(1.5)"><stop offset="0" stop-color="#FF156D"></stop><stop offset=".3" stop-color="#FF156D" stop-opacity=".9"></stop><stop offset=".6" stop-color="#FF156D" stop-opacity=".6"></stop><stop offset=".8" stop-color="#FF156D" stop-opacity=".3"></stop><stop offset="1" stop-color="#FF156D" stop-opacity="0"></stop></radialGradient><circle transform-origin="center" fill="none" stroke="url(#a10)" stroke-width="15" stroke-linecap="round" stroke-dasharray="200 1000" stroke-dashoffset="0" cx="100" cy="100" r="70"><animateTransform type="rotate" attributeName="transform" calcMode="spline" dur="2" values="360;0" keyTimes="0;1" keySplines="0 0 1 1" repeatCount="indefinite"></animateTransform></circle><circle transform-origin="center" fill="none" opacity=".2" stroke="#FF156D" stroke-width="15" stroke-linecap="round" cx="100" cy="100" r="70"></circle></svg>
+            </div>
+            <div class="modal-action">
+                <form method="dialog">
+                    <!-- if there is a button in form, it will close the modal -->
+                    <button class="btn">Close</button>
+                </form>
+                <form method="dialog2">
+                    <div class="btn" @click="postArticleToInstagram">Post Article</div>
+                </form>
+            </div>
+        </div>
+    </dialog>
     <!-- FUTURE CHANGE: add animation into routes -->
     <div class="article-container" id="article-container" :style="{ transform: `translateY(${translateY}px)` }"
         @transitionend="handleTransitionEnd">
@@ -244,6 +296,19 @@ const formattedTimeSaved = computed(() => {
         <div class="image-container">
             <div class="close-bar" @click="goBack"></div>
             <div class="actions">
+
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                    v-if="userProfile?.user?.googleId == '112280303368541696842'" @click="openModal">
+                    <path fill-rule="evenodd" clip-rule="evenodd"
+                        d="M12 18C15.3137 18 18 15.3137 18 12C18 8.68629 15.3137 6 12 6C8.68629 6 6 8.68629 6 12C6 15.3137 8.68629 18 12 18ZM12 16C14.2091 16 16 14.2091 16 12C16 9.79086 14.2091 8 12 8C9.79086 8 8 9.79086 8 12C8 14.2091 9.79086 16 12 16Z"
+                        fill="#FFFFFF" />
+                    <path
+                        d="M18 5C17.4477 5 17 5.44772 17 6C17 6.55228 17.4477 7 18 7C18.5523 7 19 6.55228 19 6C19 5.44772 18.5523 5 18 5Z"
+                        fill="#FFFFFF" />
+                    <path fill-rule="evenodd" clip-rule="evenodd"
+                        d="M1.65396 4.27606C1 5.55953 1 7.23969 1 10.6V13.4C1 16.7603 1 18.4405 1.65396 19.7239C2.2292 20.8529 3.14708 21.7708 4.27606 22.346C5.55953 23 7.23969 23 10.6 23H13.4C16.7603 23 18.4405 23 19.7239 22.346C20.8529 21.7708 21.7708 20.8529 22.346 19.7239C23 18.4405 23 16.7603 23 13.4V10.6C23 7.23969 23 5.55953 22.346 4.27606C21.7708 3.14708 20.8529 2.2292 19.7239 1.65396C18.4405 1 16.7603 1 13.4 1H10.6C7.23969 1 5.55953 1 4.27606 1.65396C3.14708 2.2292 2.2292 3.14708 1.65396 4.27606ZM13.4 3H10.6C8.88684 3 7.72225 3.00156 6.82208 3.0751C5.94524 3.14674 5.49684 3.27659 5.18404 3.43597C4.43139 3.81947 3.81947 4.43139 3.43597 5.18404C3.27659 5.49684 3.14674 5.94524 3.0751 6.82208C3.00156 7.72225 3 8.88684 3 10.6V13.4C3 15.1132 3.00156 16.2777 3.0751 17.1779C3.14674 18.0548 3.27659 18.5032 3.43597 18.816C3.81947 19.5686 4.43139 20.1805 5.18404 20.564C5.49684 20.7234 5.94524 20.8533 6.82208 20.9249C7.72225 20.9984 8.88684 21 10.6 21H13.4C15.1132 21 16.2777 20.9984 17.1779 20.9249C18.0548 20.8533 18.5032 20.7234 18.816 20.564C19.5686 20.1805 20.1805 19.5686 20.564 18.816C20.7234 18.5032 20.8533 18.0548 20.9249 17.1779C20.9984 16.2777 21 15.1132 21 13.4V10.6C21 8.88684 20.9984 7.72225 20.9249 6.82208C20.8533 5.94524 20.7234 5.49684 20.564 5.18404C20.1805 4.43139 19.5686 3.81947 18.816 3.43597C18.5032 3.27659 18.0548 3.14674 17.1779 3.0751C16.2777 3.00156 15.1132 3 13.4 3Z"
+                        fill="#FFFFFF" />
+                </svg>
                 <ActionItem :action="shareAction" :article="articleRef"></ActionItem>
                 <ActionItem :action="fullCoverageAction" :article="articleRef" v-if="articleRef.eventUri"></ActionItem>
                 <ActionItem :action="bookmarkAction" :article="article"
@@ -251,6 +316,7 @@ const formattedTimeSaved = computed(() => {
                 <ActionItem :action="removeBookmarkAction" :article="article"
                     v-else-if="userProfile.user.bookmarks.includes(article.uuid)"></ActionItem>
                 <ActionItem :action="backAction" :article="articleRef" class="backAction"></ActionItem>
+
             </div>
 
             <div @touchstart="handleTouchStart" @touchmove="handleTouchMove" @touchend="handleTouchEnd">
@@ -533,5 +599,12 @@ ul,
     list-style: auto;
     margin: auto;
     padding: 0 0 0 20px;
+}
+
+.loader {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
 }
 </style>

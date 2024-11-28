@@ -86,11 +86,11 @@ async function createDailyRecap(source) {
                     if (response.success) { // If document has been saved
                         try {
                             // Create image from Stencil template
-                            // const dailyRecapImageUrl = await generateDaiyRecapImage(drEvent.toObject())
+                            const dailyRecapImageUrl = await generateDaiyRecapImage(drEvent.toObject())
 
                             // Upload to instagram Story
                             if (dailyRecapImageUrl) {
-                                // const response = await uploadStoryToInstagram(dailyRecapImageUrl);
+                                const response = await uploadStoryToInstagram(dailyRecapImageUrl);
                             } else {
                                 console.log(`FAILED to create 'dailyRecapImageUrl'`)
                             }
@@ -138,7 +138,7 @@ async function createDailyRecap(source) {
 
                 return true; // Keep this article
             });
-            
+
             var sourceEventArticles = [];
             // Loop over all 5 articles. Each article becomes its own 'event' in a Daily Recap
             for (const article of articles) {

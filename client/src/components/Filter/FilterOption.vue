@@ -17,9 +17,10 @@ const option = computed(() => {
         localStorageKey.value = 'genres'
         return props.option.genre
     }
-    else if (props.option.source)
+    else if (props.option.source) {
         localStorageKey.value = 'sources'
-    return props.option.source
+        return props.option.sourceName
+    }
 })
 
 onMounted(() => {

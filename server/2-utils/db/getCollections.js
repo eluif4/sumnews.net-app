@@ -5,7 +5,7 @@ const Source = require("../../4-models/sources")
 
 async function getAllSources() {
     return await Source.find().sort({ sourceId: 1 })
-    .select({ source: 1 })
+    .select({ source: 1, sourceName: 1 })
 }
 
 async function getAllGenres() {

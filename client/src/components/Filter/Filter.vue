@@ -114,7 +114,7 @@ function backClick() {
         </div>
         <div class="options" id="options">
             <!-- FUTURE CHANGE: animate the list of options. have the options slide between options -->
-            <FilterOption v-if="selectedOption == 'source'" v-for="option in Object.values(Sources.list).sort((a, b) => a.source.localeCompare(b.source))" :key="option.id"
+            <FilterOption v-if="selectedOption == 'source'" v-for="option in Object.values(Sources.list).sort((a, b) => a.sourceName.localeCompare(b.sourceName))" :key="option.id"
                 :option="option" class="filter-option">
             </FilterOption>
 

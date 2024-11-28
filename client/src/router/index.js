@@ -62,7 +62,6 @@ const routes = [
                     await fetchFeed()
                 }
             } else {
-                console.log('navigation to home page through else')
                 // Logic to execute if use is coming from other paths into home
             }
             next(); // Continue with the navigation

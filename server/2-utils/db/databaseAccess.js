@@ -12,7 +12,6 @@ const DailyRecap = require("../../4-models/dailyRecap")
 const { articleScore } = require('../personalizedFeed')
 
 const db = mongoose.connection;
-var oldestArticleDateFromScoring = new Date();
 
 // ----- ARTICLES -----
 async function saveToDB(article) { //SAVES THE GIVEN ARTICLE TO DB WITH ALL RELEVANT METADATA ABOUT IT
@@ -303,6 +302,7 @@ async function removeArticleToBookmarks(googleId, articleuuid) {
 }
 
 async function getUserFeed(googleId, articlesInFeed = []) {
+    var oldestArticleDateFromScoring = new Date();
     // WEIGHTS
     const WEIGHTS = {
         GENRES: 1.5,

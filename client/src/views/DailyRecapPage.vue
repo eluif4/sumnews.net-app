@@ -14,6 +14,10 @@ const dailyrecapUUID = ref(route.params.dailyrecapUUID);
 const drEvent = ref(route.params.drEvent);
 const visitedDailyRecaps = ref([dailyrecapUUID.value]);
 
+// Daily recap is at first an array of the dailyrecap buttons before transforming into the prev, current and next dailyrecaps
+// This ref value is for v-if to make sure to show dailyrecaps only after the modified change
+const isDailyRecapFetchFinished = ref(false);
+
 // Watch for changes in the dailyrecapUUID route parameter
 watch(() => route.params.dailyrecapUUID, (newUUID, oldUUID) => {
     dailyrecapUUID.value = newUUID;
@@ -59,17 +63,18 @@ const fetchDailyRecap = async (dailyrecapUUID) => {
 }
 
 const updateDailyRecapsRef = async () => {
-    dailyrecaps.value = JSON.parse(localStorage.getItem('dailyRecaps')).dailyRecapButtons || [];
+    // isDailyRecapFetchFinished.value = false;
+    var dailyrecapbuttons = JSON.parse(localStorage.getItem('dailyRecaps')).dailyRecapButtons || [];
 
     // Find the current recap index from the stored daily recaps
-    const currentIndex = dailyrecaps.value.findIndex(recap => recap.id === dailyrecapUUID.value);
+    const currentIndex = dailyrecapbuttons.findIndex(recap => recap.id === dailyrecapUUID.value);
 
     if (currentIndex !== -1) {
         // currentDailyRecapIndex.value = currentIndex;
         // Fetch the previous, current, and next recaps
-        const prevRecap = currentIndex > 0 ? await fetchDailyRecap(dailyrecaps.value[currentIndex - 1].id) : null;
-        const currentRecap = await fetchDailyRecap(dailyrecaps.value[currentIndex].id);
-        const nextRecap = currentIndex < dailyrecaps.value.length - 1 ? await fetchDailyRecap(dailyrecaps.value[currentIndex + 1].id) : null;
+        const prevRecap = currentIndex > 0 ? await fetchDailyRecap(dailyrecapbuttons[currentIndex - 1].id) : null;
+        const currentRecap = await fetchDailyRecap(dailyrecapbuttons[currentIndex].id);
+        const nextRecap = currentIndex < dailyrecapbuttons.length - 1 ? await fetchDailyRecap(dailyrecapbuttons[currentIndex + 1].id) : null;
 
         // Update the dailyrecaps array
         dailyrecaps.value = [prevRecap, currentRecap, nextRecap].filter(recap => recap != null);
@@ -77,6 +82,7 @@ const updateDailyRecapsRef = async () => {
         // currentDailyRecapIndex can have values of 0, 1, 2 because the dailyrecaps.value array will have a maximum length of 3
         currentDailyRecapIndex.value = dailyrecaps.value.findIndex(dailyrecap => dailyrecap.id == currentRecap.id);
         currentDrEventIndex.value = dailyrecaps.value[currentDailyRecapIndex.value]?.drEvents.findIndex(drevent => drevent.id === drEvent.value) || 0;
+        isDailyRecapFetchFinished.value = true;
     }
 }
 
@@ -195,8 +201,6 @@ function updateWasVisitedDailyRecapButtons() {
         "dailyRecapButtons": dailyRecapButtonsArray
     }));
 
-    console.log('Visited recaps updated and pushed to the end of the array');
-
     router.push({
         name: 'home'
     });
@@ -209,8 +213,8 @@ function updateWasVisitedDailyRecapButtons() {
         <div class="info-header">
 
             <div class="second count" :style="{ 'gap': dynamicGap + 'px' }">
-                <div class="bubble" v-if="dailyrecaps[currentDailyRecapIndex]"
-                    v-for="(drEvent, index) in dailyrecaps[currentDailyRecapIndex].drEvents.length" :key="index"
+                <div class="bubble" v-if="isDailyRecapFetchFinished"
+                    v-for="(drEvent, index) in dailyrecaps[currentDailyRecapIndex]?.drEvents" :key="index"
                     :class="{ 'active': index <= currentDrEventIndex }">
                 </div>
             </div>
@@ -231,7 +235,7 @@ function updateWasVisitedDailyRecapButtons() {
         <!-- EVENTS AND ARTICLES -->
         <div ref="carouselRef" class="dailyrecap-list carousel carousel-center w-full snap-x snap-mandatory">
             <div class="dailyrecap carousel-item w-full snap-center" v-for="(dailyrecap, key) in dailyrecaps"
-                :key="dailyrecap.id" v-if="dailyrecaps" @click="handleClick(dailyrecap.id)">
+                :key="dailyrecap.id" v-if="isDailyRecapFetchFinished" @click="handleClick(dailyrecap.id)">
 
                 <DailyRecapItem :dailyrecap="dailyrecap"></DailyRecapItem>
                 <!-- <DailyRecapItem :article="drEvent.articles[currentArticleIndex]" :dailyrecap="dailyrecap" /> -->
@@ -239,7 +243,7 @@ function updateWasVisitedDailyRecapButtons() {
             <div class="dailyrecap" v-else>
                 <div class="article-list">
                     <div class="article">
-                        <DailyRecapItemSkeleton v-if="!dailyrecaps"></DailyRecapItemSkeleton>
+                        <DailyRecapItemSkeleton v-if="!isDailyRecapFetchFinished"></DailyRecapItemSkeleton>
                     </div>
                 </div>
             </div>
