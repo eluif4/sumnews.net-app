@@ -27,6 +27,7 @@ const route = useRoute();
 const props = defineProps({ article: Object });
 const articleRef = ref(props.article || {});
 const postToInstagramModal = ref(null);
+const displayModalLoader = ref(false);
 
 const FRONTEND_URL = config.url.FRONTEND_URL
 const BACKEND_URL = config.url.BACKEND_URL
@@ -237,6 +238,7 @@ const formattedTimeSaved = computed(() => {
 });
 
 async function postArticleToInstagram() {
+    displayModalLoader.value = true;
     const authToken = await getAuthToken();
     try {
         const response = await fetch(`${BACKEND_URL}api/postArticleToInstagram`, {
@@ -254,6 +256,8 @@ async function postArticleToInstagram() {
         if (!response.ok) {
             throw new Error('Failed to fetch data');
         } else {
+            displayModalLoader.value = false;
+            my_modal_5.close();
             showPopup(1, 'Post Uploaded Successfully');
         }
     } catch (error) {
@@ -272,13 +276,16 @@ const openModal = () => {
         <div class="modal-box">
             <h3 class="text-lg font-bold">Hello!</h3>
             <p class="py-4">Press ESC key or click the button below to close</p>
+            <div class="loader" v-if="displayModalLoader">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="50" height="50"><radialGradient id="a10" cx=".66" fx=".66" cy=".3125" fy=".3125" gradientTransform="scale(1.5)"><stop offset="0" stop-color="#FF156D"></stop><stop offset=".3" stop-color="#FF156D" stop-opacity=".9"></stop><stop offset=".6" stop-color="#FF156D" stop-opacity=".6"></stop><stop offset=".8" stop-color="#FF156D" stop-opacity=".3"></stop><stop offset="1" stop-color="#FF156D" stop-opacity="0"></stop></radialGradient><circle transform-origin="center" fill="none" stroke="url(#a10)" stroke-width="15" stroke-linecap="round" stroke-dasharray="200 1000" stroke-dashoffset="0" cx="100" cy="100" r="70"><animateTransform type="rotate" attributeName="transform" calcMode="spline" dur="2" values="360;0" keyTimes="0;1" keySplines="0 0 1 1" repeatCount="indefinite"></animateTransform></circle><circle transform-origin="center" fill="none" opacity=".2" stroke="#FF156D" stroke-width="15" stroke-linecap="round" cx="100" cy="100" r="70"></circle></svg>
+            </div>
             <div class="modal-action">
                 <form method="dialog">
                     <!-- if there is a button in form, it will close the modal -->
                     <button class="btn">Close</button>
                 </form>
                 <form method="dialog2">
-                    <button class="btn" @click="postArticleToInstagram">Post Article</button>
+                    <div class="btn" @click="postArticleToInstagram">Post Article</div>
                 </form>
             </div>
         </div>
@@ -595,7 +602,10 @@ ul,
     padding: 0 0 0 20px;
 }
 
-.modal {
-    color: white;
+.loader {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
 }
 </style>
