@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "460887858930",
+    "project_id": "sumnews-62a1c",
+    "storage_bucket": "sumnews-62a1c.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:460887858930:android:6b6e20738d41ebbfd5fa6b",
+        "android_client_info": {
+          "package_name": "net.sumnews.www"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDvxPyJzLM4biE8ryjcAJORRWw4DeQcSPQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
