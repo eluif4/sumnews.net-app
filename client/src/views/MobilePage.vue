@@ -5,7 +5,9 @@
 
     <!-- Additional transitions as needed -->
     <transition name="slideupdown" mode="out-in">
-        <router-view name="additional"></router-view>
+        <router-view name="additional" v-slot="{ Component }">
+            <component :is="Component" />
+        </router-view>
     </transition>
 
     <transition name="fade">
