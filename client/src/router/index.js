@@ -45,7 +45,7 @@ const routes = [
 
             if (
                 (isFromArticlePath && List.articles.length === 0) ||
-                // (isFromFilterPath && isLocalStorageEmpty) ||
+                (isFromFilterPath) ||
                 (isFromHomePath && List.articles.length === 0) ||
                 (isFromAccountPath) ||
                 (isFromDailyRecapPath) ||
@@ -370,8 +370,8 @@ const routeHistory = [];
 // Navigation guard to track history
 router.beforeEach(async (to, from, next) => {
     if (to.name == 'filter') {
-        console.log('beforeEnter', to.query)
-        if ((to.query.sources || to.query.genres)) {
+        // If navigating to /filter route ( usually after a filtered article route /article)
+        if ((to.query.sources || to.query.genres) && !from.path.includes('article')) {
             List.articles = [];
             var filter = {};
 
@@ -399,6 +399,8 @@ router.beforeEach(async (to, from, next) => {
             var response = await front_getArticlesFromDB(filter) // , { uuid: 1, title: 1, imageUrl: 1};
             List.articles = response;
             // document.getElementById('article-stack').scrollTop = 0;
+        } else if (from.path.includes('article')) {
+            next();
         } else {
             console.log('No query params were provided')
             next({ name: 'home' });

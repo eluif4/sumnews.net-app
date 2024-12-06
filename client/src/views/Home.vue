@@ -20,6 +20,7 @@ import ArticleInstance from '../components/Article/ArticleInstance.vue'
 import DailyRecapButton from '../components/DailyRecap/DailyRecapButton.vue';
 import DailyRecapButtonSkeleton from '../components/DailyRecap/DailyRecapButtonSkeleton.vue'
 import FilterComponent from '../components/Filter/Filter.vue'
+import Backdrop from '../components/Article/Backdrop.vue';
 
 var skeletonArticles = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 var tempDailyRecapButtons = ref([{}, {}, {}, {}, {}, {}, {}, {}, {}, {}])
@@ -247,10 +248,14 @@ const callback = (response) => {
             </router-link>
         </div>
     </div>
-    <!-- enterClass: "slide-in-bottom",
-            leaveClass: "slide-out-bottom", -->
+    <transition name="fade">
+        <template v-slot>
+            <Backdrop />
+        </template>
+    </transition>
+
     <transition name="slideupdown">
-        <template v-if="Filter.isVisible" v-slot>
+        <template v-slot>
             <FilterComponent />
         </template>
     </transition>
@@ -318,27 +323,31 @@ const callback = (response) => {
 <style scoped>
 /* Enter animation */
 .slideupdown-enter-from {
-  transform: translateY(1000px);
-  /* opacity: 0; */
+    transform: translateY(1000px);
+    /* opacity: 0; */
 }
+
 .slideupdown-enter-active {
-  transition: transform 0.5s cubic-bezier(0.250, 0.460, 0.450, 0.940), opacity 0.5s;
+    transition: transform 0.5s cubic-bezier(0.250, 0.460, 0.450, 0.940), opacity 0.5s;
 }
+
 .slideupdown-enter-to {
-  transform: translateY(0);
-  /* opacity: 1; */
+    transform: translateY(0);
+    /* opacity: 1; */
 }
 
 /* Leave animation */
 .slideupdown-leave-from {
-  transform: translateY(0);
-  /* opacity: 1; */
+    transform: translateY(0);
+    /* opacity: 1; */
 }
+
 .slideupdown-leave-active {
-  transition: transform 0.5s cubic-bezier(0.250, 0.460, 0.450, 0.940), opacity 0.5s;
+    transition: transform 0.5s cubic-bezier(0.250, 0.460, 0.450, 0.940), opacity 0.5s;
 }
+
 .slideupdown-leave-to {
-  transform: translateY(1000px);
-  /* opacity: 0; */
+    transform: translateY(1000px);
+    /* opacity: 0; */
 }
 </style>
