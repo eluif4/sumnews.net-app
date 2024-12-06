@@ -371,7 +371,7 @@ const openModal = () => {
             <div class="summarized-content" v-html="formattedSummarizedContent"></div>
 
             <!-- FULL COVERAGE -->
-            <div class="fullcoverage-container" v-if="articleRef.eventUri">
+            <div class="fullcoverage-container" v-if="aggregatedResults.length > 0">
                 <p class="fc-title">Read Full Coverage ({{ aggregatedResults.length }})</p>
                 <router-link :to="{ name: 'eventArticles', params: { uuid: fca.uuid } }" class="fullcoverage-article"
                     v-for="(fca, index) in aggregatedResults" :key="index">
@@ -386,6 +386,12 @@ const openModal = () => {
                     </svg>
                     <p>{{ fca.source }}, {{ fca.title }}</p>
                 </router-link>
+            </div>
+
+            <div class="fullcoverage-container" v-else>
+                <!-- <div class="skeleton h-32 w-full article-instance"></div> -->
+                <p class="skeleton h-8 w-40"></p>
+                <div class="skeleton h-8 w-full fullcoverage-article" v-for="(item, index) in [1, 2, 3, 4, 5]" :key="index"></div>
             </div>
 
             <!-- FUTURE CHANGE: add ask ai feature with resources -->
@@ -636,5 +642,12 @@ ul,
     padding: 3px 5px;
     border-radius: var(--border-radius);
     text-align: center;
+}
+
+.fullcoverage-container {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
 }
 </style>

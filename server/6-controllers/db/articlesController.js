@@ -138,6 +138,21 @@ async function getArticlesFromEventController(req, res) {
                 eventUri: eventUri,
             },
         },
+        {
+            $project: {
+                "eventArticles": {
+                    $map: {
+                        input: "$eventArticles",
+                        as: "article",
+                        in: {
+                            title: "$$article.title",
+                            source: "$$article.source",
+                            uuid: "$$article.uuid",
+                        },
+                    },
+                },
+            },
+        }
     ]
     const result = await aggregate('events', pipeline);
     return res.send(result[0]);
