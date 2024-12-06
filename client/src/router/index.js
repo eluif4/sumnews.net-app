@@ -40,13 +40,12 @@ const routes = [
             const sourcesInLocalStorage = localStorage.getItem('sources');
             const genresInLocalStorage = localStorage.getItem('genres');
 
-            const isLocalStorageEmpty = (sourcesInLocalStorage === null || JSON.parse(sourcesInLocalStorage).length === 0) &&
-                (genresInLocalStorage === null || JSON.parse(genresInLocalStorage).length === 0);
+            // const isLocalStorageEmpty = (sourcesInLocalStorage === null || JSON.parse(sourcesInLocalStorage).length === 0) &&
+            //     (genresInLocalStorage === null || JSON.parse(genresInLocalStorage).length === 0);
 
-            // Execute only if user is coming from home page and article list is empty
             if (
                 (isFromArticlePath && List.articles.length === 0) ||
-                (isFromFilterPath && isLocalStorageEmpty) ||
+                // (isFromFilterPath && isLocalStorageEmpty) ||
                 (isFromHomePath && List.articles.length === 0) ||
                 (isFromAccountPath) ||
                 (isFromDailyRecapPath) ||
@@ -61,7 +60,8 @@ const routes = [
                 else {
                     await fetchFeed()
                 }
-            } else {
+            }
+            else {
                 console.log('navigation to home page through else')
                 // Logic to execute if use is coming from other paths into home
             }
@@ -89,6 +89,15 @@ const routes = [
                 if (!article) {
                     const response = await front_getArticlesFromDB({ uuid: to.params.uuid }, undefined, undefined, undefined, 1);
                     article = response[0];
+                    if (List.articles.length == 0) {
+                        var token = await getAuthToken();
+                        if (token) {
+                            await fetchUserFeed()
+                        }
+                        else {
+                            await fetchFeed()
+                        }
+                    }
                 }
                 if (article) {
                     to.params.article = article;
@@ -170,9 +179,56 @@ const routes = [
         },
         components: {
             default: Home,
-            additional: Filter,
-            backdrop: Backdrop,
+            // additional: Filter,
+            // backdrop: Backdrop,
         },
+        // Refer to the beforeEach at the bottom of the page
+        // beforeEnter: async (to, from, next) => {
+        //     // If filtering
+        //     console.log('beforeEnter', to.query)
+        //     if ((to.query.sources || to.query.genres)) {
+        //         List.articles = [];
+        //         var filter = {};
+
+        //         const sourcesArray = to.query.sources?.split(',');
+        //         const genresArray = to.query.genres?.split(',');
+
+        //         // Initialize an empty array for `$or` conditions
+        //         const orConditions = [];
+
+        //         // Add the entire `source` condition if `sourcesArray` has at least one value
+        //         if (sourcesArray?.length > 0) {
+        //             orConditions.push({ "source": { "$in": sourcesArray } });
+        //         }
+
+        //         // Add the entire `genre` condition if `genresArray` has at least one value
+        //         if (genresArray?.length > 0) {
+        //             orConditions.push({ "genre": { "$in": genresArray } });
+        //         }
+
+        //         // Only include `$or` in the filter if there are conditions
+        //         if (orConditions.length > 0) {
+        //             filter = { $or: orConditions };
+        //         }
+
+        //         var response = await front_getArticlesFromDB(filter) // , { uuid: 1, title: 1, imageUrl: 1};
+        //         List.articles = response;
+        //         // document.getElementById('article-stack').scrollTop = 0;
+        //     } else {
+        //         console.log('No query params were provided')
+        //         next({ name: 'home' });
+        //     }
+        //     //     if (List.articles.length == 0) {
+        //     //         var token = await getAuthToken();
+        //     //         if (token) {
+        //     //             await fetchUserFeed()
+        //     //         }
+        //     //         else {
+        //     //             await fetchFeed()
+        //     //         }
+        //     //     }
+        //     next();
+        // }
     },
     {
         path: '/search',
@@ -312,7 +368,45 @@ const router = createRouter({
 const routeHistory = [];
 
 // Navigation guard to track history
-router.beforeEach((to, from, next) => {
+router.beforeEach(async (to, from, next) => {
+    if (to.name == 'filter') {
+        console.log('beforeEnter', to.query)
+        if ((to.query.sources || to.query.genres)) {
+            List.articles = [];
+            var filter = {};
+
+            const sourcesArray = to.query.sources?.split(',');
+            const genresArray = to.query.genres?.split(',');
+
+            // Initialize an empty array for `$or` conditions
+            const orConditions = [];
+
+            // Add the entire `source` condition if `sourcesArray` has at least one value
+            if (sourcesArray?.length > 0) {
+                orConditions.push({ "source": { "$in": sourcesArray } });
+            }
+
+            // Add the entire `genre` condition if `genresArray` has at least one value
+            if (genresArray?.length > 0) {
+                orConditions.push({ "genre": { "$in": genresArray } });
+            }
+
+            // Only include `$or` in the filter if there are conditions
+            if (orConditions.length > 0) {
+                filter = { $or: orConditions };
+            }
+
+            var response = await front_getArticlesFromDB(filter) // , { uuid: 1, title: 1, imageUrl: 1};
+            List.articles = response;
+            // document.getElementById('article-stack').scrollTop = 0;
+        } else {
+            console.log('No query params were provided')
+            next({ name: 'home' });
+        }
+        next();
+    }
+
+    
     routeHistory.push(from.fullPath);
     next();
 });

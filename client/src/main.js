@@ -32,6 +32,10 @@ export const List = reactive({
   articles: [],
 })
 
+export const Filter = reactive({
+  isVisible: false,
+})
+
 // ----- GET ALL SOURCES FROM DB -----
 export const Sources = reactive({ list: [] })
 const allSourcesInLocalStorage = JSON.parse(localStorage.getItem('allSources'));
