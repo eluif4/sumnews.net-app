@@ -371,7 +371,7 @@ const openModal = () => {
             <div class="summarized-content" v-html="formattedSummarizedContent"></div>
 
             <!-- FULL COVERAGE -->
-            <div class="fullcoverage-container" v-if="aggregatedResults.length > 0">
+            <div class="fullcoverage-container" v-if="aggregatedResults.length > 0 && articleRef.eventUri">
                 <p class="fc-title">Read Full Coverage ({{ aggregatedResults.length }})</p>
                 <router-link :to="{ name: 'eventArticles', params: { uuid: fca.uuid } }" class="fullcoverage-article"
                     v-for="(fca, index) in aggregatedResults" :key="index">
@@ -388,7 +388,7 @@ const openModal = () => {
                 </router-link>
             </div>
 
-            <div class="fullcoverage-container" v-else>
+            <div class="fullcoverage-container" v-if="aggregatedResults.length == 0 && articleRef.eventUri">
                 <!-- <div class="skeleton h-32 w-full article-instance"></div> -->
                 <p class="skeleton h-8 w-40"></p>
                 <div class="skeleton h-8 w-full fullcoverage-article" v-for="(item, index) in [1, 2, 3, 4, 5]" :key="index"></div>
