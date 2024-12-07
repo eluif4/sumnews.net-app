@@ -55,7 +55,7 @@ const limiter = rateLimit({
 app.use(limiter);
 
 app.use(cors({
-    origin: ['http://localhost:5173'],
+    origin: '*',
     credentials: true, // Allows cookies to be included in requests (if necessary)
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     allowedHeaders: ['Content-Type', 'Authorization', 'Cache-Control'], // Include 'Cache-Control' here
@@ -68,7 +68,7 @@ app.use(USERINFO);
 app.use(INSTAGRAM_ROUTES);
 // app.use(GOOGLEDRIVE);
 
-app.listen(port, function () {
+app.listen(port, '0.0.0.0', function () {
     console.log(`Server is running on port ${port} in DEVELOPMENT mode`);
 
     // Execute code after server start
@@ -86,7 +86,7 @@ const { articleQueue } = require('./server/2-utils/articleQueueHandler.js');
 const state = 0;
 async function cronTask() {
     cron.schedule('*/20 * * * *', async () => {
-        if (true) {
+        if (false) {
             try {
                 const date = new Date()
                 console.log(kleur.bgBlue(`Task started @ ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`))

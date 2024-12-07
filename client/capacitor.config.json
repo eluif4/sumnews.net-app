@@ -4,8 +4,8 @@
   "webDir": "dist",
   "bundledWebRuntime": false,
   "server": {
-    "androidScheme": "http",
-    "cleartext": true
+    "cleartext": true,
+    "androidScheme": "http"
   },
   "plugins": {
     "GoogleAuth": {
