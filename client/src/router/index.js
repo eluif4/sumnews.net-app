@@ -19,6 +19,7 @@ import Backdrop from '../components/Article/Backdrop.vue'
 import ArticleContent from '../components/Article/ArticleContent.vue'
 import DailyRecapPage from '../views/DailyRecapPage.vue'
 import Bookmarks from '../components/AccountPage/Pages/Bookmarks.vue'
+import Login from '../views/Login.vue'
 
 const BACKEND_URL = config.url.BACKEND_URL;
 const FRONTEND_URL = config.url.FRONTEND_URL;
@@ -30,42 +31,49 @@ const routes = [
         name: 'home',
         // reload: false,
         beforeEnter: async (to, from, next) => {
-            const isFromArticlePath = from.fullPath.includes('/article');
-            const isFromFilterPath = from.fullPath.includes('/filter');
-            const isFromHomePath = (from.fullPath == '/');
-            const isFromDailyRecapPath = (from.fullPath.includes('/dailyrecap'))
-            const isFromAccountPath = (from.fullPath.includes('/account'))
-            const isFromErrorPage = (from.fullPath.includes('/404')) || (from.fullPath.includes('/error'));
-            const isFromEventPage = (from.fullPath.includes('/event'));
-            const sourcesInLocalStorage = localStorage.getItem('sources');
-            const genresInLocalStorage = localStorage.getItem('genres');
+            if (!localStorage.getItem('hasAgreedToCookies') && !to.query.skip) { // If user hasnt visited the login page ( still hasnt accepted cookies )
+                next('/login');
+            } else {
+                console.log('accepted cookies')
+                const isFromLoginPath = from.fullPath.includes('/login');
+                const isFromArticlePath = from.fullPath.includes('/article');
+                const isFromFilterPath = from.fullPath.includes('/filter');
+                const isFromHomePath = (from.fullPath == '/');
+                const isFromDailyRecapPath = (from.fullPath.includes('/dailyrecap'))
+                const isFromAccountPath = (from.fullPath.includes('/account'))
+                const isFromErrorPage = (from.fullPath.includes('/404')) || (from.fullPath.includes('/error'));
+                const isFromEventPage = (from.fullPath.includes('/event'));
+                const sourcesInLocalStorage = localStorage.getItem('sources');
+                const genresInLocalStorage = localStorage.getItem('genres');
 
-            // const isLocalStorageEmpty = (sourcesInLocalStorage === null || JSON.parse(sourcesInLocalStorage).length === 0) &&
-            //     (genresInLocalStorage === null || JSON.parse(genresInLocalStorage).length === 0);
+                // const isLocalStorageEmpty = (sourcesInLocalStorage === null || JSON.parse(sourcesInLocalStorage).length === 0) &&
+                //     (genresInLocalStorage === null || JSON.parse(genresInLocalStorage).length === 0);
 
-            if (
-                (isFromArticlePath && List.articles.length === 0) ||
-                (isFromFilterPath) ||
-                (isFromHomePath && List.articles.length === 0) ||
-                (isFromAccountPath) ||
-                (isFromDailyRecapPath) ||
-                (isFromErrorPage && List.articles.length === 0) ||
-                (isFromEventPage && List.articles.length === 0)
-            ) {
-                List.articles = [];
-                var token = await getAuthToken();
-                if (token) {
-                    await fetchUserFeed()
+                if (
+                    (isFromArticlePath && List.articles.length === 0) ||
+                    (isFromFilterPath) ||
+                    (isFromHomePath && List.articles.length === 0) ||
+                    (isFromAccountPath) ||
+                    (isFromDailyRecapPath) ||
+                    (isFromErrorPage && List.articles.length === 0) ||
+                    (isFromEventPage && List.articles.length === 0) ||
+                    (isFromLoginPath)
+                ) {
+                    List.articles = [];
+                    var token = await getAuthToken();
+                    if (token) {
+                        await fetchUserFeed()
+                    }
+                    else {
+                        await fetchFeed()
+                    }
                 }
                 else {
-                    await fetchFeed()
+                    console.log('navigation to home page through else')
+                    // Logic to execute if use is coming from other paths into home
                 }
+                next(); // Continue with the navigation
             }
-            else {
-                console.log('navigation to home page through else')
-                // Logic to execute if use is coming from other paths into home
-            }
-            next(); // Continue with the navigation
         }
     },
     {
@@ -346,6 +354,11 @@ const routes = [
         })
     },
     {
+        path: '/login',
+        name: 'login',
+        component: Login,
+    },
+    {
         path: '/:catchAll(.*)', component: NotFound
     },
     {
@@ -408,7 +421,7 @@ router.beforeEach(async (to, from, next) => {
         next();
     }
 
-    
+
     routeHistory.push(from.fullPath);
     next();
 });

@@ -247,7 +247,7 @@ const bookmarksPage = {
                 <br>
                 Try signing up here!
             </div>
-            <SignInUsing :platform="googlePlatform" v-if="!userProfile.user"></SignInUsing>
+            <SignInUsing :platform="googlePlatform" v-if="!userProfile.user" style="max-width: 100%; width: 100%;"></SignInUsing>
             <div class="userInfo" v-else>
                 <img :src="userProfile.user.picture" class="profileImage" alt="Profile Picture" height="48" width="48">
                 <div class="text">
