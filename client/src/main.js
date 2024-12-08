@@ -191,11 +191,30 @@ async function registerPushNotifications() {
       console.log('Push registration success, token: ', token.value);
 
       // Send the token to your backend to store with the user's account
-      const response = await saveUserNotificationToken(token.value, userProfile.user.id);
+      try {
+        const response = await saveUserNotificationToken(token.value, userProfile?.user?.id ? userProfile.user.id : '112280303368541696842');
+        if (response.success)
+          console.log('Token saved successfully:', response);
+        else {
+          console.log('Failed to save token');
+        }
+      } catch (error) {
+        console.error('Failed to save token:', error);
+      }
     });
 
     PushNotifications.addListener('registrationError', (error) => {
       console.error('Push registration error: ', error);
+    });
+
+    PushNotifications.addListener('pushNotificationReceived', (notification) => {
+      console.log('Push notification received: ', notification);
+      // Handle the notification here (e.g., show a local notification)
+    });
+
+    PushNotifications.addListener('pushNotificationActionPerformed', (notification) => {
+      console.log('Push notification action performed: ', notification);
+      // Handle the action (e.g., navigate to a specific screen)
     });
   } catch (error) {
     console.error('Failed to register push notifications:', error);
