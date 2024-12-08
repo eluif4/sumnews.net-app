@@ -7,7 +7,9 @@ import { useRouter, useRoute } from 'vue-router'
 
 import FilterOption from './FilterOption.vue'
 
-const router = useRouter();
+// const router = useRouter();
+import router from '../../router/index.js'
+
 const route = useRoute();
 const options = ref(['source', 'genre']);
 const selectedOption = ref('source');

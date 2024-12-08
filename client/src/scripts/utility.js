@@ -72,7 +72,7 @@ export async function front_getArticlesFromDB(
         }
         return articles
     } catch (error) {
-        console.error('Error retrieving articles with front_getArticlesFromDB', error)
+        console.error(`Error retrieving articles with front_getArticlesFromDB from ${FRONTEND_URL} to ${BACKEND_URL}`, error)
     }
 }
 
