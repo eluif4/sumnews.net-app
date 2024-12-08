@@ -8,10 +8,12 @@ const prod = {
 
 const dev = {
     url: {
-        BACKEND_URL: 'http://localhost:3000/',
-        FRONTEND_URL: 'http://localhost:5173/',
-        // BACKEND_URL: 'http://192.168.20:3000/',
-        // FRONTEND_URL: 'http://192.168.20:5173/',
+        // BACKEND_URL: 'http://localhost:3000/',
+        FRONTEND_URL: 'http://localhost:5173/', // <- This for emulated device
+        // BACKEND_URL: 'http://192.168.225.56:3000/',
+        // FRONTEND_URL: 'http://192.168.225.56:5173/',
+        BACKEND_URL: 'http://10.0.2.2:3000/', // <- This for emulated device
+        // FRONTEND_URL: 'http://10.0.2.2:5173/'
     },
 };
 
