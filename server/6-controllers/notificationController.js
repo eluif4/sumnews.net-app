@@ -28,11 +28,12 @@ async function notificationController(req, res) {
 }
 
 async function saveNotificationTokenController(req, res) {
-    const fcmtoken = req.body.token;
+    const fcmtoken = req.body.fcmToken;
     const userid = req.body.userid; // Fixed typo here (`req.boyd` to `req.body`)
+    console.log(fcmtoken, userid);
 
     try {
-        const response = await saveUserNotificationToken(userid, fcmtoken); // Assuming this is the correct order of arguments
+        const response = await saveUserNotificationToken(fcmtoken, userid); // Assuming this is the correct order of arguments
 
         if (response) { // If user was successfully found and token saved
             res.status(200).send({ message: 'FCM Token saved' });

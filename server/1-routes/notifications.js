@@ -7,6 +7,6 @@ const { notificationController,
 } = require('../6-controllers/notificationController');
 
 app.post('/notification', notificationController);
-app.post('/saveNotificationToken', saveNotificationTokenController);
+app.post('/db/saveNotificationToken', saveNotificationTokenController);
 
 module.exports = app;

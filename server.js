@@ -28,7 +28,8 @@ const DBGETARTICLESROUTES = require('./server/1-routes/db/getCollections.js');
 const DBGETCOLLECTIONSROUTES = require('./server/1-routes/db/getArticles.js');
 const AUTH = require('./server/1-routes/api/auth.js');
 const USERINFO = require('./server/1-routes/db/userInfo.js');
-const INSTAGRAM_ROUTES = require('./server/1-routes/api/instagram_routes.js')
+const INSTAGRAM_ROUTES = require('./server/1-routes/api/instagram_routes.js');
+const NOTIFICATION_ROUTES = require('./server/1-routes/notifications.js');
 // const GOOGLEDRIVE = require('./server/1-routes/api/googleDrive.js')
 
 //---FUNCTIONS---
@@ -66,6 +67,7 @@ app.use(DBGETCOLLECTIONSROUTES);
 app.use(AUTH);
 app.use(USERINFO);
 app.use(INSTAGRAM_ROUTES);
+app.use(NOTIFICATION_ROUTES);
 // app.use(GOOGLEDRIVE);
 
 app.listen(port, '0.0.0.0', function () {

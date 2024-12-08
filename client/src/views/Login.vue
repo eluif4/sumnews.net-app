@@ -26,18 +26,30 @@ const SkipSignIn = {
 }
 
 async function skipSignIn() {
-    console.log('skip sign in');
-    try {
-        const response = await registerPushNotificationsIfNeeded();
-        console.log(response);
-    } catch (error) {
-        console.error(error)
-    }
+    // console.log('skip sign in');
+    // try {
+    //     const response = await registerPushNotificationsIfNeeded();
+    //     console.log(response);
+    // } catch (error) {
+    //     console.error(error)
+    // }
+
+    /* 
+        Display modal that the user is missing out on core feautres like notifications and personalized feed
+    */
     router.push({ name: 'home', query: { skip: true } });
 }
 
 async function signInWithGoogle() {
-    console.log('sign in with google')
+    // Log the user in by importing Google Auth files from utility.js
+    // if the user is signed in ask for push notifications
+
+    // try {
+    //     const response = await registerPushNotificationsIfNeeded();
+    //     console.log(response);
+    // } catch (error) {
+    //     console.error(error)
+    // }
 }
 </script>
 

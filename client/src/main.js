@@ -189,17 +189,26 @@ async function registerPushNotifications() {
     // Listen for the registration event to get the FCM token
     PushNotifications.addListener('registration', async (token) => {
       console.log('Push registration success, token: ', token.value);
-
+      const fcmToken = token.value;
+      const userid = userProfile.user.googleId
       // Send the token to your backend to store with the user's account
       try {
-        const response = await saveUserNotificationToken(token.value, userProfile?.user?.id ? userProfile.user.id : '112280303368541696842');
-        if (response.success)
-          console.log('Token saved successfully:', response);
-        else {
-          console.log('Failed to save token');
+        const response = await fetch(`${BACKEND_URL}db/saveNotificationToken`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            // Include any authentication headers if necessary
+          },
+          body: JSON.stringify({ fcmToken, userid }),
+        });
+        if (response.status == 200) {
+          console.log('Token saved to backend successfully.');
+          return { success: true };
+        } else {
+          console.log('Failed to save token')
         }
       } catch (error) {
-        console.error('Failed to save token:', error);
+        console.error('Something went wrong:', error);
       }
     });
 
@@ -221,23 +230,23 @@ async function registerPushNotifications() {
   }
 }
 
-async function saveUserNotificationToken(token, userid) {
-  try {
-    await fetch(`${BACKEND_URL}db/saveNotificationToken`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        // Include any authentication headers if necessary
-      },
-      body: JSON.stringify({ token, userid }),
-    });
-    console.log('Token saved to backend successfully.');
-    return { success: true };
-  } catch (error) {
-    console.error('Failed to save token:', error);
-    return { success: false };
-  }
-}
+// async function saveUserNotificationToken(token, userid) {
+//   try {
+//     await fetch(`${BACKEND_URL}db/saveNotificationToken`, {
+//       method: 'POST',
+//       headers: {
+//         'Content-Type': 'application/json',
+//         // Include any authentication headers if necessary
+//       },
+//       body: JSON.stringify({ token, userid }),
+//     });
+//     console.log('Token saved to backend successfully.');
+//     return { success: true };
+//   } catch (error) {
+//     console.error('Failed to save token:', error);
+//     return { success: false };
+//   }
+// }
 
 app.use(router);
 app.mount('#app');
