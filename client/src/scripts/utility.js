@@ -1,7 +1,6 @@
 import router from '../router'
 import { config } from '../constants';
-import { PopupAttributes, userProfile } from '../main';
-import { List } from '../main';
+import { PopupAttributes, List } from '../main';
 import { Preferences } from '@capacitor/preferences'
 
 const FRONTEND_URL = config.url.FRONTEND_URL

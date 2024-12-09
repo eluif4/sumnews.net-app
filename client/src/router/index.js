@@ -31,7 +31,8 @@ const routes = [
         name: 'home',
         // reload: false,
         beforeEnter: async (to, from, next) => {
-            if (!localStorage.getItem('hasAgreedToCookies') && !to.query.skip) { // If user hasnt visited the login page ( still hasnt accepted cookies )
+            if (!localStorage.getItem('hasAgreedToCookies') && !to.query.skip && !from.path.includes('login')) { 
+                // If user hasnt visited the login page ( still hasnt accepted cookies ) and doesnt come from '/login' path
                 next('/login');
             } else {
                 console.log('accepted cookies')
