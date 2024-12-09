@@ -6,6 +6,7 @@ import router from './router';
 import { getAuthToken } from './scripts/utility';
 import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
 import { PushNotifications } from '@capacitor/push-notifications';
+import { firebaseApp } from './firbase';
 
 const FRONTEND_URL = config.url.FRONTEND_URL
 const BACKEND_URL = config.url.BACKEND_URL
