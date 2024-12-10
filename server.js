@@ -74,21 +74,22 @@ app.listen(port, '0.0.0.0', function () {
     console.log(`Server is running on port ${port} in DEVELOPMENT mode`);
 
     // Execute code after server start
-    cronTask().catch(err => console.log(err))
-    cronDailyRecap().catch(err => console.log(err))
+    // cronTask().catch(err => console.log(err))
+    // cronDailyRecap().catch(err => console.log(err))
     cacheSourcesEvery24H().catch(err => console.log(err))
     cacheGenresEvery24H().catch(err => console.log(err))
 })
 
 //---IMPORTS---
 const { articleQueue } = require('./server/2-utils/articleQueueHandler.js');
+const { sendNotification } = require("./server/2-utils/notifications/notification.js");
 
 //---RUN MAIN FUNCTION---
 // 0 = OFF, 1 = TESTING, 2 = RUNNING
 const state = 0;
 async function cronTask() {
     cron.schedule('*/20 * * * *', async () => {
-        if (false) {
+        if (true) {
             try {
                 const date = new Date()
                 console.log(kleur.bgBlue(`Task started @ ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`))
@@ -172,6 +173,14 @@ async function cronDailyRecap() {
             for (const source of sources) {
                 await createDailyRecap(source);
             }
+
+            // Send Notification to all Connected Devices
+            const title = "Daily Recap";
+            const body = "Today's Daily Recap is ready! Catch up on today's biggest events quickly.";
+            const fcmTokenArray = getAllFCMTokens();
+            fcmTokenArray.forEach(async (fcmToken) => {
+                sendNotification(fcmToken, title, body);
+            })
         }
     })
 }

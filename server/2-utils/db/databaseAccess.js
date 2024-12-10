@@ -495,74 +495,6 @@ async function getDailyRecap(id) {
         }
     }
 
-    // const pipeline = [
-    //     {
-    //         "$unwind": {
-    //             "path": "$drEvents",
-    //             "preserveNullAndEmptyArrays": false
-    //         }
-    //     },
-    //     {
-    //         "$lookup": {
-    //             "from": "articles",
-    //             "localField": "drEvents",
-    //             "foreignField": "drUri",
-    //             "as": "eventArticles"
-    //         }
-    //     },
-    //     {
-    //         "$lookup": {
-    //             "from": "sources",
-    //             "localField": "source",
-    //             "foreignField": "source",
-    //             "as": "sourceDetails"
-    //         }
-    //     },
-    //     {
-    //         "$unwind": {
-    //             "path": "$sourceDetails",
-    //             "preserveNullAndEmptyArrays": true
-    //         }
-    //     },
-    //     {
-    //         "$group": {
-    //             "_id": "$_id",
-    //             "id": { "$first": "$id" },
-    //             "source": { "$first": "$source" },
-    //             "sourceLogo": { "$first": "$sourceDetails.logo" },
-    //             "dateCreated": { "$first": "$dateCreated" },
-    //             "drEvents": {
-    //                 "$push": {
-    //                     "drUri": "$drEvents",
-    //                     "articles": {
-    //                         "$let": {
-    //                             "vars": {
-    //                                 "sortedArticles": {
-    //                                     "$sortArray": {
-    //                                         "input": "$eventArticles",
-    //                                         "sortBy": { "datePublished": -1 }
-    //                                     }
-    //                                 }
-    //                             },
-    //                             "in": "$$sortedArticles"
-    //                         }
-    //                     }
-    //                 }
-    //             }
-    //         }
-    //     },
-    //     {
-    //         "$project": {
-    //             "_id": 1,
-    //             "id": 1,
-    //             "source": 1,
-    //             "dateCreated": 1,
-    //             "drEvents": 1,
-    //             "sourceLogo": 1
-    //         }
-    //     }
-    // ];
-
     const pipeline = [
         {
             $lookup: {
@@ -625,57 +557,6 @@ async function getDailyRecap(id) {
 }
 
 async function getDailyRecapButtons() {
-    // Get DailyRecapButton where first articles are sorted in chronological order 
-    /* 1. 8.5s
-        2. 13.5s
-        3. 9s
-        4. 9.5s
-    */
-    // const pipeline = [
-    //     {
-    //         $lookup: {
-    //             from: "sources",
-    //             localField: "source",
-    //             foreignField: "source",
-    //             as: "sourceDetails"
-    //         }
-    //     },
-    //     {
-    //         $lookup: {
-    //             from: "articles",
-    //             let: { eventUri: { $arrayElemAt: ["$drEvents", 0] } },
-    //             pipeline: [
-    //                 { $match: { $expr: { $eq: ["$drUri", "$$eventUri"] } } },
-    //                 { $sort: { datePublished: -1 } } // Sort by datePublished
-    //             ],
-    //             as: "article"
-    //         }
-    //     },
-    //     {
-    //         $project: {
-    //             _id: 1,
-    //             id: 1,
-    //             source: 1,
-    //             sourceLogo: {
-    //                 $arrayElemAt: ["$sourceDetails.logo", 0]
-    //             },
-    //             drUri: {
-    //                 $arrayElemAt: ["$article.drUri", 0]
-    //             },
-    //             articleuuid: {
-    //                 $arrayElemAt: ["$article.uuid", 0]
-    //             },
-    //             dateCreated: 1
-    //         }
-    //     }
-    // ]
-
-    /*
-    1. 3s
-    2. 2.2s
-    3. 2.5s
-    4. 2s
-    */
     const pipeline = [
         {
             $lookup: {
@@ -723,6 +604,13 @@ async function updateArticleEngagement(articleuuid, engagementType) {
     );
 }
 
+/* NOTIFICATIONS */
+async function getAllFCMTokens() {
+    const users = await User.find().select("fcmToken");
+    const fcmTokens = users.map(user => user.fcmToken);
+    return fcmTokens;
+}
+
 module.exports = {
     saveToDB,
     saveDocument,
@@ -751,4 +639,5 @@ module.exports = {
     getDailyRecap,
     getDailyRecapButtons,
     updateArticleEngagement,
+    getAllFCMTokens,
 };
