@@ -9,3 +9,5 @@ admin.initializeApp({
 });
 
 console.log("Firebase Admin Initialized");
+
+module.exports = { admin }

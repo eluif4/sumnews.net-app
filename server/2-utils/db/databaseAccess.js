@@ -229,30 +229,42 @@ async function processUser(userDetails) {
     }
 }
 
-async function saveUserNotificationToken(fcmtoken, userid) {
+async function saveUserNotificationToken(fcmtoken, userid, platform = 'unknown') {
     try {
         const updatedUser = await User.findOneAndUpdate(
-            { googleId: userid },      // Search for user by googleId
-            { $set: { fcmToken: fcmtoken } }, // Set the new fcmToken
-            { new: true } // Return the updated document, no upsert (no new document if not found)
+            {
+                googleId: userid,
+                'fcmTokens.token': { $ne: fcmtoken }
+            },
+            {
+                $push: {
+                    fcmTokens: {
+                        token: fcmtoken,
+                        platform,
+                        timestamp: new Date()
+                    }
+                }
+            },
+            {
+                new: true,
+                upsert: false
+            }
         );
 
         if (updatedUser) {
-            console.log('FCMTokem Saved:', updatedUser);
-            return updatedUser;
+            return { success: true, message: 'User was update / created' };
         } else {
-            console.log('User not found');
-            return null;  // User wasn't found and no new user is created
+            return { success: true, message: 'User want modified' };  // User wasn't found and no new user is created
         }
     } catch (error) {
         console.error('Error saving FCM token:', error);
-        throw error;  // Propagate the error
+        return { succes: false, message: 'Failed to update user'}
     }
 }
 
 async function getUserNotificationToken(userid) {
     try {
-        const user = await User.findOne({ googleId: userId });
+        const user = await User.findOne({ googleId: userid });
         if (user) {
             console.log('FCM Token received')
             return user.fcmToken
@@ -606,8 +618,9 @@ async function updateArticleEngagement(articleuuid, engagementType) {
 
 /* NOTIFICATIONS */
 async function getAllFCMTokens() {
-    const users = await User.find().select("fcmToken");
-    const fcmTokens = users.map(user => user.fcmToken);
+    const users = await User.find().select("fcmTokens"); // Fetch all users with their fcmTokens field
+    const fcmTokens = users
+        .flatMap(user => user.fcmTokens.map(fcmToken => fcmToken.token)); // Extract and flatten all token values
     return fcmTokens;
 }
 

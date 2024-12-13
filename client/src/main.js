@@ -6,7 +6,7 @@ import router from './router';
 import { getAuthToken } from './scripts/utility';
 import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
 import { PushNotifications } from '@capacitor/push-notifications';
-import { firebaseApp } from './firbase';
+import { getAndSaveUsersFCMToken } from './firebase';
 
 const FRONTEND_URL = config.url.FRONTEND_URL
 const BACKEND_URL = config.url.BACKEND_URL
@@ -120,8 +120,10 @@ async function getUser() {
 export const userProfile = reactive({ user: null }); // Empty user on setup
 
 // Fetch the user and assign the result to the reactive userProfile
-getUser().then(user => {
+getUser().then(async (user) => {
   userProfile.user = user; // Update userProfile with fetched user data
+  const response = await getAndSaveUsersFCMToken(userProfile.user.googleId, Capacitor.getPlatform());
+  console.log('getAndSaveUsersFCMToken response: ', response.success, response.message);
 });
 
 // ----- POPUP PROPERTIES -----
@@ -230,24 +232,6 @@ async function registerPushNotifications() {
     console.error('Failed to register push notifications:', error);
   }
 }
-
-// async function saveUserNotificationToken(token, userid) {
-//   try {
-//     await fetch(`${BACKEND_URL}db/saveNotificationToken`, {
-//       method: 'POST',
-//       headers: {
-//         'Content-Type': 'application/json',
-//         // Include any authentication headers if necessary
-//       },
-//       body: JSON.stringify({ token, userid }),
-//     });
-//     console.log('Token saved to backend successfully.');
-//     return { success: true };
-//   } catch (error) {
-//     console.error('Failed to save token:', error);
-//     return { success: false };
-//   }
-// }
 
 app.use(router);
 app.mount('#app');

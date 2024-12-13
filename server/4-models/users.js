@@ -9,7 +9,11 @@ const userSchema = new mongoose.Schema({
     picture: String,
     createdDate: Date,
     bookmarks: Array,
-    fcmToken: String,
+    fcmTokens: [{
+        token: { type: String, required: true },
+        platform: { type: String, enum: ['web', 'android', 'ios', 'unknow'], required: true },
+        timestamp: { type: Date, required: true, default: () => new Date() } // Use a function for dynamic timestamps
+    }],
 
     // User preferences
     preferences: {
