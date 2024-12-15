@@ -1,7 +1,6 @@
 import router from '../router'
 import { config } from '../constants';
-import { PopupAttributes, userProfile } from '../main';
-import { List } from '../main';
+import { PopupAttributes, List } from '../main';
 import { Preferences } from '@capacitor/preferences'
 
 const FRONTEND_URL = config.url.FRONTEND_URL
@@ -72,7 +71,7 @@ export async function front_getArticlesFromDB(
         }
         return articles
     } catch (error) {
-        console.error('Error retrieving articles with front_getArticlesFromDB', error)
+        console.error(`Error retrieving articles with front_getArticlesFromDB from ${FRONTEND_URL} to ${BACKEND_URL}`, error)
     }
 }
 

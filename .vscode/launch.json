@@ -1,0 +1,29 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Backend Debug",
+            "type": "node",
+            "request": "launch",
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "program": "${workspaceFolder}/node_modules/nodemon/bin/nodemon.js",
+            "args": [
+                "--inspect=9229",
+                "server.js"
+            ],
+            "runtimeExecutable": null,
+            "restart": true,
+            "console": "integratedTerminal",
+            "internalConsoleOptions": "neverOpen"
+        },
+        {
+            "name": "Frontend",
+            "type": "chrome",
+            "request": "launch",
+            "url": "http://localhost:5173", // Change the port if needed
+            "webRoot": "${workspaceFolder}/client"
+        }
+    ]
+}

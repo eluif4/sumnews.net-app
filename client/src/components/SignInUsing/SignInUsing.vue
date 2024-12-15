@@ -20,8 +20,9 @@ const { text, svg, signInFunction } = props.platform;
 
 <style scoped>
 .signIn {
-    /* width: 70%; */
+    width: 90%;
     min-width: fit-content;
+    max-width: 90%;
     padding: 15px;
 
     color: black;

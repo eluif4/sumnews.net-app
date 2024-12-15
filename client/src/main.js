@@ -6,6 +6,7 @@ import router from './router';
 import { getAuthToken } from './scripts/utility';
 import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
 import { PushNotifications } from '@capacitor/push-notifications';
+import { getAndSaveUsersFCMToken } from './firebase';
 
 const FRONTEND_URL = config.url.FRONTEND_URL
 const BACKEND_URL = config.url.BACKEND_URL
@@ -30,6 +31,10 @@ export const List = reactive({
   loading: false,
   infiniteScrollCallCount: 0,
   articles: [],
+})
+
+export const Filter = reactive({
+  isVisible: false,
 })
 
 // ----- GET ALL SOURCES FROM DB -----
@@ -115,8 +120,9 @@ async function getUser() {
 export const userProfile = reactive({ user: null }); // Empty user on setup
 
 // Fetch the user and assign the result to the reactive userProfile
-getUser().then(user => {
+getUser().then(async (user) => {
   userProfile.user = user; // Update userProfile with fetched user data
+  const response = await getAndSaveUsersFCMToken(userProfile.user.googleId, Capacitor.getPlatform());
 });
 
 // ----- POPUP PROPERTIES -----
@@ -185,34 +191,44 @@ async function registerPushNotifications() {
     // Listen for the registration event to get the FCM token
     PushNotifications.addListener('registration', async (token) => {
       console.log('Push registration success, token: ', token.value);
-
+      const fcmToken = token.value;
+      const userid = userProfile.user.googleId
       // Send the token to your backend to store with the user's account
-      const response = await saveUserNotificationToken(token.value, userProfile.user.id);
+      try {
+        const response = await fetch(`${BACKEND_URL}db/saveNotificationToken`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            // Include any authentication headers if necessary
+          },
+          body: JSON.stringify({ fcmToken, userid }),
+        });
+        if (response.status == 200) {
+          console.log('Token saved to backend successfully.');
+          return { success: true };
+        } else {
+          console.log('Failed to save token')
+        }
+      } catch (error) {
+        console.error('Something went wrong:', error);
+      }
     });
 
     PushNotifications.addListener('registrationError', (error) => {
       console.error('Push registration error: ', error);
     });
+
+    PushNotifications.addListener('pushNotificationReceived', (notification) => {
+      console.log('Push notification received: ', notification);
+      // Handle the notification here (e.g., show a local notification)
+    });
+
+    PushNotifications.addListener('pushNotificationActionPerformed', (notification) => {
+      console.log('Push notification action performed: ', notification);
+      // Handle the action (e.g., navigate to a specific screen)
+    });
   } catch (error) {
     console.error('Failed to register push notifications:', error);
-  }
-}
-
-async function saveUserNotificationToken(token, userid) {
-  try {
-    await fetch(`${BACKEND_URL}db/saveNotificationToken`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        // Include any authentication headers if necessary
-      },
-      body: JSON.stringify({ token, userid }),
-    });
-    console.log('Token saved to backend successfully.');
-    return { success: true };
-  } catch (error) {
-    console.error('Failed to save token:', error);
-    return { success: false };
   }
 }
 

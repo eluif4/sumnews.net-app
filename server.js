@@ -28,12 +28,13 @@ const DBGETARTICLESROUTES = require('./server/1-routes/db/getCollections.js');
 const DBGETCOLLECTIONSROUTES = require('./server/1-routes/db/getArticles.js');
 const AUTH = require('./server/1-routes/api/auth.js');
 const USERINFO = require('./server/1-routes/db/userInfo.js');
-const INSTAGRAM_ROUTES = require('./server/1-routes/api/instagram_routes.js')
+const INSTAGRAM_ROUTES = require('./server/1-routes/api/instagram_routes.js');
+const NOTIFICATION_ROUTES = require('./server/1-routes/notifications.js');
 // const GOOGLEDRIVE = require('./server/1-routes/api/googleDrive.js')
 
 //---FUNCTIONS---
 const { getArticlesUsingRecentActiviy } = require('./server/2-utils/api/getArticlesFromAPI.js');
-const { getAllSources, articlesSinceYesterday, getExistingArticles } = require('./server/2-utils/db/databaseAccess.js')
+const { getAllSources, getExistingArticles } = require('./server/2-utils/db/databaseAccess.js')
 const { processQueue } = require('./server/2-utils/articleQueueHandler.js')
 const { createDailyRecap } = require('./server/2-utils/dailyRecaps.js')
 
@@ -55,21 +56,28 @@ const limiter = rateLimit({
 app.use(limiter);
 
 app.use(cors({
-    origin: ['https://app.sumnews.net', 'http://localhost', 'https:localhost', 'capacitor://localhost', 'ionic://localhost'],
+    origin: ['https://app.sumnews.net', 'http://localhost', 'http://localhost:5173', 'https:localhost', 'capacitor://localhost', 'ionic://localhost'],
     credentials: true, // Allows cookies to be included in requests (if necessary)
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     allowedHeaders: ['Content-Type', 'Authorization', 'Cache-Control'], // Include 'Cache-Control' here
 }));
+
+// Remove later: Log the origin of incoming requests
+app.use((req, res, next) => {
+    console.log('Request received from origin:', req.headers.origin || 'No Origin');
+    next();
+});
 
 app.use(DBGETARTICLESROUTES);
 app.use(DBGETCOLLECTIONSROUTES);
 app.use(AUTH);
 app.use(USERINFO);
 app.use(INSTAGRAM_ROUTES);
+app.use(NOTIFICATION_ROUTES);
 // app.use(GOOGLEDRIVE);
 
-app.listen(port, function () {
-    console.log(`Server is running on port ${port} in DEVELOPMENT mode`);
+app.listen(port, '0.0.0.0', function () {
+    console.log(`Server is running on port ${port} in PRODUCTION mode`);
 
     // Execute code after server start
     cronTask().catch(err => console.log(err))
@@ -80,6 +88,7 @@ app.listen(port, function () {
 
 //---IMPORTS---
 const { articleQueue } = require('./server/2-utils/articleQueueHandler.js');
+const { sendDailyRecapNotification } = require("./server/6-controllers/notificationController.js");
 
 //---RUN MAIN FUNCTION---
 // 0 = OFF, 1 = TESTING, 2 = RUNNING
@@ -133,16 +142,6 @@ async function cronTask() {
                         queueUrls.add(url);
                         queueTitles.add(title);
                     }
-                    // var articleExistsInDB = false;
-                    // const articleExistInQueue = articleQueue.exist(article);
-
-                    // // FUTURE CHANGE: Check if articles exists in DB once by passing all articles in MongoDB query
-                    // articleExistsInDB = await doesArticleExist(article);
-
-                    // // If article isn't in DB or QUEUE
-                    // if (!articleExistInQueue && !articleExistsInDB) {
-                    //     articleQueue.enqueue(article) // Adds article to queue
-                    // }
                 }
                 console.log(kleur.blue(`Queue size (${articleQueue.size()})`))
 
@@ -170,6 +169,9 @@ async function cronDailyRecap() {
             for (const source of sources) {
                 await createDailyRecap(source);
             }
+
+            // Send Notification to all Connected Devices
+            await sendDailyRecapNotification();
         }
     })
 }
@@ -181,21 +183,6 @@ function shuffleArray(array) {
     }
     return array;
 }
-
-// app.get('/createDailyRecapCron', async (req, res) => {
-//     const cachedSources = cache.get('sources');
-//     response = cachedSources ? cachedSources : await getAllSources();
-//     const responseSources = response.map(source => source.source);
-//     const shuffledSources = shuffleArray(responseSources);
-//     const sources = ['sumnews.net', ...shuffledSources];
-//     for (const source of sources) {
-//         await createDailyRecap(source);
-
-//         // Wait 4 seconds before sending the next request
-//         await new Promise(resolve => setTimeout(resolve, 4000));
-//     }
-//     res.send('Process Complete')
-// })
 
 async function cacheSourcesEvery24H() {
     // Save all sources in cache at midnight

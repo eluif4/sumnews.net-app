@@ -6,7 +6,7 @@ import {
     getAuthToken,
     showPopup
 } from '../scripts/utility'
-import { List, userProfile } from '../main'
+import { List, userProfile, Filter } from '../main'
 import { useRoute, useRouter } from 'vue-router';
 import { config } from '../constants.js'
 
@@ -19,6 +19,8 @@ import Header from '../components/Page/Header.vue'
 import ArticleInstance from '../components/Article/ArticleInstance.vue'
 import DailyRecapButton from '../components/DailyRecap/DailyRecapButton.vue';
 import DailyRecapButtonSkeleton from '../components/DailyRecap/DailyRecapButtonSkeleton.vue'
+import FilterComponent from '../components/Filter/Filter.vue'
+import Backdrop from '../components/Article/Backdrop.vue';
 
 var skeletonArticles = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 var tempDailyRecapButtons = ref([{}, {}, {}, {}, {}, {}, {}, {}, {}, {}])
@@ -65,11 +67,11 @@ async function scrollHandler(event) {
             articlesToAdd = response.filter(article => !existsInFeed(article));
         }
         // Infinite scrolling if Filtering articles
-        else if (JSON.parse(localStorage.getItem('genres')).length > 0 || JSON.parse(localStorage.getItem('sources')).length > 0) {
+        else if (route.query.genres?.length > 0 || route.query.sources?.length > 0) {
             const filter = {
                 $or: [
-                    { "genre": { "$in": JSON.parse(localStorage.getItem('genres')) } },
-                    { "source": { "$in": JSON.parse(localStorage.getItem('sources')) } }
+                    { "genre": { "$in": route.query.genres ? route.query.params : [] } },
+                    { "source": { "$in": route.query.sources ? route.query.sources : [] } }
                 ]
             };
 
@@ -245,6 +247,18 @@ const callback = (response) => {
             </router-link>
         </div>
     </div>
+    <transition name="fade">
+        <template v-slot>
+            <Backdrop />
+        </template>
+    </transition>
+
+    <transition name="slideupdown">
+        <template v-slot>
+            <FilterComponent />
+        </template>
+    </transition>
+
     <Cookies></Cookies>
     <Popup></Popup>
     <!-- Google One Tap -->
@@ -302,5 +316,37 @@ const callback = (response) => {
 
 .drcontainer::-webkit-scrollbar {
     display: none;
+}
+</style>
+
+<style scoped>
+/* Enter animation */
+.slideupdown-enter-from {
+    transform: translateY(1000px);
+    /* opacity: 0; */
+}
+
+.slideupdown-enter-active {
+    transition: transform 0.5s cubic-bezier(0.250, 0.460, 0.450, 0.940), opacity 0.5s;
+}
+
+.slideupdown-enter-to {
+    transform: translateY(0);
+    /* opacity: 1; */
+}
+
+/* Leave animation */
+.slideupdown-leave-from {
+    transform: translateY(0);
+    /* opacity: 1; */
+}
+
+.slideupdown-leave-active {
+    transition: transform 0.5s cubic-bezier(0.250, 0.460, 0.450, 0.940), opacity 0.5s;
+}
+
+.slideupdown-leave-to {
+    transform: translateY(1000px);
+    /* opacity: 0; */
 }
 </style>

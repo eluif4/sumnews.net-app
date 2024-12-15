@@ -229,30 +229,42 @@ async function processUser(userDetails) {
     }
 }
 
-async function saveUserNotificationToken(fcmtoken, userid) {
+async function saveUserNotificationToken(fcmtoken, userid, platform = 'unknown') {
     try {
         const updatedUser = await User.findOneAndUpdate(
-            { googleId: userid },      // Search for user by googleId
-            { $set: { fcmToken: fcmtoken } }, // Set the new fcmToken
-            { new: true } // Return the updated document, no upsert (no new document if not found)
+            {
+                googleId: userid,
+                'fcmTokens.token': { $ne: fcmtoken }
+            },
+            {
+                $push: {
+                    fcmTokens: {
+                        token: fcmtoken,
+                        platform,
+                        timestamp: new Date()
+                    }
+                }
+            },
+            {
+                new: true,
+                upsert: false
+            }
         );
 
         if (updatedUser) {
-            console.log('FCMTokem Saved:', updatedUser);
-            return updatedUser;
+            return { success: true, message: 'User was update / created' };
         } else {
-            console.log('User not found');
-            return null;  // User wasn't found and no new user is created
+            return { success: true, message: 'User want modified' };  // User wasn't found and no new user is created
         }
     } catch (error) {
         console.error('Error saving FCM token:', error);
-        throw error;  // Propagate the error
+        return { succes: false, message: 'Failed to update user'}
     }
 }
 
 async function getUserNotificationToken(userid) {
     try {
-        const user = await User.findOne({ googleId: userId });
+        const user = await User.findOne({ googleId: userid });
         if (user) {
             console.log('FCM Token received')
             return user.fcmToken
@@ -495,74 +507,6 @@ async function getDailyRecap(id) {
         }
     }
 
-    // const pipeline = [
-    //     {
-    //         "$unwind": {
-    //             "path": "$drEvents",
-    //             "preserveNullAndEmptyArrays": false
-    //         }
-    //     },
-    //     {
-    //         "$lookup": {
-    //             "from": "articles",
-    //             "localField": "drEvents",
-    //             "foreignField": "drUri",
-    //             "as": "eventArticles"
-    //         }
-    //     },
-    //     {
-    //         "$lookup": {
-    //             "from": "sources",
-    //             "localField": "source",
-    //             "foreignField": "source",
-    //             "as": "sourceDetails"
-    //         }
-    //     },
-    //     {
-    //         "$unwind": {
-    //             "path": "$sourceDetails",
-    //             "preserveNullAndEmptyArrays": true
-    //         }
-    //     },
-    //     {
-    //         "$group": {
-    //             "_id": "$_id",
-    //             "id": { "$first": "$id" },
-    //             "source": { "$first": "$source" },
-    //             "sourceLogo": { "$first": "$sourceDetails.logo" },
-    //             "dateCreated": { "$first": "$dateCreated" },
-    //             "drEvents": {
-    //                 "$push": {
-    //                     "drUri": "$drEvents",
-    //                     "articles": {
-    //                         "$let": {
-    //                             "vars": {
-    //                                 "sortedArticles": {
-    //                                     "$sortArray": {
-    //                                         "input": "$eventArticles",
-    //                                         "sortBy": { "datePublished": -1 }
-    //                                     }
-    //                                 }
-    //                             },
-    //                             "in": "$$sortedArticles"
-    //                         }
-    //                     }
-    //                 }
-    //             }
-    //         }
-    //     },
-    //     {
-    //         "$project": {
-    //             "_id": 1,
-    //             "id": 1,
-    //             "source": 1,
-    //             "dateCreated": 1,
-    //             "drEvents": 1,
-    //             "sourceLogo": 1
-    //         }
-    //     }
-    // ];
-
     const pipeline = [
         {
             $lookup: {
@@ -625,57 +569,6 @@ async function getDailyRecap(id) {
 }
 
 async function getDailyRecapButtons() {
-    // Get DailyRecapButton where first articles are sorted in chronological order 
-    /* 1. 8.5s
-        2. 13.5s
-        3. 9s
-        4. 9.5s
-    */
-    // const pipeline = [
-    //     {
-    //         $lookup: {
-    //             from: "sources",
-    //             localField: "source",
-    //             foreignField: "source",
-    //             as: "sourceDetails"
-    //         }
-    //     },
-    //     {
-    //         $lookup: {
-    //             from: "articles",
-    //             let: { eventUri: { $arrayElemAt: ["$drEvents", 0] } },
-    //             pipeline: [
-    //                 { $match: { $expr: { $eq: ["$drUri", "$$eventUri"] } } },
-    //                 { $sort: { datePublished: -1 } } // Sort by datePublished
-    //             ],
-    //             as: "article"
-    //         }
-    //     },
-    //     {
-    //         $project: {
-    //             _id: 1,
-    //             id: 1,
-    //             source: 1,
-    //             sourceLogo: {
-    //                 $arrayElemAt: ["$sourceDetails.logo", 0]
-    //             },
-    //             drUri: {
-    //                 $arrayElemAt: ["$article.drUri", 0]
-    //             },
-    //             articleuuid: {
-    //                 $arrayElemAt: ["$article.uuid", 0]
-    //             },
-    //             dateCreated: 1
-    //         }
-    //     }
-    // ]
-
-    /*
-    1. 3s
-    2. 2.2s
-    3. 2.5s
-    4. 2s
-    */
     const pipeline = [
         {
             $lookup: {
@@ -723,6 +616,14 @@ async function updateArticleEngagement(articleuuid, engagementType) {
     );
 }
 
+/* NOTIFICATIONS */
+async function getAllFCMTokens() {
+    const users = await User.find().select("fcmTokens"); // Fetch all users with their fcmTokens field
+    const fcmTokens = users
+        .flatMap(user => user.fcmTokens.map(fcmToken => fcmToken.token)); // Extract and flatten all token values
+    return fcmTokens;
+}
+
 module.exports = {
     saveToDB,
     saveDocument,
@@ -751,4 +652,5 @@ module.exports = {
     getDailyRecap,
     getDailyRecapButtons,
     updateArticleEngagement,
+    getAllFCMTokens,
 };

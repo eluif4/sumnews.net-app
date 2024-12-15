@@ -40,7 +40,7 @@ android/
 !android/app/src/main/assets/capacitor.config.json
 !ios/App/App/capacitor.config.json
 
-# Android specific
+# # Android specific
 android/capacitor-cordova-android-plugins/
 android/.gradle/
 android/build/
@@ -62,13 +62,10 @@ yarn-error.log*
 # Optional npm cache directory
 .npm
 
-# Capacitor config
-capacitor.config.json
-ionic.config.json
+# # Capacitor config
+# capacitor.config.json
+# ionic.config.json
 
 # Environment variables
 .env
 .env.*
-
-# VSCode settings
-.vscode/

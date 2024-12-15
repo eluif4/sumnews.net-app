@@ -1,11 +1,11 @@
 <script setup>
 import '../../global.css'
 import DOMPurify from 'dompurify'
-import { ref, watch } from 'vue'
+import { ref, watch, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { config } from '../../constants.js'
 import { showPopup, front_getArticlesFromDB, goBack } from '../../scripts/utility.js'
-import { List } from '../../main.js'
+import { List, Filter } from '../../main.js'
 import router from '../../router/index.js'
 import { userProfile } from '../../main.js'
 
@@ -84,8 +84,7 @@ async function resetHeader() {
     }
 }
 
-// Watch router and design page accordingly
-watch(() => route.path, (newPath, oldPath) => {
+const handleRouteChange = (newPath = route.path, oldPath = '') => {
     if (newPath.includes('/event/')) {
         isEventsRoute.value = true;
         isSearchRoute.value = false;
@@ -93,41 +92,79 @@ watch(() => route.path, (newPath, oldPath) => {
     } else if (newPath.includes('/search') || JSON.parse(localStorage.getItem('searchQuery'))) {
         isEventsRoute.value = false;
         isSearchRoute.value = true;
-    } else if (oldPath.includes('/filter')) {
-        genresLocalStorage.value = localStorage.getItem('genres');
-        sourcesLocalStorage.value = localStorage.getItem('sources');
-        const genres = JSON.parse(genresLocalStorage.value);
-        const sources = JSON.parse(sourcesLocalStorage.value);
-        isFiltering.value = genres.length > 0 || sources.length > 0
-
-        if (isFiltering.value) {
-            // Create placeholder text
-            placeholder.value = 'Filtering ';
-            if (genres.length > 0) {
-                placeholder.value += ` ${genres.join(", ")}`;
-            }
-
-            if (sources.length > 0 > 0) {
-                if (genres.length > 0 > 0) {
-                    placeholder.value += `, `;
-                }
-                placeholder.value += `${sources.join(", ")}`;
-            }
-        }
-        // placeholder.value = `Filtering Sources:[${JSON.parse(sourcesLocalStorage.value).join(",")}] Genres:[${JSON.parse(genresLocalStorage.value).join(",")}]`;
     }
+    // // else if (oldPath.includes('/filter') || (route.query.genres || route.query.sources)) {
+    // //     // genresLocalStorage.value = localStorage.getItem('genres');
+    // //     // sourcesLocalStorage.value = localStorage.getItem('sources');
+    // //     const genres = route.query.genres?.split(',')
+    // //     const sources = route.query.sources?.split(',');
+    // //     isFiltering.value = genres?.length > 0 || sources?.length > 0
+
+    // //     if (isFiltering.value) {
+    // //         // Create placeholder text
+    // //         placeholder.value = 'Filtering ';
+    // //         if (genres?.length > 0) {
+    // //             placeholder.value += ` ${genres.join(", ")}`;
+    // //         }
+
+    // //         if (sources?.length > 0) {
+    // //             if (genres?.length > 0) {
+    // //                 placeholder.value += `, `;
+    // //             }
+    // //             placeholder.value += `${sources.join(", ")}`;
+    // //         }
+    // //     }
+    //     // placeholder.value = `Filtering Sources:[${JSON.parse(sourcesLocalStorage.value).join(",")}] Genres:[${JSON.parse(genresLocalStorage.value).join(",")}]`;
+    // }
     else {
         isEventsRoute.value = false
         isSearchRoute.value = false;
         // searchQuery.value = '';
+        placeholder.value = "Search for articles here"
     }
+}
+
+const handleQueryChange = (newQuery = route.query, oldQuery = '') => {
+    placeholder.value = 'Filtering ';
+    const genres = route.query.genres
+    const sources = route.query.sources
+
+    if (genres != undefined) {
+        placeholder.value += genres;
+    }
+
+    if (sources != undefined) {
+        if (genres != undefined) {
+            placeholder.value += `, `;
+        }
+        placeholder.value += sources;
+    }
+
+    if (genres == undefined && sources == undefined) {
+        placeholder.value = "Search for articles here";
+    }
+}
+
+// Watch router and design page accordingly
+watch(() => route.path, (newPath, oldPath) => {
+    handleRouteChange(newPath, oldPath);
 });
+
+// Watch route query ( when use adds or removes from the filter without leaving the /filter path)
+watch(() => route.query, (newQuery, oldQuery) => {
+    handleQueryChange(newQuery, oldQuery);
+})
+
+onMounted(() => {
+    handleRouteChange();
+    handleQueryChange();
+})
 </script>
 
 <template>
     <div class="topbar">
         <div class="search">
-            <div class="searchIconContainer" v-if="!isEventsRoute && !isSearchRoute && !isFiltering">
+            <div class="searchIconContainer" v-if="!isEventsRoute && !isSearchRoute && !route.path.includes('/filter')">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none"
                     id="search-icon">
                     <path
@@ -148,13 +185,15 @@ watch(() => route.path, (newPath, oldPath) => {
             <input id="search-input" type="text" :placeholder="placeholder" class="search-box" :disabled="isEventsRoute"
                 @keyup.enter="performSearch" v-model="searchQuery" @input="sanitizeSearchQuery" @click.stop />
 
-            <router-link :to="{ path: '/filter' }" class="filter" v-if="!isEventsRoute">
+            <div class="filter" v-if="!route.path.includes('/event')" @click="Filter.isVisible = true">
+                <!-- <router-link :to="{ path: '/filter' }" class="filter" v-if="!isEventsRoute"> -->
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="18" viewBox="0 0 20 18" fill="none">
                     <path fill-rule="evenodd" clip-rule="evenodd"
                         d="M15.8369 10.8503C17.6959 10.8503 19.2082 12.3551 19.2082 14.2043C19.2082 16.0536 17.6959 17.5583 15.8369 17.5583C13.9768 17.5583 12.4634 16.0536 12.4634 14.2043C12.4634 12.3551 13.9768 10.8503 15.8369 10.8503ZM15.8369 12.4753C14.8727 12.4753 14.0884 13.251 14.0884 14.2043C14.0884 15.1588 14.8727 15.9333 15.8369 15.9333C16.8 15.9333 17.5832 15.1588 17.5832 14.2043C17.5832 13.251 16.8 12.4753 15.8369 12.4753ZM7.92033 13.4339C8.36882 13.4339 8.73283 13.7979 8.73283 14.2464C8.73283 14.6949 8.36882 15.0589 7.92033 15.0589H1.09424C0.645742 15.0589 0.281742 14.6949 0.281742 14.2464C0.281742 13.7979 0.645742 13.4339 1.09424 13.4339H7.92033ZM3.62242 0.333344C5.4825 0.333344 6.99483 1.83918 6.99483 3.68843C6.99483 5.53768 5.4825 7.04134 3.62242 7.04134C1.76342 7.04134 0.25 5.53768 0.25 3.68843C0.25 1.83918 1.76342 0.333344 3.62242 0.333344ZM3.62242 1.95834C2.65933 1.95834 1.875 2.73401 1.875 3.68843C1.875 4.64176 2.65933 5.41634 3.62242 5.41634C4.58658 5.41634 5.36983 4.64176 5.36983 3.68843C5.36983 2.73401 4.58658 1.95834 3.62242 1.95834ZM17.7904 2.93378C18.2389 2.93378 18.6029 3.29778 18.6029 3.74628C18.6029 4.19478 18.2389 4.55878 17.7904 4.55878H10.9654C10.5169 4.55878 10.1529 4.19478 10.1529 3.74628C10.1529 3.29778 10.5169 2.93378 10.9654 2.93378H17.7904Z"
                         fill="#4F4F4F" />
                 </svg>
-            </router-link>
+                <!-- </router-link> -->
+            </div>
         </div>
         <router-link to="/account" class="account">
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 26 26" fill="none"

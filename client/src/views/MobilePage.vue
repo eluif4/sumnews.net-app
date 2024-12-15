@@ -4,13 +4,17 @@
     <!-- </transition> -->
 
     <!-- Additional transitions as needed -->
-    <transition name="slideupdown" mode="out-in">
-        <router-view name="additional"></router-view>
-    </transition>
+    <router-view name="additional" v-slot="{ Component }">
+        <transition name="slideupdown" mode="out-in">
+            <component :is="Component" />
+        </transition>
+    </router-view>
 
-    <transition name="fade">
-        <router-view name="backdrop"></router-view>
-    </transition>
+    <router-view name="backdrop" v-slot="{ Component }">
+        <transition name="fade">
+            <component :is="Component" />
+        </transition>
+    </router-view>
 </template>
 
 
