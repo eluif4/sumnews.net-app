@@ -62,12 +62,6 @@ app.use(cors({
     allowedHeaders: ['Content-Type', 'Authorization', 'Cache-Control'], // Include 'Cache-Control' here
 }));
 
-// Remove later: Log the origin of incoming requests
-app.use((req, res, next) => {
-    console.log('Request received from origin:', req.headers.origin || 'No Origin');
-    next();
-});
-
 app.use(DBGETARTICLESROUTES);
 app.use(DBGETCOLLECTIONSROUTES);
 app.use(AUTH);
