@@ -271,7 +271,6 @@ const openModal = () => {
 </script>
 
 <template>
-    <!-- FUTURE CHANGE: add animation into routes -->
     <div class="article-container" id="article-container" :style="{ transform: `translateY(${translateY}px)` }"
         @transitionend="handleTransitionEnd">
         <dialog id="my_modal_5" class="modal">
@@ -391,7 +390,8 @@ const openModal = () => {
             <div class="fullcoverage-container" v-if="aggregatedResults.length == 0 && articleRef.eventUri">
                 <!-- <div class="skeleton h-32 w-full article-instance"></div> -->
                 <p class="skeleton h-8 w-40"></p>
-                <div class="skeleton h-8 w-full fullcoverage-article" v-for="(item, index) in [1, 2, 3, 4, 5]" :key="index"></div>
+                <div class="skeleton h-8 w-full fullcoverage-article" v-for="(item, index) in [1, 2, 3, 4, 5]"
+                    :key="index"></div>
             </div>
 
             <!-- FUTURE CHANGE: add ask ai feature with resources -->
