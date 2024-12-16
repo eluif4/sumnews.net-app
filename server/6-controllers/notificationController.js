@@ -64,6 +64,5 @@ async function saveNotificationTokenController(req, res) {
 
 module.exports = {
     notificationController,
-    saveNotificationTokenController,
-    testNotificationController
+    saveNotificationTokenController
 }
