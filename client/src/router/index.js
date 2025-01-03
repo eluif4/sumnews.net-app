@@ -31,11 +31,12 @@ const routes = [
         name: 'home',
         // reload: false,
         beforeEnter: async (to, from, next) => {
-            if (!localStorage.getItem('hasAgreedToCookies') && !to.query.skip && !from.path.includes('login')) { 
+            if (false) {
+            // if (!localStorage.getItem('hasAgreedToCookies') && !to.query.skip && !from.path.includes('login')) { 
                 // If user hasnt visited the login page ( still hasnt accepted cookies ) and doesnt come from '/login' path
-                next('/login');
+                // next('/login');
+                // next();
             } else {
-                console.log('accepted cookies')
                 const isFromLoginPath = from.fullPath.includes('/login');
                 const isFromArticlePath = from.fullPath.includes('/article');
                 const isFromFilterPath = from.fullPath.includes('/filter');
