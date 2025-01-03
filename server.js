@@ -56,8 +56,10 @@ const limiter = rateLimit({
 app.use(limiter);
 
 app.use(cors({
-    // origin: ['https://app.sumnews.net', 'http://localhost', 'https://localhost', 'http://localhost:5173', 'capacitor://localhost', 'ionic://localhost'],
-    origin: "*",
+    // Web: https://app.sumnews.net
+    // Android: http://localhost
+    // IOS: capacitor://localhost
+    origin: ['https://app.sumnews.net', 'http://localhost', 'capacitor://localhost'],
     credentials: true, // Allows cookies to be included in requests (if necessary)
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     allowedHeaders: ['Content-Type', 'Authorization', 'Cache-Control'], // Include 'Cache-Control' here
