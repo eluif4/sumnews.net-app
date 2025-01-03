@@ -62,6 +62,15 @@ app.use(cors({
     allowedHeaders: ['Content-Type', 'Authorization', 'Cache-Control'], // Include 'Cache-Control' here
 }));
 
+// Middleware to log request details
+app.use((req, res, next) => {
+    console.log('Request URL:', req.originalUrl);
+    console.log('Request Origin:', req.get('Origin'));
+    console.log('Request Method:', req.method);
+    console.log('Request Headers:', req.headers);
+    next(); // Pass the request to the next middleware/handler
+});
+
 app.use(DBGETARTICLESROUTES);
 app.use(DBGETCOLLECTIONSROUTES);
 app.use(AUTH);
