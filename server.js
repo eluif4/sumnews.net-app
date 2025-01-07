@@ -37,6 +37,7 @@ const { getArticlesUsingRecentActiviy } = require('./server/2-utils/api/getArtic
 const { getAllSources, articlesSinceYesterday, getExistingArticles, getAllFCMTokens } = require('./server/2-utils/db/databaseAccess.js')
 const { processQueue } = require('./server/2-utils/articleQueueHandler.js')
 const { createDailyRecap } = require('./server/2-utils/dailyRecaps.js')
+const { sendDailyRecapNotification } = require("./server/6-controllers/notificationController.js");
 
 //---SERVER SETUP---
 const app = express();
@@ -183,17 +184,7 @@ async function cronDailyRecap() {
                 await createDailyRecap(source);
             }
 
-            try {
-                // Send Notification to all Connected Devices
-                const title = "Daily Recap";
-                const body = "Today's Daily Recap is ready! Catch up on today's biggest events quickly.";
-                const fcmTokenArray = await getAllFCMTokens();
-                fcmTokenArray.forEach(async (fcmToken) => {
-                    sendNotification(fcmToken, title, body);
-                })
-            } catch (error) {
-                console.error('Failed to send notifications to user', error);
-            }
+            await sendDailyRecapNotification();
         }
     })
 }

@@ -650,4 +650,9 @@ ul,
     flex-direction: column;
     gap: 10px;
 }
+
+.skeleton {
+    background-color: rgb(146 146 146 / 30%);
+    background-image: linear-gradient(105deg, transparent 0%, transparent 40%, var(--error-color) 50%, transparent 60%, transparent 100%);
+}
 </style>
