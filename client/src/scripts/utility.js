@@ -233,7 +233,7 @@ export async function storeAuthToken(token) {
     if (Capacitor.getPlatform() === 'web') {
         // Store token in an HTTP-only cookie
         const date = new Date();
-        const maxAge = 5 * 365 * 24 * 60 * 60; // 5 years in seconds
+        const maxAge = 1 * 365 * 24 * 60 * 60; // 1 years in seconds
         document.cookie = `authToken=${token}; Max-Age=${maxAge}; Secure; SameSite=Strict; path=/`;
     } else if (Capacitor.getPlatform() === 'android' || Capacitor.getPlatform() === 'ios') {
         // Store token in secure storage for native
@@ -262,4 +262,22 @@ export async function removeAuthToken() {
         // Remove token from secure storage for native
         await Preferences.remove({ key: 'authToken' });
     }
+}
+
+export function setCookie(name, value, days) {
+    const date = new Date();
+    date.setTime(date.getTime() + days * 24 * 60 * 60 * 1000); // Convert days to milliseconds
+    const expires = "expires=" + date.toUTCString();
+    document.cookie = `${name}=${value}; ${expires}; path=/;`;
+}
+
+export function getCookie(name) {
+    const cookies = document.cookie.split("; ");
+    for (let i = 0; i < cookies.length; i++) {
+        const [key, value] = cookies[i].split("=");
+        if (key === name) {
+            return value;
+        }
+    }
+    return null; // Return null if the cookie is not found
 }

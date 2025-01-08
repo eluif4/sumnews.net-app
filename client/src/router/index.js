@@ -1,5 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import { front_getArticlesFromDB, showPopup, fetchFeed } from '../scripts/utility'
+import { front_getArticlesFromDB, showPopup, fetchFeed, getCookie } from '../scripts/utility'
 import { List, userProfile } from '../main'
 import { config } from '../constants'
 import { fetchUserFeed, getAuthToken } from '../scripts/utility'
@@ -31,11 +31,16 @@ const routes = [
         name: 'home',
         // reload: false,
         beforeEnter: async (to, from, next) => {
-            if (!localStorage.getItem('hasAgreedToCookies') && !to.query.skip && !from.path.includes('login')) { 
+            // if (false) {
+            // If user didn't skip the login screen and isnt signed in, send user to login screen.
+            // Since the cookie expires after 7 days, the user will be asked to
+            // login again after 7 days
+            const authToken = await getAuthToken();
+            if (!getCookie('visitedLoginPage') && !authToken) {
                 // If user hasnt visited the login page ( still hasnt accepted cookies ) and doesnt come from '/login' path
                 next('/login');
+                // next();
             } else {
-                console.log('accepted cookies')
                 const isFromLoginPath = from.fullPath.includes('/login');
                 const isFromArticlePath = from.fullPath.includes('/article');
                 const isFromFilterPath = from.fullPath.includes('/filter');
@@ -333,15 +338,59 @@ const routes = [
     {
         path: '/account/bookmarks',
         component: ListItem,
+        name: "bookmarks",
         children: [
             { path: '', component: Bookmarks },
         ],
         beforeEnter: async (to, from, next) => {
             // If the user isn't logged in, redirect them to the /account path
-            if (!userProfile.user) {
+            console.log('beforeEnter')
+            const authToken = await getAuthToken();
+            to.params.date = new Date();
+            if (!authToken) {
                 next('/account');
             } else {
                 next();  // Proceed to the route if the user is logged in
+            }
+        }
+    },
+    {
+        path: '/account/bookmarks/:uuid',
+        name: 'bookmark-article',
+        meta: {
+            enterClass: "slide-in-bottom",
+            leaveClass: "slide-out-bottom",
+        },
+        // component: ListItem,
+        components: {
+            default: ListItem,             // Keeps the ListItem component for the bookmarks list
+            additional: ArticleContent,    // The additional content for the article bookmark
+            backdrop: Backdrop,            // Optional backdrop for the article view
+        },
+        children: [
+            { path: '', component: Bookmarks } // Add the Bookmarks component as a child to keep it rendered
+        ],
+        props: {
+            additional: true,              // Pass props to the additional view
+        },
+        beforeEnter: async (to, from, next) => {
+            try {
+                var articleBookmark = userProfile.user?.bookmarks[to.query.index];
+                if (!articleBookmark) {
+                    const response = await front_getArticlesFromDB({ uuid: to.params.uuid }, undefined, undefined, undefined, 1);
+                    articleBookmark = response[0];
+                }
+                if (articleBookmark) {
+                    to.params.article = articleBookmark;
+                    next();
+                }
+                else {
+                    next('/404');
+                }
+            }
+            catch (error) {
+                console.error(`Error fetching article:`, error);
+                next('/error');
             }
         }
     },

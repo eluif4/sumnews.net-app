@@ -30,7 +30,7 @@ try {
 export const List = reactive({
   loading: false,
   infiniteScrollCallCount: 0,
-  articles: [],
+  articles: []
 })
 
 export const Filter = reactive({
@@ -122,7 +122,12 @@ export const userProfile = reactive({ user: null }); // Empty user on setup
 // Fetch the user and assign the result to the reactive userProfile
 getUser().then(async (user) => {
   userProfile.user = user; // Update userProfile with fetched user data
-  const response = await getAndSaveUsersFCMToken(userProfile.user.googleId, Capacitor.getPlatform());
+  if (userProfile.user) {
+    const response = await getAndSaveUsersFCMToken(userProfile.user.googleId, Capacitor.getPlatform());
+  }
+  else {
+    console.log('User isnt logged in');
+  }
 });
 
 // ----- POPUP PROPERTIES -----
@@ -142,7 +147,7 @@ export const PopupAttributes = reactive({
 // Register the service worker
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/service-worker.js')
+    navigator.serviceWorker.register('/firebase-messaging-sw.js')
       .then((registration) => {
         console.log('Service Worker registered with scope:', registration.scope);
       })

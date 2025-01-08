@@ -19,7 +19,7 @@ function handleClick() {
 </script>
 
 <template>
-    <div class="backdrop" @click="handleClick" v-if="Filter.isVisible || route.path.includes('article')"></div>
+    <div class="backdrop" @click="handleClick" v-if="Filter.isVisible || route.path.includes('article') || route.path.includes('/account/bookmarks/')"></div>
 </template>
 
 <style scoped>

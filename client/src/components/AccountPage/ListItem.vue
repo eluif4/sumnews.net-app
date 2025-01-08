@@ -6,11 +6,16 @@ const route = useRoute();
 const pageTitle = ref(formatRouteTitle(route.path));
 
 function formatRouteTitle(routePath) {
-    const parts = routePath.split('/');
-    const lastPart = parts[parts.length - 1];
-    const words = lastPart.split('-');
-    const capitalizedWords = words.map(word => word.charAt(0).toUpperCase() + word.slice(1));
-    return capitalizedWords.join(' ');
+    if (route.path.startsWith('/account/bookmarks/')) {
+        return 'Bookmarks'; // If the path matches /account/bookmarks/:uuid, set title to "Bookmarks"
+    }
+    else {
+        const parts = routePath.split('/');
+        const lastPart = parts[parts.length - 1];
+        const words = lastPart.split('-');
+        const capitalizedWords = words.map(word => word.charAt(0).toUpperCase() + word.slice(1));
+        return capitalizedWords.join(' ');
+    }
 }
 </script>
 
@@ -98,7 +103,7 @@ function formatRouteTitle(routePath) {
     width: fit-content;
     height: -moz-fit-content;
     height: fit-content;
-    border-radius: var(--border-radius);;
+    border-radius: var(--border-radius);
     display: flex;
     flex-direction: column;
     align-items: center;

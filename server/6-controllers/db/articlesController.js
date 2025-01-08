@@ -122,40 +122,43 @@ async function getEventByEventUriController(req, res) {
 
 async function getArticlesFromEventController(req, res) {
     const eventUri = req.body.eventUri;
-    const pipeline = [
-        {
-            $lookup:
-            {
-                from: "articles",
-                localField: "eventUri",
-                foreignField: "eventUri",
-                as: "eventArticles",
-            },
-        },
-        {
-            $match:
-            {
-                eventUri: eventUri,
-            },
-        },
-        {
-            $project: {
-                "eventArticles": {
-                    $map: {
-                        input: "$eventArticles",
-                        as: "article",
-                        in: {
-                            title: "$$article.title",
-                            source: "$$article.source",
-                            uuid: "$$article.uuid",
-                        },
-                    },
-                },
-            },
-        }
-    ]
-    const result = await aggregate('events', pipeline);
-    return res.send(result[0]);
+    // const pipeline = [
+    //     {
+    //         $lookup:
+    //         {
+    //             from: "articles",
+    //             localField: "eventUri",
+    //             foreignField: "eventUri",
+    //             as: "eventArticles",
+    //         },
+    //     },
+    //     {
+    //         $match:
+    //         {
+    //             eventUri: eventUri,
+    //         },
+    //     },
+    //     {
+    //         $project: {
+    //             "eventArticles": {
+    //                 $map: {
+    //                     input: "$eventArticles",
+    //                     as: "article",
+    //                     in: {
+    //                         title: "$$article.title",
+    //                         source: "$$article.source",
+    //                         uuid: "$$article.uuid",
+    //                     },
+    //                 },
+    //             },
+    //         },
+    //     }
+    // ]
+
+
+    // const result = await aggregate('events', pipeline);
+    const result = await getArticlesFromDB({ eventUri: eventUri }, { title: 1, source: 1, uuid: 1 }, { datePublished: -1 });
+    res.send(result);
 }
 
 async function getArticlesFromDrEventController(req, res) {
@@ -178,7 +181,7 @@ async function getArticlesFromDrEventController(req, res) {
         },
     ]
     const result = await aggregate('drEvents', pipeline);
-    return res.send(result[0]);
+    res.send(result[0]);
 }
 
 async function createDailyRecapController(req, res) {
@@ -222,7 +225,7 @@ async function updateArticleEngagementController(req, res) {
     const engagementTypesList = ['clicks', 'shares', 'originalArticleReads'];
     // Validate and sanitize inputs
     if (!engagementTypesList.includes(engagementType)) {
-        return res.status(400).send('Invalid engagement type');
+        res.status(400).send('Invalid engagement type');
     }
 
     try {

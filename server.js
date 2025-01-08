@@ -34,9 +34,10 @@ const NOTIFICATION_ROUTES = require('./server/1-routes/notifications.js');
 
 //---FUNCTIONS---
 const { getArticlesUsingRecentActiviy } = require('./server/2-utils/api/getArticlesFromAPI.js');
-const { getAllSources, getExistingArticles } = require('./server/2-utils/db/databaseAccess.js')
+const { getAllSources, articlesSinceYesterday, getExistingArticles, getAllFCMTokens } = require('./server/2-utils/db/databaseAccess.js')
 const { processQueue } = require('./server/2-utils/articleQueueHandler.js')
 const { createDailyRecap } = require('./server/2-utils/dailyRecaps.js')
+const { sendDailyRecapNotification } = require("./server/6-controllers/notificationController.js");
 
 //---SERVER SETUP---
 const app = express();
@@ -59,7 +60,7 @@ app.use(cors({
     // Web: https://app.sumnews.net
     // Android: http://localhost
     // IOS: capacitor://localhost
-    origin: ['https://app.sumnews.net', 'http://localhost', 'capacitor://localhost'],
+    origin: ['https://app.sumnews.net', 'http://localhost', 'capacitor://localhost', 'http://localhost:5173'],
     credentials: true, // Allows cookies to be included in requests (if necessary)
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     allowedHeaders: ['Content-Type', 'Authorization', 'Cache-Control'], // Include 'Cache-Control' here
@@ -69,8 +70,8 @@ app.use(cors({
 app.use((req, res, next) => {
     console.log('Request URL:', req.originalUrl);
     console.log('Request Origin:', req.get('Origin'));
-    console.log('Request Method:', req.method);
-    console.log('Request Headers:', req.headers);
+    // console.log('Request Method:', req.method);
+    // console.log('Request Headers:', req.headers);
     next(); // Pass the request to the next middleware/handler
 });
 
@@ -86,15 +87,14 @@ app.listen(port, '0.0.0.0', function () {
     console.log(`Server is running on port ${port} in PRODUCTION mode`);
 
     // Execute code after server start
-    cronTask().catch(err => console.log(err))
-    cronDailyRecap().catch(err => console.log(err))
+    // cronTask().catch(err => console.log(err))
+    // cronDailyRecap().catch(err => console.log(err))
     cacheSourcesEvery24H().catch(err => console.log(err))
     cacheGenresEvery24H().catch(err => console.log(err))
 })
 
 //---IMPORTS---
 const { articleQueue } = require('./server/2-utils/articleQueueHandler.js');
-const { sendDailyRecapNotification } = require("./server/6-controllers/notificationController.js");
 
 //---RUN MAIN FUNCTION---
 // 0 = OFF, 1 = TESTING, 2 = RUNNING

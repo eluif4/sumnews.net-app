@@ -63,12 +63,16 @@ async function saveNotificationTokenController(req, res) {
 }
 
 async function sendDailyRecapNotification() {
-    const title = "Daily Recap";
-    const body = "Today's Daily Recap is ready! Catch up on today's biggest events quickly.";
-    const fcmTokenArray = await getAllFCMTokens();
-    fcmTokenArray.forEach(async (fcmToken) => {
-        sendNotification(fcmToken, title, body);
-    })
+    try {
+        const title = "Daily Recap";
+        const body = "Today's Daily Recap is ready! Catch up on today's biggest events quickly.";
+        const fcmTokenArray = await getAllFCMTokens();
+        fcmTokenArray.forEach(async (fcmToken) => {
+            sendNotification(fcmToken, title, body);
+        })
+    } catch (error) {
+        console.error('Failed to send notifications to user', error);
+    }
 }
 
 module.exports = {
