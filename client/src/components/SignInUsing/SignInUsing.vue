@@ -39,6 +39,8 @@ const { text, svg, signInFunction } = props.platform;
     border-radius: 20px;
     
     background-color: white;
+
+    max-width: 400px !important;
 }
 
 .skip {

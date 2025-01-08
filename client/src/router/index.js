@@ -1,5 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import { front_getArticlesFromDB, showPopup, fetchFeed } from '../scripts/utility'
+import { front_getArticlesFromDB, showPopup, fetchFeed, getCookie } from '../scripts/utility'
 import { List, userProfile } from '../main'
 import { config } from '../constants'
 import { fetchUserFeed, getAuthToken } from '../scripts/utility'
@@ -31,10 +31,14 @@ const routes = [
         name: 'home',
         // reload: false,
         beforeEnter: async (to, from, next) => {
-            if (false) {
-            // if (!localStorage.getItem('hasAgreedToCookies') && !to.query.skip && !from.path.includes('login')) { 
+            // if (false) {
+            // If user didn't skip the login screen and isnt signed in, send user to login screen.
+            // Since the cookie expires after 7 days, the user will be asked to
+            // login again after 7 days
+            const authToken = await getAuthToken();
+            if (!getCookie('visitedLoginPage') && !authToken) {
                 // If user hasnt visited the login page ( still hasnt accepted cookies ) and doesnt come from '/login' path
-                // next('/login');
+                next('/login');
                 // next();
             } else {
                 const isFromLoginPath = from.fullPath.includes('/login');
