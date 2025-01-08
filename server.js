@@ -60,7 +60,7 @@ app.use(cors({
     // Web: https://app.sumnews.net
     // Android: http://localhost
     // IOS: capacitor://localhost
-    origin: ['https://app.sumnews.net', 'http://localhost', 'capacitor://localhost', 'http://localhost:5173'],
+    origin: ['https://app.sumnews.net', 'http://localhost', 'capacitor://localhost'],
     credentials: true, // Allows cookies to be included in requests (if necessary)
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     allowedHeaders: ['Content-Type', 'Authorization', 'Cache-Control'], // Include 'Cache-Control' here
@@ -87,8 +87,8 @@ app.listen(port, '0.0.0.0', function () {
     console.log(`Server is running on port ${port} in PRODUCTION mode`);
 
     // Execute code after server start
-    // cronTask().catch(err => console.log(err))
-    // cronDailyRecap().catch(err => console.log(err))
+    cronTask().catch(err => console.log(err))
+    cronDailyRecap().catch(err => console.log(err))
     cacheSourcesEvery24H().catch(err => console.log(err))
     cacheGenresEvery24H().catch(err => console.log(err))
 })
