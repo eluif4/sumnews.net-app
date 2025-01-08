@@ -2,7 +2,7 @@
 import SignInUsing from '../components/SignInUsing/SignInUsing.vue';
 import { signInWithGoogle } from '../scripts/signIn';
 import router from '../router/index'
-import { showPopup } from '../scripts/utility';
+import { showPopup, setCookie, getCookie } from '../scripts/utility';
 
 const googlePlatform = {
     text: "Continue with Google",
