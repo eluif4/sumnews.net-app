@@ -28,6 +28,7 @@ const props = defineProps({ article: Object });
 const articleRef = ref(props.article || {});
 const postToInstagramModal = ref(null);
 const displayModalLoader = ref(false);
+const bool_FetchingFullCoverage = ref(false)
 
 const FRONTEND_URL = config.url.FRONTEND_URL
 const BACKEND_URL = config.url.BACKEND_URL
@@ -102,6 +103,7 @@ const aggregatedResults = ref([]);
 
 async function setRefAggregatedResults() {
     if (eventUri) {
+        bool_FetchingFullCoverage.value = true;
         try {
             const response = await fetch(`${BACKEND_URL}db/getArticlesFromEvent`, {
                 method: 'POST',
@@ -114,12 +116,14 @@ async function setRefAggregatedResults() {
                 throw new Error('Failed to fetch data');
             }
             var data = await response.json();
-            data = data.eventArticles.filter(eventArticle => eventArticle.uuid !== articleRef.value.uuid);
+            data = data.filter(eventArticle => eventArticle.uuid !== articleRef.value.uuid);
             aggregatedResults.value = data;
         } catch (error) {
             console.error('Error fetching data:', error);
         }
+        bool_FetchingFullCoverage.value = false;
     }
+    bool_FetchingFullCoverage.value = false;
 };
 
 setRefAggregatedResults();
@@ -387,7 +391,7 @@ const openModal = () => {
                 </router-link>
             </div>
 
-            <div class="fullcoverage-container" v-if="aggregatedResults.length == 0 && articleRef.eventUri">
+            <div class="fullcoverage-container" v-if="bool_FetchingFullCoverage">
                 <!-- <div class="skeleton h-32 w-full article-instance"></div> -->
                 <p class="skeleton h-8 w-40"></p>
                 <div class="skeleton h-8 w-full fullcoverage-article" v-for="(item, index) in [1, 2, 3, 4, 5]"
