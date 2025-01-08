@@ -1,16 +1,30 @@
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, watch } from 'vue';
 import ArticleInstance from '../../Article/ArticleInstance.vue';
 import { config } from '../../../constants';
 import { bookmarkAction } from '../../../scripts/actions';
 import ArticleSkeleton from '../../Article/ArticleSkeleton.vue';
 import { getAuthToken } from '../../../scripts/utility';
 
+const props = defineProps({ date: Object });
+
+watch(
+    () => props.date,
+    (newDate, oldDate) => {
+        fetchBookmarks();
+    },
+    { deep: true }  // Watches deeply if 'date' is an object and its properties change.
+);
+
+
 const BACKEND_URL = config.url.BACKEND_URL;
 const userBookmarks = ref([]); // Reactive variable to store bookmarks
 const isLoading = ref(false);
 
-onMounted(async () => {
+onMounted(fetchBookmarks);
+
+async function fetchBookmarks() {
+    console.log('onMounted');
     try {
         isLoading.value = true;
         const response = await fetch(`${BACKEND_URL}user/bookmarks`, {
@@ -32,7 +46,7 @@ onMounted(async () => {
         isLoading.value = false;
         console.error('Error fetching bookmarks:', error);
     }
-});
+}
 </script>
 
 <template>
@@ -40,7 +54,7 @@ onMounted(async () => {
         <p>You have {{ userBookmarks.length }} article{{ userBookmarks.length > 1 ? "s" : "" }} bookmarked</p>
         <!-- Loop through bookmarks and display -->
         <router-link v-for="(article, index) in userBookmarks" :key="article.uuid" style="min-width: 100%"
-            :to="{ name: 'article', params: { uuid: article.uuid } }">
+            :to="{ name: 'bookmark-article', params: { uuid: article.uuid } }">
             <ArticleInstance :article="article" />
         </router-link>
     </div>

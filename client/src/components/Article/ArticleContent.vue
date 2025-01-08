@@ -333,9 +333,9 @@ const openModal = () => {
                 <ActionItem :action="shareAction" :article="articleRef"></ActionItem>
                 <ActionItem :action="fullCoverageAction" :article="articleRef" v-if="articleRef.eventUri"></ActionItem>
                 <ActionItem :action="bookmarkAction" :article="article"
-                    v-if="!userProfile.user?.bookmarks.includes(article.uuid)"></ActionItem>
+                    v-if="!userProfile.user?.bookmarks?.includes(article?.uuid)"></ActionItem>
                 <ActionItem :action="removeBookmarkAction" :article="article"
-                    v-else-if="userProfile.user.bookmarks.includes(article.uuid)"></ActionItem>
+                    v-else-if="userProfile.user.bookmarks?.includes(article?.uuid)"></ActionItem>
                 <ActionItem :action="backAction" :article="articleRef" class="backAction"></ActionItem>
 
             </div>
@@ -376,8 +376,10 @@ const openModal = () => {
             <!-- FULL COVERAGE -->
             <div class="fullcoverage-container" v-if="aggregatedResults.length > 0 && articleRef.eventUri">
                 <p class="fc-title">Read Full Coverage ({{ aggregatedResults.length }})</p>
-                <router-link :to="{ name: 'eventArticles', params: { uuid: fca.uuid } }" class="fullcoverage-article"
-                    v-for="(fca, index) in aggregatedResults" :key="index">
+                <router-link :to="{
+                    name: $route.path.includes('/account/bookmarks') ? 'bookmark-article' : 'eventArticles',
+                    params: { uuid: fca.uuid }
+                }" class="fullcoverage-article" v-for="(fca, index) in aggregatedResults" :key="index">
                     <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 17 17" fill="none"
                         class="svg-backarrow">
                         <path

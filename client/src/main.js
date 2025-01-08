@@ -30,7 +30,7 @@ try {
 export const List = reactive({
   loading: false,
   infiniteScrollCallCount: 0,
-  articles: [],
+  articles: []
 })
 
 export const Filter = reactive({

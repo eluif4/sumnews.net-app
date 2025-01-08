@@ -10,16 +10,18 @@ function handleClick() {
 
     if (route.name == 'eventArticles') {
         router.push({ name: 'home' })
-    } else if (Filter.isVisible) {
+    } 
+    else if (Filter.isVisible) {
         Filter.isVisible = !Filter.isVisible
-    } else {
+    }
+    else {
         goBack();
     }
 }
 </script>
 
 <template>
-    <div class="backdrop" @click="handleClick" v-if="Filter.isVisible || route.path.includes('article')"></div>
+    <div class="backdrop" @click="handleClick" v-if="Filter.isVisible || route.path.includes('article') || route.path.includes('/account/bookmarks/')"></div>
 </template>
 
 <style scoped>

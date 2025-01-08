@@ -150,7 +150,7 @@ async function processBulkSendArticlesToGeminiQueue(articlesInEventCountObject) 
         if (eventUris.size > 0) {
             const existingEvents = await getEvents({ eventUri: { $in: Array.from(eventUris) } });
             const existingEventUris = new Set(existingEvents.map(event => event.eventUri));
-            // Save only new events iwth accurate article counts
+            // Save only new events with accurate article counts
             for (const eventUri of eventUris) {
                 if (!existingEventUris.has(eventUri) && eventArticlesSavedMap.get(eventUri) > 1) {
                     try {
