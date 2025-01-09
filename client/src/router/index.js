@@ -314,13 +314,13 @@ const routes = [
             { path: '', component: TermsAndConditions }
         ]
     },
-    {
-        path: '/terms-&-conditions',
-        component: ListItem,
-        children: [
-            { path: '', component: TermsAndConditions }
-        ]
-    },
+    // {
+    //     path: '/terms-&-conditions',
+    //     component: ListItem,
+    //     children: [
+    //         { path: '', component: TermsAndConditions }
+    //     ]
+    // },
     {
         path: '/account/privacy-policy',
         component: ListItem,
@@ -328,13 +328,13 @@ const routes = [
             { path: '', component: PrivacyPolicy }
         ]
     },
-    {
-        path: '/privacy-policy',
-        component: ListItem,
-        children: [
-            { path: '', component: PrivacyPolicy }
-        ]
-    },
+    // {
+    //     path: '/privacy-policy',
+    //     component: ListItem,
+    //     children: [
+    //         { path: '', component: PrivacyPolicy }
+    //     ]
+    // },
     {
         path: '/account/bookmarks',
         component: ListItem,
