@@ -193,56 +193,7 @@ const routes = [
         },
         components: {
             default: Home,
-            // additional: Filter,
-            // backdrop: Backdrop,
         },
-        // Refer to the beforeEach at the bottom of the page
-        // beforeEnter: async (to, from, next) => {
-        //     // If filtering
-        //     console.log('beforeEnter', to.query)
-        //     if ((to.query.sources || to.query.genres)) {
-        //         List.articles = [];
-        //         var filter = {};
-
-        //         const sourcesArray = to.query.sources?.split(',');
-        //         const genresArray = to.query.genres?.split(',');
-
-        //         // Initialize an empty array for `$or` conditions
-        //         const orConditions = [];
-
-        //         // Add the entire `source` condition if `sourcesArray` has at least one value
-        //         if (sourcesArray?.length > 0) {
-        //             orConditions.push({ "source": { "$in": sourcesArray } });
-        //         }
-
-        //         // Add the entire `genre` condition if `genresArray` has at least one value
-        //         if (genresArray?.length > 0) {
-        //             orConditions.push({ "genre": { "$in": genresArray } });
-        //         }
-
-        //         // Only include `$or` in the filter if there are conditions
-        //         if (orConditions.length > 0) {
-        //             filter = { $or: orConditions };
-        //         }
-
-        //         var response = await front_getArticlesFromDB(filter) // , { uuid: 1, title: 1, imageUrl: 1};
-        //         List.articles = response;
-        //         // document.getElementById('article-stack').scrollTop = 0;
-        //     } else {
-        //         console.log('No query params were provided')
-        //         next({ name: 'home' });
-        //     }
-        //     //     if (List.articles.length == 0) {
-        //     //         var token = await getAuthToken();
-        //     //         if (token) {
-        //     //             await fetchUserFeed()
-        //     //         }
-        //     //         else {
-        //     //             await fetchFeed()
-        //     //         }
-        //     //     }
-        //     next();
-        // }
     },
     {
         path: '/search',
@@ -367,9 +318,6 @@ const routes = [
             additional: ArticleContent,    // The additional content for the article bookmark
             backdrop: Backdrop,            // Optional backdrop for the article view
         },
-        children: [
-            { path: '', component: Bookmarks } // Add the Bookmarks component as a child to keep it rendered
-        ],
         props: {
             additional: true,              // Pass props to the additional view
         },
