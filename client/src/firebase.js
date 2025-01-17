@@ -35,15 +35,23 @@ onMessage(firebaseMessaging, (payload) => {
     console.log("Message received. ", payload);
 
     // Extract notification details from payload
-    const notificationTitle = payload.notification?.title || "New Notification";
+    // const notificationTitle = payload.notification?.title || "New Notification";
+    const notificationTitle = payload.data?.title;
     const notificationOptions = {
-        body: payload.notification?.body || "You have a new message.",
-        icon: './assets/icons/sumnews.net_black.png', // Optional: icon from FCM message
+        body: payload.data?.body || "You have a new message.",
+        icon: '/sumnews.net_black.png', // Optional: icon from FCM message
+        url: `${FRONTEND_URL}${payload.data.url}`,
     };
 
     // Display the notification using the Web Notifications API
     if (Notification.permission === "granted") {
-        new Notification(notificationTitle, notificationOptions);
+        const notification = new Notification(notificationTitle, notificationOptions);
+
+        // Add a click event listener to handle notification clicks
+        notification.addEventListener('click', (event) => {
+            console.log('Notification clicked, opening URL:', notificationOptions.url);
+            window.open(notificationOptions.url, '_self');  // Open the URL in a new tab
+        });
     } else {
         console.warn("Notifications are not allowed by the user.");
     }

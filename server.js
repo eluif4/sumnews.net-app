@@ -92,7 +92,6 @@ app.listen(port, '0.0.0.0', function () {
 
 //---IMPORTS---
 const { articleQueue } = require('./server/2-utils/articleQueueHandler.js');
-const { sendNotification } = require("./server/2-utils/notifications/notification.js");
 
 //---RUN MAIN FUNCTION---
 // 0 = OFF, 1 = TESTING, 2 = RUNNING
@@ -183,11 +182,19 @@ async function cronDailyRecap() {
             for (const source of sources) {
                 await createDailyRecap(source);
             }
-
-            await sendDailyRecapNotification();
         }
     })
+
+    // Notifications are sent 5 minutes past 1800
+    cron.schedule('5 18 * * *', async () => {
+        await sendDailyRecapNotification();
+    })
 }
+
+app.use('/testing', async function(req, res) {
+    const response = await sendDailyRecapNotification();
+    res.send(response);
+})
 
 function shuffleArray(array) {
     for (let i = array.length - 1; i > 0; i--) {

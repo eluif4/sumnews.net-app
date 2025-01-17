@@ -1,6 +1,7 @@
 const { messaging } = require('firebase-admin');
 const { getUserNotificationToken, saveUserNotificationToken, getAllFCMTokens } = require('../2-utils/db/databaseAccess');
 const { sendNotification } = require('../2-utils/notifications/notification');
+const { getTodaysDailyRecapLink } = require('../2-utils/db/databaseAccess')
 
 async function notificationController(req, res) {
     const messageTitle = req.body.title || "You have a notification!";
@@ -64,19 +65,42 @@ async function saveNotificationTokenController(req, res) {
 
 async function sendDailyRecapNotification() {
     try {
-        const title = "Daily Recap";
-        const body = "Today's Daily Recap is ready! Catch up on today's biggest events quickly.";
+        const todaysDailyRecapUrl = await getTodaysDailyRecapLink();
+
+        const payload = {
+            title: "Daily Recap",
+            body: "Today's Daily Recap is ready! Catch up on today's biggest events quickly",
+            tag: "dailyrecap-v1", // vX is for versioning different notifications
+            url: todaysDailyRecapUrl
+        }
+
         const fcmTokenArray = await getAllFCMTokens();
         fcmTokenArray.forEach(async (fcmToken) => {
-            sendNotification(fcmToken, title, body);
+            sendNotification(fcmToken, payload);
         })
     } catch (error) {
         console.error('Failed to send notifications to user', error);
     }
 }
 
+async function getTodaysDailyRecapLinkController() {
+    try {
+        const url = getTodaysDailyRecapLink();
+        if (url) {
+            res.status(200).send(url);
+        }
+        else {
+            res.status(400).send(null);
+        }
+    }
+    catch (error) {
+        console.error('Failed to get todays daily recap link')
+    }
+}
+
 module.exports = {
     notificationController,
     saveNotificationTokenController,
-    sendDailyRecapNotification
+    sendDailyRecapNotification,
+    getTodaysDailyRecapLinkController
 }
