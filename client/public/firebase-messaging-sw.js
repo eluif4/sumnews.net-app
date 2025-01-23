@@ -5,7 +5,7 @@
 importScripts('https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js');
 importScripts('https://www.gstatic.com/firebasejs/10.13.2/firebase-messaging-compat.js');
 
-importScripts('/service-worker.js'); // Ensure this matches your custom SW path
+// importScripts('/service-worker.js'); // Ensure this matches your custom SW path
 
 // Initialize the Firebase app in the service worker by passing in
 // your app's Firebase config object.
