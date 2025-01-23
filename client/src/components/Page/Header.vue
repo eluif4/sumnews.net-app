@@ -25,7 +25,7 @@ const placeholder = ref(isSearchRoute.value ? searchQuery.value : isEventsRoute.
 
 async function performSearch() {
     if (searchQuery.value.length > 0) { // If searchQuery isnt empty
-        localStorage.setItem('searchQuery', searchQuery.value);
+        // localStorage.setItem('searchQuery', searchQuery.value);
         List.articles = [];
         document.getElementById('search-input').blur() // Unfocus the search box and hide keyboard
         sanitizeSearchQuery()
@@ -64,7 +64,7 @@ async function resetHeader() {
     localStorage.setItem('sources', JSON.stringify([]))
     sourcesLocalStorage.value = []
 
-    localStorage.setItem('searchQuery', JSON.stringify(''))
+    // localStorage.setItem('searchQuery', JSON.stringify(''))
     searchQuery.value = ''
 
     isFiltering.value = false;
@@ -89,7 +89,7 @@ const handleRouteChange = (newPath = route.path, oldPath = '') => {
         isEventsRoute.value = true;
         isSearchRoute.value = false;
         placeholder.value = 'Full coverage'
-    } else if (newPath.includes('/search') || JSON.parse(localStorage.getItem('searchQuery'))) {
+    } else if (newPath.includes('/search')) {
         isEventsRoute.value = false;
         isSearchRoute.value = true;
     }
