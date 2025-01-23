@@ -75,7 +75,7 @@ const routes = [
                     }
                 }
                 else {
-                    console.log('navigation to home page through else')
+                    // console.log('navigation to home page through else')
                     // Logic to execute if use is coming from other paths into home
                 }
                 next(); // Continue with the navigation
@@ -295,7 +295,7 @@ const routes = [
         ],
         beforeEnter: async (to, from, next) => {
             // If the user isn't logged in, redirect them to the /account path
-            console.log('beforeEnter')
+            // console.log('beforeEnter')
             const authToken = await getAuthToken();
             to.params.date = new Date();
             if (!authToken) {
@@ -413,7 +413,7 @@ router.beforeEach(async (to, from, next) => {
         } else if (from.path.includes('article')) {
             next();
         } else {
-            console.log('No query params were provided')
+            // console.log('No query params were provided')
             next({ name: 'home' });
         }
         next();

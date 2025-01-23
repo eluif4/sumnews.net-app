@@ -8,9 +8,9 @@ const installPWA = async () => {
         installPrompt.value.prompt(); // Show the install prompt
         const { outcome } = await installPrompt.value.userChoice; // Wait for the user's response
         if (outcome === 'accepted') {
-            console.log('PWA installed');
+            // console.log('PWA installed');
         } else {
-            console.log('PWA installation declined');
+            // console.log('PWA installation declined');
         }
         installPrompt.value = null; // Clear the saved prompt
         showPWA.value = false; // Hide the install button

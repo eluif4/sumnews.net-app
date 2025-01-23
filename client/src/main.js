@@ -20,7 +20,7 @@ localStorage.setItem('sources', JSON.stringify([]))
 // onMounted(() => {
 try {
   GoogleAuth.initialize();
-  console.log('Google Auth Initialized');
+  // console.log('Google Auth Initialized');
 } catch (error) {
   console.error('Faile to Initialize Google Auth', error)
 }
@@ -129,10 +129,10 @@ getUser().then(async (user) => {
     const response = await getAndSaveUsersFCMToken(userProfile.user.googleId, Capacitor.getPlatform());
 
     // If the user is logged in, register the push notifications
-    console.log('getAndSaveUsersFCMToken response: ', response.success, response.message);
+    // console.log('getAndSaveUsersFCMToken response: ', response.success, response.message);
   }
   else {
-    console.log('User isnt logged in');
+    // console.log('User isnt logged in');
   }
 });
 
@@ -155,10 +155,10 @@ if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('/service-worker.js')
       .then((registration) => {
-        console.log('Service Worker registered with scope:', registration.scope);
+        // console.log('Service Worker registered with scope:', registration.scope);
       })
       .catch((error) => {
-        console.error('Service Worker registration failed:', error);
+        // console.error('Service Worker registration failed:', error);
       });
   });
 }
@@ -186,7 +186,7 @@ export async function registerPushNotificationsIfNeeded() {
       // Permission granted, proceed to register for notifications
       await registerPushNotifications();
     } else {
-      console.log('Push notifications permission denied');
+      // console.log('Push notifications permission denied');
     }
   } else {
     // Permission was already granted
@@ -201,8 +201,8 @@ async function registerPushNotifications() {
 
     // Listen for the registration event to get the FCM token
     PushNotifications.addListener('registration', async (token) => {
-      console.log('Push registration success, token: ', token.value);
-      alert('Push registration success, token: ' + token.value);
+      // console.log('Push registration success, token: ', token.value);
+      // alert('Push registration success, token: ' + token.value);
       const fcmToken = token.value;
       const userid = userProfile.user.googleId
       // Send the token to your backend to store with the user's account
@@ -217,10 +217,10 @@ async function registerPushNotifications() {
           body: JSON.stringify({ fcmToken, userid, platform }),
         });
         if (response.status == 200) {
-          console.log('Token saved to backend successfully.');
+          // console.log('Token saved to backend successfully.');
           return { success: true };
         } else {
-          console.log('Failed to save token')
+          // console.log('Failed to save token')
         }
       } catch (error) {
         console.error('Something went wrong:', error);
@@ -229,14 +229,14 @@ async function registerPushNotifications() {
 
     PushNotifications.addListener('registrationError', (error) => {
       console.error('Push registration error: ', JSON.stringify(error));
-      alert('Error on registration: ' + JSON.stringify(error));
+      // alert('Error on registration: ' + JSON.stringify(error));
 
     });
 
     // Register the listener for foreground notifications
     PushNotifications.addListener('pushNotificationReceived', (notification) => {
-      console.log('Notification received: ', JSON.stringify(notification));
-      alert('Push received: ' + JSON.stringify(notification));
+      // console.log('Notification received: ', JSON.stringify(notification));
+      // alert('Push received: ' + JSON.stringify(notification));
 
       // Extract the notification data
       // const notificationTitle = notification.notification.title;
@@ -256,7 +256,7 @@ async function registerPushNotifications() {
 
     // Register listener for notification actions (e.g., when user taps the notification)
     PushNotifications.addListener('pushNotificationActionPerformed', (notification) => {
-      console.log('Notification action performed: ', JSON.stringify(notification));
+      // console.log('Notification action performed: ', JSON.stringify(notification));
       // alert('Push action performed: ' + JSON.stringify(notification));
 
       // const notificationURL = notification.notification.data?.url;

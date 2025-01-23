@@ -16,10 +16,10 @@ const assets = [
 
 // Install the service worker
 self.addEventListener('install', (event) => {
-    console.log('installed', CACHE_KEY);
+    // console.log('installed', CACHE_KEY);
     event.waitUntil( // Waits for assets to be cached before sw.js in installed
         caches.open(CACHE_KEY).then((cache) => {
-            console.log('caching shell assets');
+            // console.log('caching shell assets');
             cache.addAll(assets);
         })
     );
@@ -27,7 +27,7 @@ self.addEventListener('install', (event) => {
 
 // Activate the service worker
 self.addEventListener('activate', (event) => {
-    console.log('activated', CACHE_KEY);
+    // console.log('activated', CACHE_KEY);
     event.waitUntil(
         caches.keys().then((keys) => {
             return Promise.all(keys

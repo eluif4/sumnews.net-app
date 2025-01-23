@@ -1,7 +1,7 @@
 import { Capacitor } from '@capacitor/core';
 const isAndroid = Capacitor.getPlatform() === 'android';
 const isWeb = Capacitor.getPlatform() === 'web';
-console.log(`Platform: ${Capacitor.getPlatform()}`);
+// console.log(`Platform: ${Capacitor.getPlatform()}`);
 //https://joshuapleduc.medium.com/use-constants-to-set-backend-url-for-both-production-and-development-904ca269d48f
 const prod = {
     url: {

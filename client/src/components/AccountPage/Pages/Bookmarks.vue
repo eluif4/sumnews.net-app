@@ -24,7 +24,7 @@ const isLoading = ref(false);
 onMounted(fetchBookmarks);
 
 async function fetchBookmarks() {
-    console.log('onMounted');
+    // console.log('onMounted');
     try {
         isLoading.value = true;
         const response = await fetch(`${BACKEND_URL}user/bookmarks`, {

@@ -179,7 +179,7 @@ export async function updateArticleEngagement(article, engagementType) {
         if (!response.ok) {
             throw new Error('Failed to update engagement');
         }
-        console.log(`Successfully updated ${engagementType} for article: ${article.title}`);
+        // console.log(`Successfully updated ${engagementType} for article: ${article.title}`);
     } catch (error) {
         console.error('Error updating engagement:', error);
     }

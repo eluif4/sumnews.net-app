@@ -71,13 +71,13 @@ export async function logoutUserFromGoogle() {
             await GoogleAuth.signOut(); // Sign out from Google
             await removeAuthToken();
             userProfile.user = null; // Reset user profile
-            console.log("Successfully logged out from native platform.");
+            // console.log("Successfully logged out from native platform.");
         } catch (error) {
             console.error("Failed to sign out from Google:", error);
         }
     } else { // Web
         await removeAuthToken();
         userProfile.user = null; // Reset user profile
-        console.log("Successfully logged out from web platform.");
+        // console.log("Successfully logged out from web platform.");
     }
 }

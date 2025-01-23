@@ -21,7 +21,7 @@ const OPENARTICLE_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="24" heig
 export async function actionShareFunction(article) {
     try {
         // Check if the app is running on a Capactiro platform
-        console.log(Capacitor.isNativePlatform())
+        // console.log(Capacitor.isNativePlatform())
         if (Capacitor.isNativePlatform()) {
             try {
                 await Share.share({
