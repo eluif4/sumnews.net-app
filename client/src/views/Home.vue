@@ -70,8 +70,8 @@ async function scrollHandler(event) {
         else if (route.query.genres?.length > 0 || route.query.sources?.length > 0) {
             const filter = {
                 $or: [
-                    { "genre": { "$in": route.query.genres ? route.query.params : [] } },
-                    { "source": { "$in": route.query.sources ? route.query.sources : [] } }
+                    { "genre": { "$in": route.query.genres ? route.query.genres.split(',') : [] } },
+                    { "source": { "$in": route.query.sources ? route.query.sources.split(',') : [] } }
                 ]
             };
 

@@ -419,9 +419,10 @@ router.beforeEach(async (to, from, next) => {
         next();
     }
 
-
-    routeHistory.push(from.fullPath);
-    next();
+    else {
+        routeHistory.push(from.fullPath);
+        next();
+    }
 });
 
 export { routeHistory };
