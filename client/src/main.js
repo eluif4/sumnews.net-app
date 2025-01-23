@@ -7,6 +7,7 @@ import { getAuthToken } from './scripts/utility';
 import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
 import { PushNotifications } from '@capacitor/push-notifications';
 import { getAndSaveUsersFCMToken } from './firebase';
+import { Capacitor } from '@capacitor/core';
 
 const FRONTEND_URL = config.url.FRONTEND_URL
 const BACKEND_URL = config.url.BACKEND_URL
@@ -123,7 +124,11 @@ export const userProfile = reactive({ user: null }); // Empty user on setup
 getUser().then(async (user) => {
   userProfile.user = user; // Update userProfile with fetched user data
   if (userProfile.user) {
+    registerPushNotifications();
+
     const response = await getAndSaveUsersFCMToken(userProfile.user.googleId, Capacitor.getPlatform());
+
+    // If the user is logged in, register the push notifications
     console.log('getAndSaveUsersFCMToken response: ', response.success, response.message);
   }
   else {
@@ -197,17 +202,19 @@ async function registerPushNotifications() {
     // Listen for the registration event to get the FCM token
     PushNotifications.addListener('registration', async (token) => {
       console.log('Push registration success, token: ', token.value);
+      alert('Push registration success, token: ' + token.value);
       const fcmToken = token.value;
       const userid = userProfile.user.googleId
       // Send the token to your backend to store with the user's account
       try {
+        const platform = Capacitor.getPlatform();
         const response = await fetch(`${BACKEND_URL}db/saveNotificationToken`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
             // Include any authentication headers if necessary
           },
-          body: JSON.stringify({ fcmToken, userid }),
+          body: JSON.stringify({ fcmToken, userid, platform }),
         });
         if (response.status == 200) {
           console.log('Token saved to backend successfully.');
@@ -221,17 +228,63 @@ async function registerPushNotifications() {
     });
 
     PushNotifications.addListener('registrationError', (error) => {
-      console.error('Push registration error: ', error);
+      console.error('Push registration error: ', JSON.stringify(error));
+      alert('Error on registration: ' + JSON.stringify(error));
+
     });
 
+    // Register the listener for foreground notifications
     PushNotifications.addListener('pushNotificationReceived', (notification) => {
-      console.log('Push notification received: ', notification);
-      // Handle the notification here (e.g., show a local notification)
+      console.log('Notification received: ', JSON.stringify(notification));
+      alert('Push received: ' + JSON.stringify(notification));
+
+      // Extract the notification data
+      // const notificationTitle = notification.notification.title;
+      // const notificationBody = notification.notification.body;
+      // const notificationURL = notification.notification.data?.url;
+
+      // // Handle the notification UI (you can use a local notification, show an alert, or update the UI)
+      // // Here, we just log the data to the console
+      // console.log('Title:', notificationTitle);
+      // console.log('Body:', notificationBody);
+
+      // // Optionally, open the URL when the notification is tapped
+      // if (notificationURL) {
+      //   window.open(notificationURL, '_self');  // Open the URL in the same tab
+      // }
     });
 
+    // Register listener for notification actions (e.g., when user taps the notification)
     PushNotifications.addListener('pushNotificationActionPerformed', (notification) => {
-      console.log('Push notification action performed: ', notification);
-      // Handle the action (e.g., navigate to a specific screen)
+      console.log('Notification action performed: ', JSON.stringify(notification));
+      // alert('Push action performed: ' + JSON.stringify(notification));
+
+      // const notificationURL = notification.notification.data?.url;
+      // if (notificationURL) {
+      //   window.open(notificationURL, '_self'); // Open the URL in the same tab
+      // }
+      const notificationData = notification.notification.data;
+
+      if (notificationData && notificationData.url) {
+        const url = notificationData.url;
+
+        // Extracting the different values in the url
+        // FUTURE UPDATE => pass "dailyrecapUUID" and "drEvent" instead of the whole url
+        const parts = url.split('/');
+
+        const dailyrecapUUID = parts[1];
+        const drEvent = parts[2];
+
+        router.push({
+          name: 'dailyrecap',
+          params: {
+            dailyrecapUUID: dailyrecapUUID,
+            drEvent: drEvent[1],
+          }
+        });
+      } else {
+        console.error('No URL provided in the notification data.');
+      }
     });
   } catch (error) {
     console.error('Failed to register push notifications:', error);

@@ -24,67 +24,47 @@ firebase.initializeApp({
 // Retrieve an instance of Firebase Messaging so that it can handle background messages.
 const messaging = firebase.messaging();
 
-// import { config } from '../src/constants';
-// Import the functions you need from the SDKs you need
+// Handle background notifications
+// messaging.onBackgroundMessage((payload) => {
+//   console.log('Background message received: ', payload);
 
-// const FRONTEND_URL = config.url.FRONTEND_URL
-// const BACKEND_URL = config.url.BACKEND_URL
+//   const notificationTitle = payload.notification.title;
+//   const notificationBody = payload.notification.body;
+//   const notificationURL = payload.data.url;
 
-messaging.onBackgroundMessage((payload) => {
-    console.log('Background message received', payload)
-    // Customize notification here
-    // const notificationTitle = payload.notification?.title || "New Notification";
-    const notificationTitle = payload.data?.title;
-    // const notificationOptions = {
-    //     body: payload.notification?.body + `${payload.notification?.url}` || "You have a new message.",
-    //     icon: '/sumnews.net_black.png', // Optional: icon from FCM message
-    //     tag: payload.notification?.tag, // The tag property is used to group or replace notifications with the same tag
-    //     requireInteraction: false,
-    //     data: {
-    //         url: `${payload.notification?.url}`,
-    //     },
-    //     // actions: [
-    //     //     { action: 'open_url', title: "Open" }
-    //     // ],
-    //     vibrate: [100, 50, 100],
-    //     badge: '/logo_monochrome.png',
-    //     timestamp: Date.now(),
-    //     silent: false,
-    // };
-    const notificationOptions = {
-        body: payload.data?.body || "You have a new message.",
-        icon: '/sumnews.net_black.png', // Optional: icon from FCM message
-        data: {
-            url: `${payload.data.url}`,
-        }
-    };
+//   const notificationOptions = {
+//       body: notificationBody,
+//       icon: '/sumnews.net_black.png',
+//       data: { url: notificationURL },
+//   };
 
-    self.registration.showNotification(notificationTitle, notificationOptions);
-});
+//   // Display the notification
+//   self.registration.showNotification(notificationTitle, notificationOptions);
+// });
 
 // Add click event listener to handle URL opening
-self.addEventListener('notificationclick', (event) => {
-    const url = event.notification.data.url; // Extract the URL from the notification data
-    console.log(url);
-    event.notification.close(); // Close the notification
+// self.addEventListener('notificationclick', (event) => {
+//     const url = event.notification.data.url; // Extract the URL from the notification data
+//     console.log(url);
+//     event.notification.close(); // Close the notification
 
-    // Open the URL in the browser
-    event.waitUntil(
-        clients.openWindow(url)
-    );
+//     // Open the URL in the browser
+//     event.waitUntil(
+//         clients.openWindow(url)
+//     );
 
-    const action = event.action;
+//     const action = event.action;
 
-    if (action === 'open_url') {
-        const url = event.notification.data.url; // Extract the URL from the notification data
-        event.notification.close(); // Close the notification
+//     if (action === 'open_url') {
+//         const url = event.notification.data.url; // Extract the URL from the notification data
+//         event.notification.close(); // Close the notification
 
-        // Open the URL in the browser
-        event.waitUntil(
-            clients.openWindow(url)
-        );
-    }
-});
+//         // Open the URL in the browser
+//         event.waitUntil(
+//             clients.openWindow(url)
+//         );
+//     }
+// });
 
 
 // ----- EXAMPLE -----

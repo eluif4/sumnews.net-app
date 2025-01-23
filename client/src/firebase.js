@@ -31,31 +31,30 @@ const firebaseMessaging = getMessaging(firebaseApp);
 //   `messaging.onBackgroundMessage` handler.
 
 // Listen for foreground messages
-onMessage(firebaseMessaging, (payload) => {
-    console.log("Message received. ", payload);
+// onMessage(firebaseMessaging, (payload) => {
+//     console.log("Message received. ", payload);
 
-    // Extract notification details from payload
-    // const notificationTitle = payload.notification?.title || "New Notification";
-    const notificationTitle = payload.data?.title;
-    const notificationOptions = {
-        body: payload.data?.body || "You have a new message.",
-        icon: '/sumnews.net_black.png', // Optional: icon from FCM message
-        url: `${FRONTEND_URL}${payload.data.url}`,
-    };
+//     // Extract the notification details from the payload
+//     const notificationTitle = payload.notification.title;
+//     const notificationBody = payload.notification.body;
+//     const notificationURL = payload.data.url;
 
-    // Display the notification using the Web Notifications API
-    if (Notification.permission === "granted") {
-        const notification = new Notification(notificationTitle, notificationOptions);
+//     // Display the notification in the browser
+//     if (Notification.permission === 'granted') {
+//         const notificationOptions = {
+//             body: notificationBody,
+//             icon: '/sumnews.net_black.png',
+//             data: { url: notificationURL },
+//         };
 
-        // Add a click event listener to handle notification clicks
-        notification.addEventListener('click', (event) => {
-            console.log('Notification clicked, opening URL:', notificationOptions.url);
-            window.open(notificationOptions.url, '_self');  // Open the URL in a new tab
-        });
-    } else {
-        console.warn("Notifications are not allowed by the user.");
-    }
-});
+//         const notification = new Notification(notificationTitle, notificationOptions);
+
+//         // Handle click on the notification
+//         notification.addEventListener('click', () => {
+//             window.open(notificationURL, '_self'); // Open the URL in the same tab
+//         });
+//     }
+// });
 
 async function getAndSaveUsersFCMToken(userid, platform) {
     try {
