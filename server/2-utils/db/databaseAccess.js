@@ -112,7 +112,7 @@ async function articlesSinceYesterday() {
             .sort({ "datePublished": -1 })
             .select({ url: 1 });
     } catch (error) {
-        console.error(error);
+        console.error("articlesSinceYesterday() failed", error);
     }
 
     return articles
@@ -159,7 +159,7 @@ async function eventsSinceYesterdayByPopularity(source) {
         })
             .sort({ "articlesCount": -1 })
     } catch (error) {
-        console.error(error)
+        console.error("eventsSinceYesterdayByPopularity() failed", error)
     }
 
     return events;
@@ -258,7 +258,7 @@ async function saveUserNotificationToken(fcmtoken, userid, platform = 'unknown')
         }
     } catch (error) {
         console.error('Error saving FCM token:', error);
-        return { succes: false, message: 'Failed to update user'}
+        return { succes: false, message: 'Failed to update user' }
     }
 }
 
@@ -606,6 +606,19 @@ async function getDailyRecapButtons() {
     }
 }
 
+async function getTodaysDailyRecapLink() {
+    const filter = { source: 'sumnews.net' };
+    const project = {
+        id: 1,
+        drEvents: { $slice: [0, 1] } // Fetches the first element from drEvents array
+    };
+    const response = await DailyRecap.find(filter).select(project).limit(1);
+    const dailyRecap = response[0];
+
+    const todaysDailyRecapLink = `dailyrecap/${dailyRecap.id}/${dailyRecap.drEvents[0]}`;
+    return todaysDailyRecapLink
+}
+
 async function updateArticleEngagement(articleuuid, engagementType) {
     const update = {};
     update[`engagements.${engagementType}`] = 1;
@@ -651,6 +664,7 @@ module.exports = {
     getEventByEventUri,
     getDailyRecap,
     getDailyRecapButtons,
+    getTodaysDailyRecapLink,
     updateArticleEngagement,
     getAllFCMTokens,
 };

@@ -222,6 +222,7 @@ const handleTouchEnd = (e) => {
     flex-direction: column;
     /* Ensures the image has at least a 20:9 aspect ratio */
     min-height: calc(100vw * 9 / 20);
+    max-height: 40vh;
 }
 
 .event-page {
@@ -307,8 +308,10 @@ const handleTouchEnd = (e) => {
 
 .article-image {
     border-radius: var(--border-radius);
-    width: 100%;
     min-height: calc(100vw * 9 / 20);
+    width: 100%;
+    max-height: 40vh;
+    object-fit: cover;
 }
 
 .summarized-content {

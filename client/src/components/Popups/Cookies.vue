@@ -26,7 +26,7 @@ function decision(bool) {
         </svg>
         <span>We use cookies to enhance your experience on our site. By continuing to browse, you agree to our
             use of
-            cookies. <router-link to="/account/privacypolicy"><span class="link">[Learn more]</span></router-link>
+            cookies. <router-link to="/account/privacy-policy"><span class="link">[Learn more]</span></router-link>
         </span>
         <div class="buttons">
             <button class="btn btn-sm btn-primary" @click="decision(true)">Got it</button>

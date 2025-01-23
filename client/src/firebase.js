@@ -31,23 +31,30 @@ const firebaseMessaging = getMessaging(firebaseApp);
 //   `messaging.onBackgroundMessage` handler.
 
 // Listen for foreground messages
-onMessage(firebaseMessaging, (payload) => {
-    console.log("Message received. ", payload);
+// onMessage(firebaseMessaging, (payload) => {
+//     console.log("Message received. ", payload);
 
-    // Extract notification details from payload
-    const notificationTitle = payload.notification?.title || "New Notification";
-    const notificationOptions = {
-        body: payload.notification?.body || "You have a new message.",
-        icon: './assets/icons/sumnews.net_black.png', // Optional: icon from FCM message
-    };
+//     // Extract the notification details from the payload
+//     const notificationTitle = payload.notification.title;
+//     const notificationBody = payload.notification.body;
+//     const notificationURL = payload.data.url;
 
-    // Display the notification using the Web Notifications API
-    if (Notification.permission === "granted") {
-        new Notification(notificationTitle, notificationOptions);
-    } else {
-        console.warn("Notifications are not allowed by the user.");
-    }
-});
+//     // Display the notification in the browser
+//     if (Notification.permission === 'granted') {
+//         const notificationOptions = {
+//             body: notificationBody,
+//             icon: '/sumnews.net_black.png',
+//             data: { url: notificationURL },
+//         };
+
+//         const notification = new Notification(notificationTitle, notificationOptions);
+
+//         // Handle click on the notification
+//         notification.addEventListener('click', () => {
+//             window.open(notificationURL, '_self'); // Open the URL in the same tab
+//         });
+//     }
+// });
 
 async function getAndSaveUsersFCMToken(userid, platform) {
     try {

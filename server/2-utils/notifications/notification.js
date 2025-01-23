@@ -1,27 +1,37 @@
-const { admin } = require('../firebase/firebase')
+const { admin } = require('../firebase/firebase');
 
-const sendNotification = async (deviceToken, title, body) => {
+const sendNotification = async (deviceToken, payload) => {
     try {
-        // Message payload
         const message = {
             notification: {
-                title: title, // Notification title
-                body: body,   // Notification body
+                title: payload.title || "Default Title",  // Notification title
+                body: payload.body || "Default Body",    // Notification body
+            },
+            data: {
+                url: payload.url,  // The URL to open when the notification is clicked
             },
             android: {
+                priority: 'high',
                 notification: {
-                    icon: 'ic_notification', // Icon name without Extension
-                    color: "#000000" // Optional: Notification Color Icon
+                    icon: 'ic_notification',
+                    color: "#000000"
                 }
             },
-            token: deviceToken, // The FCM token of the target device
+            apns: {
+                payload: {
+                    aps: {
+                        category: 'DAILY_RECAP', // Optional: Customize for iOS
+                    },
+                },
+            },
+            token: deviceToken,  // The FCM token of the target device
         };
 
         // Send message via Firebase Admin SDK
         const response = await admin.messaging().send(message);
-        return { success: true, message: response }
+        return { success: true, message: response };
     } catch (error) {
-        console.error(error);
+        console.error("Error sending message", error);
         return { success: false, message: error };
     }
 };

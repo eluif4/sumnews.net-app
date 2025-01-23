@@ -1,24 +1,18 @@
 <script setup>
-import { computed, onMounted } from 'vue'
-import DesktopPage from './views/DesktopPage.vue'
-import MobilePage from './views/MobilePage.vue'
-// import { registerPushNotifications } from './main';
+import { computed } from 'vue';
+import DesktopPage from './views/DesktopPage.vue';
+import MobilePage from './views/MobilePage.vue';
 
 const isDesktop = computed(() => {
   return window.innerWidth > 768
 })
 
-// onMounted(async () => {
-//   await registerPushNotifications();
-//   console.log('onMounted finished');
-// })
 </script>
 
 <template>
   <div id="app">
-    <!-- <DesktopPage v-if="isDesktop"></DesktopPage> -->
-    <!-- <MobilePage v-else></MobilePage> -->
-     <MobilePage></MobilePage>
+    <DesktopPage v-if="isDesktop"></DesktopPage>
+    <MobilePage v-else></MobilePage>
   </div>
 </template>
 

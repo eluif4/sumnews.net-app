@@ -1,4 +1,4 @@
-const CACHE_KEY = 'site-static-v1';
+const CACHE_KEY = 'sumnews-app-v7.0';
 const assets = [
     "/",
     "/index.html",
@@ -9,10 +9,14 @@ const assets = [
     "/src/router/index.js",
     "https://fonts.googleapis.com/css2?family=Alef&family=Bitter&display=swap",
     "https://fonts.gstatic.com/s/alef/v21/FeVfS0NQpLYgnjdRCqFx.woff2",
+    "/robots.txt",
+    "/logo_monochrome.png",
+    "/sumnews.net_black.png"
 ];
 
 // Install the service worker
 self.addEventListener('install', (event) => {
+    console.log('installed', CACHE_KEY);
     event.waitUntil( // Waits for assets to be cached before sw.js in installed
         caches.open(CACHE_KEY).then((cache) => {
             console.log('caching shell assets');
@@ -23,6 +27,7 @@ self.addEventListener('install', (event) => {
 
 // Activate the service worker
 self.addEventListener('activate', (event) => {
+    console.log('activated', CACHE_KEY);
     event.waitUntil(
         caches.keys().then((keys) => {
             return Promise.all(keys
@@ -35,6 +40,7 @@ self.addEventListener('activate', (event) => {
 
 // Fetch event
 self.addEventListener('fetch', (event) => {
+    // console.log('fetched', CACHE_KEY);
     const requestURL = new URL(event.request.url);
 
     // event.respondWith(

@@ -264,7 +264,7 @@ async function postArticleToInstagram() {
             showPopup(1, 'Post Uploaded Successfully');
         }
     } catch (error) {
-        console.error(error);
+        console.error("postArticleToInstagram() failed", error);
     }
 }
 
@@ -480,6 +480,9 @@ const openModal = () => {
 .article-image {
     border-radius: 25px 25px 0 0;
     min-height: calc(100vw * 9 / 20);
+    width: 100%;
+    max-height: 40vh;
+    object-fit: cover;
 }
 
 .actions {

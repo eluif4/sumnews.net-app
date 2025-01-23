@@ -52,8 +52,8 @@ async function scrollHandler(event) {
             var response = await front_getArticlesFromDB(filter, undefined, undefined, 10 * List.infiniteScrollCallCount, 10)
         }
         else if (route.path.includes('/search')) {
-            const response = await fetch(`${BACKEND_URL}db/search?search_query=${route.query.searchQuery}`, {
-                method: 'GET',
+            var response = await fetch(`${BACKEND_URL}db/search?search_query=${route.query.searchQuery}`, {
+                method: 'POST',
                 headers: {
                     'Accept': 'application/json',
                     'Content-Type': 'application/json'
@@ -63,15 +63,15 @@ async function scrollHandler(event) {
                 })
             })
 
-            articlesToAdd = await response.json()
-            articlesToAdd = response.filter(article => !existsInFeed(article));
+            response = await response.json()
+            // articlesToAdd = response.filter(article => !existsInFeed(article));
         }
         // Infinite scrolling if Filtering articles
         else if (route.query.genres?.length > 0 || route.query.sources?.length > 0) {
             const filter = {
                 $or: [
-                    { "genre": { "$in": route.query.genres ? route.query.params : [] } },
-                    { "source": { "$in": route.query.sources ? route.query.sources : [] } }
+                    { "genre": { "$in": route.query.genres ? route.query.genres.split(',') : [] } },
+                    { "source": { "$in": route.query.sources ? route.query.sources.split(',') : [] } }
                 ]
             };
 
