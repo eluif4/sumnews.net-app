@@ -202,7 +202,7 @@ const routes = [
         props: (route) => ({ searchQuery: route.query.searchQuery }),
         beforeEnter: async (to, from) => {
             const response = await fetch(`${BACKEND_URL}db/search?search_query=${to.query.searchQuery}`, {
-                method: 'GET',
+                method: 'POST',
                 headers: {
                     'Accept': 'application/json',
                     'Content-Type': 'application/json'

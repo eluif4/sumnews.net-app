@@ -22,7 +22,7 @@ const { verifyToken } = require('../../3-middleware/authenticator')
 const app = Router();
 
 app.get('/db/GetArticles', getArticlesController)
-app.get('/db/search', query('search_query').notEmpty().escape(), getArticlesFromSearchController)
+app.post('/db/search', query('search_query').notEmpty().escape(), getArticlesFromSearchController)
 app.post('/db/PostArticlesController', PostArticlesController)
 app.get('/db/eventArticles', getEventArticlesController)
 app.post('/db/getArticlesFromEvent', getArticlesFromEventController)

@@ -53,7 +53,7 @@ async function scrollHandler(event) {
         }
         else if (route.path.includes('/search')) {
             const response = await fetch(`${BACKEND_URL}db/search?search_query=${route.query.searchQuery}`, {
-                method: 'GET',
+                method: 'POST',
                 headers: {
                     'Accept': 'application/json',
                     'Content-Type': 'application/json'
