@@ -112,7 +112,7 @@ async function articlesSinceYesterday() {
             .sort({ "datePublished": -1 })
             .select({ url: 1 });
     } catch (error) {
-        console.error(error);
+        console.error("articlesSinceYesterday() failed", error);
     }
 
     return articles
@@ -159,7 +159,7 @@ async function eventsSinceYesterdayByPopularity(source) {
         })
             .sort({ "articlesCount": -1 })
     } catch (error) {
-        console.error(error)
+        console.error("eventsSinceYesterdayByPopularity() failed", error)
     }
 
     return events;

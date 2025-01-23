@@ -265,7 +265,7 @@ async function postArticleToInstagram() {
             showPopup(1, 'Post Uploaded Successfully');
         }
     } catch (error) {
-        console.error(error);
+        console.error("postArticleToInstagram() failed", error);
     }
 }
 

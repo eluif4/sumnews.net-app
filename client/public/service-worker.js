@@ -40,7 +40,7 @@ self.addEventListener('activate', (event) => {
 
 // Fetch event
 self.addEventListener('fetch', (event) => {
-    console.log('fetched', CACHE_KEY);
+    // console.log('fetched', CACHE_KEY);
     const requestURL = new URL(event.request.url);
 
     // event.respondWith(

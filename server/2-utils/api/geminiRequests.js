@@ -271,7 +271,7 @@ async function assignAndSummarize(articlesArray) {
         return result;
 
     } catch (error) {
-        console.error(error);
+        console.error("assignAndSummarize() failed", error);
         return null;
     }
 }
@@ -295,7 +295,7 @@ async function createDailyRecapSummaryAndTitle(articlesArray) {
         const result = JSON.parse(gemini_response.response.text())
         return result;
     } catch (error) {
-        console.error(error);
+        console.error("createDailyRecapSummaryAndTitle() failed", error);
         return null;
     }
 }
