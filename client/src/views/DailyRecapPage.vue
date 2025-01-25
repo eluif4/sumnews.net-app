@@ -5,6 +5,7 @@ import { useRoute } from 'vue-router';
 import router from '../router';
 import DailyRecapItem from '../components/DailyRecap/DailyRecapItem.vue'
 import DailyRecapItemSkeleton from '../components/DailyRecap/DailyRecapItemSkeleton.vue';
+import { showPopup } from '../scripts/utility';
 
 const BACKEND_URL = config.url.BACKEND_URL;
 const route = useRoute();
@@ -65,7 +66,22 @@ const fetchDailyRecap = async (dailyrecapUUID) => {
 const updateDailyRecapsRef = async () => {
     // isDailyRecapFetchFinished.value = false;
     console.log(`isDailyRecapFetchFinished -> ${isDailyRecapFetchFinished.value}`)
-    var dailyrecapbuttons = JSON.parse(localStorage.getItem('dailyRecaps')).dailyRecapButtons || [];
+
+    // If there are no daily recap buttons ( when a user clicks on a notification and the daily recap buttons still havent had time to fetch)
+    // fetch them autmomatically
+    if (!localStorage.getItem('dailyRecaps')) {
+        var response = await fetch(`${BACKEND_URL}db/getDailyRecapButtons`);
+        if (response.status == 200) { // If request isnt successful
+            dailyrecapbuttons = await response.json();
+        }
+        else {
+            showPopup(2, 'Sorry, something went wrong while fetching the Daily Recap');
+            router.push({ name: 'home' });
+        }
+    }
+    else {
+        var dailyrecapbuttons = JSON.parse(localStorage.getItem('dailyRecaps')).dailyRecapButtons || [];
+    }
 
     // Find the current recap index from the stored daily recaps
     const currentIndex = dailyrecapbuttons.findIndex(recap => recap.id === dailyrecapUUID.value);
