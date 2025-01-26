@@ -1,0 +1,8 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Sumnews</string>
+    <string name="title_activity_main">Sumnews</string>
+    <string name="package_name">dev.sumnews.www</string>
+    <string name="custom_url_scheme">dev.sumnews.www</string>
+    <string name="server_client_id">460348077182-hfarubd5kv9mhq03e4g1ugfcjeopeo4m.apps.googleusercontent.com</string>
+</resources>

@@ -35,7 +35,7 @@ www/
 
 # Capacitor directories
 ios/
-android/
+# android/
 # Include Capacitor configuration files
 !android/app/src/main/assets/capacitor.config.json
 !ios/App/App/capacitor.config.json
