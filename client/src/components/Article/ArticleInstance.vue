@@ -304,6 +304,10 @@ const handleTouchEnd = (e) => {
     flex-direction: column;
 
     box-sizing: border-box;
+
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
 }
 
 .article-image {
