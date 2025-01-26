@@ -202,7 +202,7 @@ async function registerPushNotifications() {
     // Listen for the registration event to get the FCM token
     PushNotifications.addListener('registration', async (token) => {
       console.log('Push registration success, token: ', token.value);
-      alert('Push registration success, token: ' + token.value);
+      // alert('Push registration success, token: ' + token.value);
       const fcmToken = token.value;
       const userid = userProfile.user.googleId
       // Send the token to your backend to store with the user's account
@@ -229,14 +229,14 @@ async function registerPushNotifications() {
 
     PushNotifications.addListener('registrationError', (error) => {
       console.error('Push registration error: ', JSON.stringify(error));
-      alert('Error on registration: ' + JSON.stringify(error));
+      // alert('Error on registration: ' + JSON.stringify(error));
 
     });
 
     // Register the listener for foreground notifications
     PushNotifications.addListener('pushNotificationReceived', (notification) => {
       console.log('Notification received: ', JSON.stringify(notification));
-      alert('Push received: ' + JSON.stringify(notification));
+      // alert('Push received: ' + JSON.stringify(notification));
 
       // Extract the notification data
       // const notificationTitle = notification.notification.title;

@@ -73,6 +73,18 @@ const updateDailyRecapsRef = async () => {
         var response = await fetch(`${BACKEND_URL}db/getDailyRecapButtons`);
         if (response.status == 200) { // If request isnt successful
             dailyrecapbuttons = await response.json();
+
+            // Add dailyrecapbuttons to localStorage with updated time of 1805
+            var UTC1805 = new Date(Date.UTC(
+                new Date().getUTCFullYear(),  // Current year
+                new Date().getUTCMonth(),     // Current month
+                new Date().getUTCDate(),      // Current date
+                18,                           // Hours in UTC (18:05 UTC)
+                5                             // Minutes in UTC
+            ));
+            var lastUpdate = UTC1805;
+
+            localStorage.setItem('dailyRecaps', JSON.stringify({ "lastUpdate": lastUpdate, "dailyRecapButtons": dailyrecapbuttons }));
         }
         else {
             showPopup(2, 'Sorry, something went wrong while fetching the Daily Recap');
