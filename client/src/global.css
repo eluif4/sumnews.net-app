@@ -70,3 +70,16 @@ body {
     padding: 0 5px;
     border-radius: 4px;
 }
+
+.bounce {
+    animation: button-pop var(--animation-btn, 0.25s) ease-out;
+    transition-duration: 200ms;
+    transition-timing-function: cubic-bezier(0, 0, 0.2, 1);
+    transition-property: all;
+    /* transform: scale(0.95) translateY(2px); Scale down and move slightly */
+}
+
+.bounce:active:hover {
+    /* animation: button-pop 0s ease-out; */
+    transform: scale(var(--btn-focus-scale, 0.97));
+}

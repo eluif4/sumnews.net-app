@@ -12,7 +12,7 @@ const { text, svg, signInFunction } = props.platform;
 </script>
 
 <template>
-    <div class="signIn" :class="{ 'skip': !svg }" @click="signInFunction">
+    <div class="signIn bounce" :class="{ 'skip': !svg }" @click="signInFunction">
         <p class="text">{{ text }}</p>
         <div v-html="svg" v-if="svg"></div>
     </div>
