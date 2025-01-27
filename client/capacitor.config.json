@@ -1,5 +1,5 @@
 {
-  "appId": "net.sumnews.www",
+  "appId": "dev.sumnews.www",
   "appName": "Sumnews",
   "webDir": "dist",
   "bundledWebRuntime": false,
