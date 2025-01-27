@@ -1,0 +1,14 @@
+[
+    {
+        "relation": [
+            "delegate_permission/common.handle_all_urls"
+        ],
+        "target": {
+            "namespace": "android_app",
+            "package_name": "net.sumnews.net",
+            "sha256_cert_fingerprints": [
+                "FE:14:C1:44:A1:E5:65:FB:72:A5:05:A8:E7:A0:90:1D:E8:42:1D:BB:D6:EA:89:F8:EE:5C:7A:47:CC:92:18:FC"
+            ]
+        }
+    }
+]
