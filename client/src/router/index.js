@@ -3,7 +3,7 @@ import { front_getArticlesFromDB, showPopup, fetchFeed, getCookie } from '../scr
 import { List, userProfile } from '../main'
 import { config } from '../constants'
 import { fetchUserFeed, getAuthToken } from '../scripts/utility'
-import { App, URLOpenListenerEvent } from '@capacitor/app';
+import { App } from '@capacitor/app';
 
 import Home from '../views/Home.vue'
 import AccountPage from '../views/AccountPage.vue'
