@@ -3,6 +3,7 @@ import { front_getArticlesFromDB, showPopup, fetchFeed, getCookie } from '../scr
 import { List, userProfile } from '../main'
 import { config } from '../constants'
 import { fetchUserFeed, getAuthToken } from '../scripts/utility'
+import { App } from '@capacitor/app';
 
 import Home from '../views/Home.vue'
 import AccountPage from '../views/AccountPage.vue'
@@ -422,6 +423,21 @@ router.beforeEach(async (to, from, next) => {
     else {
         routeHistory.push(from.fullPath);
         next();
+    }
+});
+
+// Deep Links:
+// https://capacitorjs.com/docs/guides/deep-links
+App.addListener('appUrlOpen', function (event) {
+    // Example url: https://beerswift.app/tabs/tabs2
+    // slug = /tabs/tabs2
+    const slug = event.url.split('.net').pop();
+
+    // We only push to the route if there is a slug present
+    if (slug) {
+        router.push({
+            path: slug,
+        });
     }
 });
 

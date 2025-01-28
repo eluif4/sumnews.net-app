@@ -152,15 +152,25 @@ export const PopupAttributes = reactive({
 
 // Register the service worker
 if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/service-worker.js')
-      .then((registration) => {
-        // console.log('Service Worker registered with scope:', registration.scope);
-      })
-      .catch((error) => {
-        // console.error('Service Worker registration failed:', error);
+  try {
+    if (Capacitor.getPlatform() == 'web') {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/service-worker.js')
+          .then((registration) => {
+            console.log('Service Worker registered with scope:', registration.scope);
+          })
+          .catch((error) => {
+            console.error('Service Worker registration failed:', error);
+          });
       });
-  });
+    }
+    else {
+      console.log("Didnt load service-worker. Platform isnt web")
+    }
+  }
+  catch (error) {
+    console.error('Failed to load service worker')
+  }
 }
 
 //https://developer.mozilla.org/en-US/docs/Web/Progressive_web_apps/How_to/Trigger_install_prompt

@@ -158,7 +158,7 @@ const handleTouchEnd = (e) => {
 </script>
 
 <template>
-    <div id="article-instance" class="article-instance">
+    <div id="article-instance" class="article-instance bounce">
         <!--<div id="article-instance" class="article-instance" :style="{ transform: `translateX(${translateX}px)` }"
         :class="{ 'animate': swipeStarted }" @touchstart="handleTouchStart" @touchmove="handleTouchMove"
         @touchend="handleTouchEnd">
@@ -304,6 +304,10 @@ const handleTouchEnd = (e) => {
     flex-direction: column;
 
     box-sizing: border-box;
+
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
 }
 
 .article-image {

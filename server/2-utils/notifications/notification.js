@@ -13,8 +13,10 @@ const sendNotification = async (deviceToken, payload) => {
             android: {
                 priority: 'high',
                 notification: {
-                    icon: 'ic_notification',
-                    color: "#000000"
+                    sound: 'default', // Ensure sound works for Android
+                    icon: 'ic_stat_name',
+                    color: "#000000",
+                    tag: 'DAILY_RECAP', // Tag for grouping notifications
                 }
             },
             apns: {
