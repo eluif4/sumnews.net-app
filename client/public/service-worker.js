@@ -11,7 +11,8 @@ const assets = [
     "https://fonts.gstatic.com/s/alef/v21/FeVfS0NQpLYgnjdRCqFx.woff2",
     "/robots.txt",
     "/logo_monochrome.png",
-    "/sumnews.net_black.png"
+    "/sumnews.net_black.png",
+    "/.well-known/assetlinks.json"
 ];
 
 // Install the service worker
