@@ -1,4 +1,4 @@
-const CACHE_KEY = 'sumnews-app-v8.0';
+const CACHE_KEY = 'sumnews-app-v8.1';
 const assets = [
     "/",
     "/index.html",
