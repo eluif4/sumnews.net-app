@@ -5,7 +5,7 @@
         ],
         "target": {
             "namespace": "android_app",
-            "package_name": "net.sumnews.www",
+            "package_name": "dev.sumnews.www",
             "sha256_cert_fingerprints": [
                 "D4:FB:B9:7A:9B:D3:25:67:0C:F3:C4:71:67:96:97:0B:0D:82:27:0E:C9:92:CF:23:75:D9:7D:48:03:94:A0:85"
             ]

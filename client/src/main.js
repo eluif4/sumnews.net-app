@@ -8,6 +8,10 @@ import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
 import { PushNotifications } from '@capacitor/push-notifications';
 import { getAndSaveUsersFCMToken } from './firebase';
 import { Capacitor } from '@capacitor/core';
+import { StatusBar } from '@capacitor/status-bar';
+
+StatusBar.setOverlaysWebView({ overlay: false }); // Ensures the webview doesn’t overlay the status bar
+console.log('status bar set');
 
 const FRONTEND_URL = config.url.FRONTEND_URL
 const BACKEND_URL = config.url.BACKEND_URL
@@ -154,6 +158,7 @@ export const PopupAttributes = reactive({
 if ('serviceWorker' in navigator) {
   try {
     if (Capacitor.getPlatform() == 'web') {
+      console.log('loading service worker')
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('/service-worker.js')
           .then((registration) => {
