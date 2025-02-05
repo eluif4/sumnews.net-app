@@ -5,7 +5,7 @@ import { useRoute } from 'vue-router';
 import router from '../router';
 import DailyRecapItem from '../components/DailyRecap/DailyRecapItem.vue'
 import DailyRecapItemSkeleton from '../components/DailyRecap/DailyRecapItemSkeleton.vue';
-import { showPopup } from '../scripts/utility';
+import { goBack, showPopup } from '../scripts/utility';
 
 const BACKEND_URL = config.url.BACKEND_URL;
 const route = useRoute();
@@ -233,9 +233,10 @@ function updateWasVisitedDailyRecapButtons() {
 
     console.log('Visited recaps updated and pushed to the end of the array');
 
-    router.push({
-        name: 'home'
-    });
+    goBack();
+    // router.push({
+    //     name: 'home'
+    // });
 }
 </script>
 
