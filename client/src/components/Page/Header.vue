@@ -125,23 +125,25 @@ const handleRouteChange = (newPath = route.path, oldPath = '') => {
 }
 
 const handleQueryChange = (newQuery = route.query, oldQuery = '') => {
-    placeholder.value = 'Filtering ';
-    const genres = route.query.genres
-    const sources = route.query.sources
+    if (route.path.includes('/filter')) {
+        placeholder.value = 'Filtering ';
+        const genres = route.query.genres
+        const sources = route.query.sources
 
-    if (genres != undefined) {
-        placeholder.value += genres;
-    }
-
-    if (sources != undefined) {
         if (genres != undefined) {
-            placeholder.value += `, `;
+            placeholder.value += genres;
         }
-        placeholder.value += sources;
-    }
 
-    if (genres == undefined && sources == undefined) {
-        placeholder.value = "Search for articles here";
+        if (sources != undefined) {
+            if (genres != undefined) {
+                placeholder.value += `, `;
+            }
+            placeholder.value += sources;
+        }
+
+        if (genres == undefined && sources == undefined) {
+            placeholder.value = "Search for articles here";
+        }
     }
 }
 
