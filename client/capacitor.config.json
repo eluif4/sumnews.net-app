@@ -28,14 +28,8 @@
       "backgroundColor": "transparent"
     }
   },
-  "cordova": {
-    "preferences": {
-      "StatusBarOverlaysWebView": "false",
-      "StatusBarBackgroundColor": "#000000",
-      "Fullscreen": "false"
-    }
-  },
+  "cordova": {},
   "ios": {
-    "contentInset": "always"
+    "contentInset": "auto"
   }
 }
