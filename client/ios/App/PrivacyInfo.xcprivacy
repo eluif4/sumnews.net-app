@@ -1,12 +1,38 @@
 <?xml version="1.0" encoding="UTF-8"?>
-   <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-   <plist version="1.0">
-   <dict>
-	<key>NSPrivacyTracking</key>
-	<false/>
-	<key>NSPrivacyAccessedAPITypes</key>
-	<array/>
-	<key>NSPrivacyCollectedDataTypes</key>
-	<array/>
-   </dict>
-   </plist>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <!-- Indicates whether tracking is used (set to false if you don’t track users across apps) -->
+    <key>NSPrivacyTracking</key>
+    <false/>
+
+    <!-- List of APIs accessed by the app -->
+    <key>NSPrivacyAccessedAPITypes</key>
+    <array>
+        <!-- If you use Authentication Services for Google Sign-In -->
+        <dict>
+            <key>NSPrivacyAccessedAPIType</key>
+            <string>Authentication</string>
+            <key>NSPrivacyAccessedAPITypeReason</key>
+            <string>Used for authenticating users via Google Sign-In</string>
+        </dict>
+    </array>
+
+    <!-- List of collected data types and their purpose -->
+    <key>NSPrivacyCollectedDataTypes</key>
+    <array>
+        <dict>
+            <key>NSPrivacyCollectedDataType</key>
+            <string>Email Address</string>
+            <key>NSPrivacyCollectedDataTypePurpose</key>
+            <string>Used for user authentication and account identification</string>
+        </dict>
+        <dict>
+            <key>NSPrivacyCollectedDataType</key>
+            <string>Identifiers</string>
+            <key>NSPrivacyCollectedDataTypePurpose</key>
+            <string>Used to maintain user sessions and personalize content</string>
+        </dict>
+    </array>
+</dict>
+</plist>

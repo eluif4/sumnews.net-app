@@ -22,7 +22,17 @@
         "sound",
         "alert"
       ]
+    },
+    "StatusBar": {
+      "style": "dark",
+      "backgroundColor": "transparent"
     }
   },
-  "cordova": {}
+  "cordova": {
+    "preferences": {
+      "StatusBarOverlaysWebView": "false",
+      "StatusBarBackgroundColor": "#000000",
+      "Fullscreen": "false"
+    }
+  }
 }

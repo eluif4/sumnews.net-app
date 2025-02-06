@@ -1,5 +1,5 @@
 // Import the functions you need from the SDKs you need
-import { getMessaging, onMessage, getToken } from "firebase/messaging";
+import { getMessaging, isSupported, getToken } from "firebase/messaging";
 import { initializeApp } from "firebase/app";
 import { getAnalytics } from "firebase/analytics";
 import { config } from './constants'
@@ -23,7 +23,21 @@ const firebaseApp = initializeApp(firebaseConfig);
 const firebaseAnalytics = getAnalytics(firebaseApp);
 
 // Initialize Firebase Cloud Messaging and get a reference to the service
-const firebaseMessaging = getMessaging(firebaseApp);
+var firebaseMessaging;
+
+async function setupMessaging() {
+    console.log('Firebase is being setup')
+    const supported = await isSupported();
+    if (supported) {
+        firebaseMessaging = getMessaging(firebaseApp);
+        console.log("Firebase Messaging is initialized");
+    } else {
+        console.warn("Firebase Messaging is not supported on this platform");
+    }
+}
+
+setupMessaging();
+
 
 // Handle incoming messages. Called when:
 // - a message is received while the app has focus
