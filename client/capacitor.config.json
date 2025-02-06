@@ -34,5 +34,8 @@
       "StatusBarBackgroundColor": "#000000",
       "Fullscreen": "false"
     }
+  },
+  "ios": {
+    "contentInset": "always"
   }
 }
