@@ -30,5 +30,25 @@
 	<true></true>
 	<key>GOOGLE_APP_ID</key>
 	<string>1:460887858930:ios:a1e148be4347c9ebd5fa6b</string>
+	<key>API_KEY</key>
+	<string>AIzaSyAib-uTfhaOjMJO99XLsp1wbNFeUh7oqPs</string>
+	<key>GCM_SENDER_ID</key>
+	<string>460887858930</string>
+	<key>PROJECT_ID</key>
+	<string>sumnews-62a1c</string>
+	<key>STORAGE_BUCKET</key>
+	<string>sumnews-62a1c.firebasestorage.app</string>
+	<key>IS_ADS_ENABLED</key>
+	<false></false>
+	<key>IS_ANALYTICS_ENABLED</key>
+	<false></false>
+	<key>IS_APPINVITE_ENABLED</key>
+	<true></true>
+	<key>IS_GCM_ENABLED</key>
+	<true></true>
+	<key>IS_SIGNIN_ENABLED</key>
+	<true></true>
+	<key>GOOGLE_APP_ID</key>
+	<string>1:460887858930:ios:a1e148be4347c9ebd5fa6b</string>
 </dict>
 </plist>

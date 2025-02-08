@@ -41,8 +41,10 @@ body {
     /* -----POSITIONAL STYLING----- */
     height: 100%;
     width: 100%;
-    margin: 0;
-    padding: 0;
+    /* margin: 0;
+    padding: 0; */
+    /* margin-top: env(safe-area-inset-top);  /* Adds margin to account for the notch */
+    /* padding-top: env(safe-area-inset-top); */
     box-sizing: border-box;
 
     /* -----TEXT STYLING---- */

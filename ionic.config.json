@@ -1,7 +1,0 @@
-{
-  "name": "sumnews.net",
-  "integrations": {
-    "capacitor": {}
-  },
-  "type": "custom"
-}
