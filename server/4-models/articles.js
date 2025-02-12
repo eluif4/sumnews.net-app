@@ -17,8 +17,8 @@ const articleSchema = new mongoose.Schema({
     summarizedContent: String,
     imageUrl: String,
     sentiment: Number,
-    concepts: Array,
-    links: Array,
+    // concepts: Array,
+    // links: Array,
     // shares: Object,
     uuid: {
         type: String,
