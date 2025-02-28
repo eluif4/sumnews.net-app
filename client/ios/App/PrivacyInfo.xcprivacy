@@ -1,38 +1,60 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
-<dict>
-    <!-- Indicates whether tracking is used (set to false if you don’t track users across apps) -->
+  <dict>
     <key>NSPrivacyTracking</key>
-    <false/>
-
-    <!-- List of APIs accessed by the app -->
-    <key>NSPrivacyAccessedAPITypes</key>
-    <array>
-        <!-- If you use Authentication Services for Google Sign-In -->
-        <dict>
-            <key>NSPrivacyAccessedAPIType</key>
-            <string>Authentication</string>
-            <key>NSPrivacyAccessedAPITypeReason</key>
-            <string>Used for authenticating users via Google Sign-In</string>
-        </dict>
-    </array>
-
-    <!-- List of collected data types and their purpose -->
+    <false />
+    <key>NSPrivacyTrackingDomains</key>
+    <array />
     <key>NSPrivacyCollectedDataTypes</key>
     <array>
-        <dict>
-            <key>NSPrivacyCollectedDataType</key>
-            <string>Email Address</string>
-            <key>NSPrivacyCollectedDataTypePurpose</key>
-            <string>Used for user authentication and account identification</string>
-        </dict>
-        <dict>
-            <key>NSPrivacyCollectedDataType</key>
-            <string>Identifiers</string>
-            <key>NSPrivacyCollectedDataTypePurpose</key>
-            <string>Used to maintain user sessions and personalize content</string>
-        </dict>
+      <dict>
+        <key>NSPrivacyCollectedDataType</key>
+        <string>NSPrivacyCollectedDataTypeName</string>
+        <key>NSPrivacyCollectedDataTypeLinked</key>
+        <true />
+        <key>NSPrivacyCollectedDataTypeTracking</key>
+        <false />
+        <key>NSPrivacyCollectedDataTypePurposes</key>
+        <array>
+          <string>NSPrivacyCollectedDataTypePurposeProductPersonalization</string>
+        </array>
+      </dict>
+      <dict>
+        <key>NSPrivacyCollectedDataType</key>
+        <string>NSPrivacyCollectedDataTypeEmailAddress</string>
+        <key>NSPrivacyCollectedDataTypeLinked</key>
+        <true />
+        <key>NSPrivacyCollectedDataTypeTracking</key>
+        <false />
+        <key>NSPrivacyCollectedDataTypePurposes</key>
+        <array>
+          <string>NSPrivacyCollectedDataTypePurposeProductPersonalization</string>
+        </array>
+      </dict>
+      <dict>
+        <key>NSPrivacyCollectedDataType</key>
+        <string>NSPrivacyCollectedDataTypeOtherUserContactInfo</string>
+        <key>NSPrivacyCollectedDataTypeLinked</key>
+        <true />
+        <key>NSPrivacyCollectedDataTypeTracking</key>
+        <false />
+        <key>NSPrivacyCollectedDataTypePurposes</key>
+        <array>
+          <string>NSPrivacyCollectedDataTypePurposeProductPersonalization</string>
+        </array>
+      </dict>
     </array>
-</dict>
+    <key>NSPrivacyAccessedAPITypes</key>
+    <array>
+      <dict>
+        <key>NSPrivacyAccessedAPIType</key>
+        <string>NSPrivacyAccessedAPICategoryUserDefaults</string>
+        <key>NSPrivacyAccessedAPITypeReasons</key>
+        <array>
+          <string>CA92.1</string>
+        </array>
+      </dict>
+    </array>
+  </dict>
 </plist>
