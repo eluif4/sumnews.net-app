@@ -4,14 +4,14 @@ import { config } from './constants'
 import App from './App.vue';
 import router from './router';
 import { getAuthToken } from './scripts/utility';
-import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
+import { SocialLogin } from '@capgo/capacitor-social-login';
 import { PushNotifications } from '@capacitor/push-notifications';
 import { getAndSaveUsersFCMToken } from './firebase';
 import { Capacitor } from '@capacitor/core';
 import { StatusBar } from '@capacitor/status-bar';
 
-StatusBar.setOverlaysWebView({ overlay: false }); // Ensures the webview doesn’t overlay the status bar
-console.log('status bar set');
+// StatusBar.setOverlaysWebView({ overlay: false }); // Ensures the webview doesn’t overlay the status bar
+// console.log('status bar set');
 
 const FRONTEND_URL = config.url.FRONTEND_URL
 const BACKEND_URL = config.url.BACKEND_URL
@@ -21,10 +21,27 @@ const app = createApp(App)
 localStorage.setItem('genres', JSON.stringify([]))
 localStorage.setItem('sources', JSON.stringify([]))
 
+const platform = ref(Capacitor.getPlatform());
+
 // onMounted(() => {
 try {
-  GoogleAuth.initialize();
-  console.log('Google Auth Initialized');
+  if (platform.value == 'android' || platform.value == 'web') {
+    await SocialLogin.initialize({
+      google: {
+        webClientId: "460348077182-hfarubd5kv9mhq03e4g1ugfcjeopeo4m.apps.googleusercontent.com"
+      }
+    });
+  }
+  else if (platform.value == 'ios') {
+    await SocialLogin.initialize({
+      google: {
+        iOSClientId: "460348077182-g3eo76roc1npdi333cifho10gn16o8c1.apps.googleusercontent.com",
+        iOSServerClientId: "460348077182-hfarubd5kv9mhq03e4g1ugfcjeopeo4m.apps.googleusercontent.com"
+      }
+    })
+  }
+  console.log(`Google Auth Initialized for platform ${platform.value}`);
+
 } catch (error) {
   console.error('Faile to Initialize Google Auth', error)
 }
@@ -130,7 +147,7 @@ getUser().then(async (user) => {
   if (userProfile.user) {
     registerPushNotifications();
 
-    const response = await getAndSaveUsersFCMToken(userProfile.user.googleId, Capacitor.getPlatform());
+    const response = await getAndSaveUsersFCMToken(userProfile.user.googleId, platform.value);
 
     // If the user is logged in, register the push notifications
     console.log('getAndSaveUsersFCMToken response: ', response.success, response.message);
@@ -157,7 +174,7 @@ export const PopupAttributes = reactive({
 // Register the service worker
 if ('serviceWorker' in navigator) {
   try {
-    if (Capacitor.getPlatform() == 'web') {
+    if (platform.value == 'web') {
       console.log('loading service worker')
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('/service-worker.js')
@@ -222,14 +239,13 @@ async function registerPushNotifications() {
       const userid = userProfile.user.googleId
       // Send the token to your backend to store with the user's account
       try {
-        const platform = Capacitor.getPlatform();
         const response = await fetch(`${BACKEND_URL}db/saveNotificationToken`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
             // Include any authentication headers if necessary
           },
-          body: JSON.stringify({ fcmToken, userid, platform }),
+          body: JSON.stringify({ fcmToken, userid, platform: platform.value }),
         });
         if (response.status == 200) {
           console.log('Token saved to backend successfully.');
