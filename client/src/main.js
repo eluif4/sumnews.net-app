@@ -9,33 +9,19 @@ import { PushNotifications } from '@capacitor/push-notifications';
 import { getAndSaveUsersFCMToken } from './firebase';
 import { Capacitor } from '@capacitor/core';
 import { StatusBar } from '@capacitor/status-bar';
-import { SafeArea } from 'capacitor-plugin-safe-area';
 
-async function setSafeArea() {
-	console.log('setSafeArea');
-	SafeArea.getSafeAreaInsets().then(({ insets }) => {
-		console.log('insets', insets);
-	});
+import { SafeArea } from '@capacitor-community/safe-area';
 
-	SafeArea.getStatusBarHeight().then(({ statusBarHeight }) => {
-		console.log(statusBarHeight, 'statusbarHeight');
-	});
+SafeArea.enable({
+	config: {
+		customColorsForSystemBars: true,
+		statusBarColor: '#00000000', // transparent
+		statusBarContent: 'light',
+		navigationBarColor: '#00000000', // transparent
+		navigationBarContent: 'light',
+	},
+});
 
-	await SafeArea.removeAllListeners();
-
-	// when safe-area changed
-	await SafeArea.addListener('safeAreaChanged', data => {
-		const { insets } = data;
-		for (const [key, value] of Object.entries(insets)) {
-			document.documentElement.style.setProperty(
-				`--safe-area-inset-${key}`,
-				`${value}px`,
-			);
-		}
-	});
-}
-
-setSafeArea();
 // StatusBar.setOverlaysWebView({ overlay: false }); // Ensures the webview doesn’t overlay the status bar
 
 const FRONTEND_URL = config.url.FRONTEND_URL
