@@ -9,7 +9,33 @@ import { PushNotifications } from '@capacitor/push-notifications';
 import { getAndSaveUsersFCMToken } from './firebase';
 import { Capacitor } from '@capacitor/core';
 import { StatusBar } from '@capacitor/status-bar';
+import { SafeArea } from 'capacitor-plugin-safe-area';
 
+async function setSafeArea() {
+	console.log('setSafeArea');
+	SafeArea.getSafeAreaInsets().then(({ insets }) => {
+		console.log('insets', insets);
+	});
+
+	SafeArea.getStatusBarHeight().then(({ statusBarHeight }) => {
+		console.log(statusBarHeight, 'statusbarHeight');
+	});
+
+	await SafeArea.removeAllListeners();
+
+	// when safe-area changed
+	await SafeArea.addListener('safeAreaChanged', data => {
+		const { insets } = data;
+		for (const [key, value] of Object.entries(insets)) {
+			document.documentElement.style.setProperty(
+				`--safe-area-inset-${key}`,
+				`${value}px`,
+			);
+		}
+	});
+}
+
+setSafeArea();
 // StatusBar.setOverlaysWebView({ overlay: false }); // Ensures the webview doesn’t overlay the status bar
 
 const FRONTEND_URL = config.url.FRONTEND_URL
@@ -288,20 +314,11 @@ async function registerPushNotifications() {
 
 		// Register listener for notification actions (e.g., when user taps the notification)
 		PushNotifications.addListener('pushNotificationActionPerformed', (notification) => {
-			console.log('Notification action performed: ', JSON.stringify(notification));
-			// alert('Push action performed: ' + JSON.stringify(notification));
-
-			// const notificationURL = notification.notification.data?.url;
-			// if (notificationURL) {
-			//   window.open(notificationURL, '_self'); // Open the URL in the same tab
-			// }
 			const notificationData = notification.notification.data;
 
 			if (notificationData && notificationData.url) {
 				const url = notificationData.url;
 
-				// Extracting the different values in the url
-				// FUTURE UPDATE => pass "dailyrecapUUID" and "drEvent" instead of the whole url
 				const parts = url.split('/');
 
 				const dailyrecapUUID = parts[1];
