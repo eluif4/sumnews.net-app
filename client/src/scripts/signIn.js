@@ -3,7 +3,7 @@ import { config } from '../constants';
 import { userProfile } from '../main';
 import { registerPushNotificationsIfNeeded } from '../main';
 import { storeAuthToken, removeAuthToken, showPopup } from './utility';
-import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
+import { SocialLogin } from '@capgo/capacitor-social-login';
 import { Capacitor } from '@capacitor/core';
 
 const FRONTEND_URL = config.url.FRONTEND_URL
@@ -12,9 +12,15 @@ const BACKEND_URL = config.url.BACKEND_URL
 // Move this function to utility.js
 export async function signInWithGoogle() {
     try {
-        const googleUser = await GoogleAuth.signIn();
+        console.log('Logging in with capgo/social-login plugin');
+        const googleUser = await SocialLogin.login({
+            provider: 'google',
+            options: {
+                scopes: ['profile', 'email'],
+            }
+        });
 
-        const { idToken } = googleUser.authentication;
+        const { idToken } = googleUser.result; // Extract the authorization code
 
         const response = await authenticateUser(idToken);
         // If user successfully registered
@@ -68,7 +74,7 @@ export async function authenticateUser(idToken) {
 export async function logoutUserFromGoogle() {
     if (Capacitor.isNativePlatform()) { // Native
         try {
-            await GoogleAuth.signOut(); // Sign out from Google
+            await SocialLogin.logout({ provider: 'google' }); // Sign out from Google
             await removeAuthToken();
             userProfile.user = null; // Reset user profile
             console.log("Successfully logged out from native platform.");

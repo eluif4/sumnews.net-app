@@ -270,7 +270,7 @@ const callback = (response) => {
 .app-container {
     width: 100%;
     background-color: transparent;
-    position: absolute;
+    position: relative;
     z-index: 50;
     height: calc(var(--article-stack-height));
 }
@@ -298,9 +298,8 @@ const callback = (response) => {
 }
 
 .drcontainer {
-    margin: 10px 0;
-    padding: 0 10px;
-    width: 100vw;
+    padding: 10px;
+    width: 100%;
     overflow-x: auto;
     overflow-y: hidden;
     display: flex;
