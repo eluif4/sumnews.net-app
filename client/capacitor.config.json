@@ -5,7 +5,11 @@
   "bundledWebRuntime": false,
   "server": {
     "cleartext": true,
-    "androidScheme": "http"
+    "androidScheme": "http",
+    "allowNavigation": ["*"]
+  },
+  "android:": {
+    "allowMixedContent": true
   },
   "plugins": {
     "GoogleAuth": {

@@ -8,7 +8,8 @@ const sendNotification = async (deviceToken, payload) => {
                 body: payload.body || "Default Body",    // Notification body
             },
             data: {
-                url: payload.url,  // The URL to open when the notification is clicked
+                // url: payload.url,  // The URL to open when the notification is clicked
+                url: 'dailyrecap/438e0bbd-9811-4bea-96f7-bf3d4084d2ea/msnbc.com_3454f70a-7fcb-4b54-b326-69b5b1d45160'
             },
             android: {
                 priority: 'high',

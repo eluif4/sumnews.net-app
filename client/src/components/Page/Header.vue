@@ -225,7 +225,7 @@ onMounted(() => {
 
 <style scoped>
 .topbar {
-    margin: 10px;
+    padding: 10px;
     box-sizing: border-box;
     display: flex;
     flex-direction: row;
