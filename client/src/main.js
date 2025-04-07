@@ -10,17 +10,17 @@ import { getAndSaveUsersFCMToken } from './firebase';
 import { Capacitor } from '@capacitor/core';
 import { StatusBar } from '@capacitor/status-bar';
 
-import { SafeArea } from '@capacitor-community/safe-area';
+// import { SafeArea } from '@capacitor-community/safe-area';
 
-SafeArea.enable({
-	config: {
-		customColorsForSystemBars: true,
-		statusBarColor: '#00000000', // transparent
-		statusBarContent: 'light',
-		navigationBarColor: '#00000000', // transparent
-		navigationBarContent: 'light',
-	},
-});
+// SafeArea.enable({
+// 	config: {
+// 		customColorsForSystemBars: true,
+// 		statusBarColor: '#00000000', // transparent
+// 		statusBarContent: 'light',
+// 		navigationBarColor: '#00000000', // transparent
+// 		navigationBarContent: 'light',
+// 	},
+// });
 
 // StatusBar.setOverlaysWebView({ overlay: false }); // Ensures the webview doesn’t overlay the status bar
 

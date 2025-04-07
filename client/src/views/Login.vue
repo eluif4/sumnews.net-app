@@ -84,6 +84,8 @@ async function skipSignIn() {
 
     background: rgb(98, 254, 189);
     background: linear-gradient(0deg, rgba(98, 254, 189, 1) 0%, rgba(255, 255, 255, 1) 70%);
+
+    color: black;
 }
 
 #page * {
