@@ -1,10 +1,13 @@
 import router from '../router'
+import { ref } from 'vue'
 import { config } from '../constants';
 import { PopupAttributes, List } from '../main';
 import { Preferences } from '@capacitor/preferences'
 
-const FRONTEND_URL = config.url.FRONTEND_URL
-const BACKEND_URL = config.url.BACKEND_URL
+const FRONTEND_URL = config.url.FRONTEND_URL;
+const BACKEND_URL = config.url.BACKEND_URL;
+
+const platform = ref(Capacitor.getPlatform());
 
 export async function front_getArticlesFromDB(
     /* Send a request to backend with function params as body and 
@@ -231,12 +234,12 @@ export async function fetchProtectedResource(path) {
 
 // Function to store token based on platform
 export async function storeAuthToken(token) {
-    if (Capacitor.getPlatform() === 'web') {
+    if (platform.value === 'web') {
         // Store token in an HTTP-only cookie
         const date = new Date();
         const maxAge = 1 * 365 * 24 * 60 * 60; // 1 years in seconds
         document.cookie = `authToken=${token}; Max-Age=${maxAge}; Secure; SameSite=Strict; path=/`;
-    } else if (Capacitor.getPlatform() === 'android' || Capacitor.getPlatform() === 'ios') {
+    } else if (platform.value === 'android' || platform.value === 'ios') {
         // Store token in secure storage for native
         await Preferences.set({ key: 'authToken', value: token });
     }
@@ -244,10 +247,10 @@ export async function storeAuthToken(token) {
 
 // Function to retrieve token based on platform
 export async function getAuthToken() {
-    if (Capacitor.getPlatform() === 'web') {
+    if (platform.value === 'web') {
         const match = document.cookie.match(/(^|;\s*)authToken=([^;]*)/);
         return match ? match[2] : null; // Retrieve token from cookie
-    } else if (Capacitor.getPlatform() === 'android' || Capacitor.getPlatform() === 'ios') {
+    } else if (platform.value === 'android' || platform.value === 'ios') {
         const { value } = await Preferences.get({ key: 'authToken' });
         return value; // Retrieve token from secure storage
     }
@@ -256,31 +259,41 @@ export async function getAuthToken() {
 
 // Function to remove the auth token based on the platform
 export async function removeAuthToken() {
-    if (Capacitor.getPlatform() === 'web') {
+    if (platform.value === 'web') {
         // Remove token from cookie
         document.cookie = `authToken=; Max-Age=0; Secure; SameSite=Strict; path=/`;
-    } else if (Capacitor.getPlatform() === 'android' || Capacitor.getPlatform() === 'ios') {
+    } else if (platform.value === 'android' || platform.value === 'ios') {
         // Remove token from secure storage for native
         await Preferences.remove({ key: 'authToken' });
     }
 }
 
 export function setCookie(name, value, days) {
-    const date = new Date();
-    date.setTime(date.getTime() + days * 24 * 60 * 60 * 1000); // Convert days to milliseconds
-    const expires = "expires=" + date.toUTCString();
-    document.cookie = `${name}=${value}; ${expires}; path=/;`;
+    if (platform.value === 'web') {
+        const date = new Date();
+        date.setTime(date.getTime() + days * 24 * 60 * 60 * 1000); // Convert days to milliseconds
+        const expires = "expires=" + date.toUTCString();
+        document.cookie = `${name}=${value}; ${expires}; path=/;`;
+    } else if (platform.value === 'android' || platform.value === 'ios') {
+        Preferences.set({ key: name, value: value }).then(() => {
+            console.log(`Cookie ${name} set to ${value}`);
+        })
+    }
 }
 
 export function getCookie(name) {
-    const cookies = document.cookie.split("; ");
-    for (let i = 0; i < cookies.length; i++) {
-        const [key, value] = cookies[i].split("=");
-        if (key === name) {
-            return value;
+    if (platform.value === 'web') {
+        const cookies = document.cookie.split("; ");
+        for (let i = 0; i < cookies.length; i++) {
+            const [key, value] = cookies[i].split("=");
+            if (key === name) {
+                return value;
+            }
         }
+        return null; // Return null if the cookie is not found
+    } else if (platform.value === 'android' || platform.value === 'ios') {
+        return Preferences.get({ key: name }).then(({ value }) => value ? value : null); // Retrieve token from secure storage
     }
-    return null; // Return null if the cookie is not found
 }
 
 // Sets Daily Recap buttons if need to. 
