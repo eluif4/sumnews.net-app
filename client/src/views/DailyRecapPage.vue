@@ -233,10 +233,10 @@ function updateWasVisitedDailyRecapButtons() {
 
     console.log('Visited recaps updated and pushed to the end of the array');
 
-    goBack();
-    // router.push({
-    //     name: 'home'
-    // });
+    // goBack();
+    router.push({
+        name: 'home'
+    });
 }
 </script>
 
