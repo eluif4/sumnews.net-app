@@ -2,51 +2,17 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
   <dict>
+  <dict>
     <key>NSPrivacyTracking</key>
-    <false />
-    <key>NSPrivacyTrackingDomains</key>
-    <array />
-    <key>NSPrivacyCollectedDataTypes</key>
-    <array>
-      <dict>
-        <key>NSPrivacyCollectedDataType</key>
-        <string>NSPrivacyCollectedDataTypeName</string>
-        <key>NSPrivacyCollectedDataTypeLinked</key>
-        <true />
-        <key>NSPrivacyCollectedDataTypeTracking</key>
-        <false />
-        <key>NSPrivacyCollectedDataTypePurposes</key>
-        <array>
-          <string>NSPrivacyCollectedDataTypePurposeProductPersonalization</string>
-        </array>
-      </dict>
-      <dict>
-        <key>NSPrivacyCollectedDataType</key>
-        <string>NSPrivacyCollectedDataTypeEmailAddress</string>
-        <key>NSPrivacyCollectedDataTypeLinked</key>
-        <true />
-        <key>NSPrivacyCollectedDataTypeTracking</key>
-        <false />
-        <key>NSPrivacyCollectedDataTypePurposes</key>
-        <array>
-          <string>NSPrivacyCollectedDataTypePurposeProductPersonalization</string>
-        </array>
-      </dict>
-      <dict>
-        <key>NSPrivacyCollectedDataType</key>
-        <string>NSPrivacyCollectedDataTypeOtherUserContactInfo</string>
-        <key>NSPrivacyCollectedDataTypeLinked</key>
-        <true />
-        <key>NSPrivacyCollectedDataTypeTracking</key>
-        <false />
-        <key>NSPrivacyCollectedDataTypePurposes</key>
-        <array>
-          <string>NSPrivacyCollectedDataTypePurposeProductPersonalization</string>
-        </array>
-      </dict>
-    </array>
+    <false/>
     <key>NSPrivacyAccessedAPITypes</key>
     <array>
+      <dict>
+        <key>NSPrivacyAccessedAPIType</key>
+        <string>Authentication</string>
+        <key>NSPrivacyAccessedAPITypeReason</key>
+        <string>Used for authenticating users via Google Sign-In</string>
+      </dict>
       <dict>
         <key>NSPrivacyAccessedAPIType</key>
         <string>NSPrivacyAccessedAPICategoryUserDefaults</string>
@@ -54,6 +20,21 @@
         <array>
           <string>CA92.1</string>
         </array>
+      </dict>
+    </array>
+    <key>NSPrivacyCollectedDataTypes</key>
+    <array>
+      <dict>
+        <key>NSPrivacyCollectedDataType</key>
+        <string>Email Address</string>
+        <key>NSPrivacyCollectedDataTypePurpose</key>
+        <string>Used for user authentication and account identification</string>
+      </dict>
+      <dict>
+        <key>NSPrivacyCollectedDataType</key>
+        <string>Identifiers</string>
+        <key>NSPrivacyCollectedDataTypePurpose</key>
+        <string>Used to maintain user sessions and personalize content</string>
       </dict>
     </array>
   </dict>

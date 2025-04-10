@@ -228,11 +228,11 @@ function updateWasVisitedDailyRecapButtons() {
         "lastUpdate": lastUpdate,
         "dailyRecapButtons": dailyRecapButtonsArray
     }));
-
-    goBack();
-    // router.push({
-    //     name: 'home'
-    // });
+    
+    // goBack();
+    router.push({
+        name: 'home'
+    });
 }
 </script>
 

@@ -11,6 +11,7 @@
     --browser-background-color: #161618;
     --overlay-color: rgba(59, 59, 59, 0.55);
     --error-color: #858585;
+    color: black;
 
     --border-radius: 10px;
 
@@ -20,14 +21,8 @@
     /* ---SIZE DECLARATION--- */
     --header-height: 50px;
     --drcontainer-height: 60px;
-    /* --dropdown-height: 70px; */
-    /* --dropdown-open-height: 181px; */
-    /* --dropdown-width: 90%; */
-    /* --footer-height: 60px; <- Not used */
     --article-stack-height: calc(100% - var(--header-height) - var(--drcontainer-height));
     --article-stack-nodr-height: calc(100% - var(--header-height));
-    /* --footer-icon-size: 25px; */
-    /* --down-arrow-size: 30px; */
 
     /* ---Transitions --- */
     --transition-time: 500ms;
@@ -36,29 +31,26 @@
     --svg-size: 40px;
 }
 
-html,
-body {
+html {
     /* -----POSITIONAL STYLING----- */
     height: 100%;
     width: 100%;
-    /* margin: 0; */
-    /* padding: 0; */
-    /* margin-top: env(safe-area-inset-top);  /* Adds margin to account for the notch */
-    /* padding-top: env(safe-area-inset-top); */
+    margin: 0;
+    padding: 0;
     box-sizing: border-box;
 
     /* -----TEXT STYLING---- */
     color: black;
     font-size: 16px;
     font-family: 'Bitter', sans-serif;
-    background-color: white;
+    background-color: black;
+}
 
-    /* padding-top: env(safe-area-inset-top);
-    padding-bottom: env(safe-area-inset-bottom);
-    padding-left: env(safe-area-inset-left);
-    padding-right: env(safe-area-inset-right); */
-    padding-top: calc(var(--ion-safe-area-top) + 32px);
-    padding-bottom: calc(var(--ion-safe-area-bottom) + 32px);
+body {
+    height: 100vh;
+    width: 100vw;
+    background: black;
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
 }
 
 ::placeholder {
@@ -69,9 +61,6 @@ body {
 .text-xl {
     color: #284b28;
     font-weight: bold;
-    /* color: var(--main-color); */
-    /* color: black; */
-    /* background: var(--main-color); */
 }
 
 .mailto {
@@ -85,10 +74,4 @@ body {
     transition-duration: 200ms;
     transition-timing-function: cubic-bezier(0, 0, 0.2, 1);
     transition-property: all;
-    /* transform: scale(0.95) translateY(2px); Scale down and move slightly */
-}
-
-.bounce:active:hover {
-    /* animation: button-pop 0s ease-out; */
-    transform: scale(var(--btn-focus-scale, 0.97));
 }

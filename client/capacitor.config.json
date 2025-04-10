@@ -7,6 +7,9 @@
     "cleartext": true,
     "androidScheme": "http"
   },
+  "ios": {
+    "contenInset": "always"
+  },
   "plugins": {
     "GoogleAuth": {
       "scopes": [
@@ -27,9 +30,5 @@
       "style": "dark",
       "backgroundColor": "transparent"
     }
-  },
-  "cordova": {},
-  "ios": {
-    "contenInset": "always"
   }
 }
